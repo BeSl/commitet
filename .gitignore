@@ -1,41 +1,31 @@
-node_modules
-HELP.md
+.jmix
+
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
+!**/src/main/**
+!**/src/test/**
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
+# Remove this line if you want to follow recommendations in src/main/bundles/README.md
+src/main/bundles/
 
 ### IntelliJ IDEA ###
-.idea
+.idea/*
+!.idea/encodings.xml
 *.iws
 *.iml
 *.ipr
 out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+/target/
 
 ### VS Code ###
 .vscode/
 
-### Kotlin ###
-.kotlin
+# The following files are generated/updated by vaadin-gradle-plugin
+node_modules/
+src/main/frontend/generated/
+pnpmfile.js
+vite.generated.ts
+webpack.generated.js
+
+.DS_Store

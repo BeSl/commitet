@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:c="http://jmix.io/schema/flowui/jpql-condition"
+      title="msg://commitListView.title"
+      focusComponent="commitsDataGrid">
+    <data>
+        <collection id="commitsDc"
+                    class="com.company.commitet_jm.entity.Commit">
+            <fetchPlan extends="_base">
+                <property name="project" fetch="AUTO" fetchPlan="_local"/>
+            </fetchPlan>
+            <loader id="commitsDl" readOnly="true">
+                <query>
+                    <![CDATA[select e from Commit_ e]]>
+                </query>
+            </loader>
+        </collection>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+        <urlQueryParameters>
+            <genericFilter component="genericFilter"/>
+            <pagination component="pagination"/>
+        </urlQueryParameters>
+    </facets>
+    <actions>
+        <action id="selectAction" type="lookup_select"/>
+        <action id="discardAction" type="lookup_discard"/>
+    </actions>
+    <layout>
+        <genericFilter id="genericFilter"
+                       dataLoader="commitsDl">
+            <properties include=".*"/>
+        </genericFilter>
+        <hbox id="buttonsPanel" classNames="buttons-panel">
+            <button id="createButton" action="commitsDataGrid.createAction"/>
+            <button id="editButton" action="commitsDataGrid.editAction"/>
+            <button id="removeButton" action="commitsDataGrid.removeAction"/>
+            <simplePagination id="pagination" dataLoader="commitsDl"/>
+        </hbox>
+        <dataGrid id="commitsDataGrid"
+                  width="100%"
+                  minHeight="20em"
+                  dataContainer="commitsDc"
+                  columnReorderingAllowed="true">
+            <actions>
+                <action id="createAction" type="list_create"/>
+                <action id="editAction" type="list_edit"/>
+                <action id="removeAction" type="list_remove"/>
+            </actions>
+            <columns resizable="true">
+                <column property="project"/>
+                <column property="taskNum"/>
+                <column property="description"/>
+                <column property="status"/>
+            </columns>
+        </dataGrid>
+        <hbox id="lookupActions" visible="false">
+            <button id="selectButton" action="selectAction"/>
+            <button id="discardButton" action="discardAction"/>
+        </hbox>
+    </layout>
+</view>

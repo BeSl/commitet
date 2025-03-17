@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://commitDetailView.title"
+      focusComponent="form">
+    <data>
+        <instance id="commitDc"
+                  class="com.company.commitet_jm.entity.Commit">
+            <fetchPlan extends="_base">
+                <property name="project" fetchPlan="_base" />
+                <property name="files" fetchPlan="_base"/>
+            </fetchPlan>
+            <loader id="commitDl"/>
+            <collection id="filesDc" property="files"/>
+        </instance>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+    <actions>
+        <action id="saveAction" type="detail_saveClose"/>
+        <action id="closeAction" type="detail_close"/>
+    </actions>
+    <layout>
+        <formLayout id="form" dataContainer="commitDc">
+            <responsiveSteps>
+                <responsiveStep minWidth="0" columns="1"/>
+                <responsiveStep minWidth="40em" columns="2"/>
+            </responsiveSteps>
+            <entityPicker id="projectField" property="project" label="проект">
+                <actions>
+                    <action id="entityLookupAction" type="entity_lookup">
+                        <properties>
+                            <property name="viewClass" value="com.company.commitet_jm.view.project.ProjectListSelect"/>
+                        </properties>
+                    </action>
+                    <action id="entityClearAction" type="entity_clear"/>
+                </actions>
+            </entityPicker>
+            <textField id="taskNumField" property="taskNum" label="Номер задачи"/>
+        </formLayout>
+        <h4 text="msg://com.company.commitet_jm.entity/Commit.files"/>
+        <hbox id="buttonsPanel" classNames="buttons-panel">
+            <button action="filesDataGrid.createAction"/>
+            <button action="filesDataGrid.editAction"/>
+            <button action="filesDataGrid.removeAction"/>
+        </hbox>
+        <dataGrid id="filesDataGrid" dataContainer="filesDc" width="100%" minHeight="20em">
+            <actions>
+                <action id="createAction" type="list_create">
+                    <properties>
+                        <property name="openMode" value="DIALOG"/>
+                    </properties>
+                </action>
+                <action id="editAction" type="list_edit">
+                    <properties>
+                        <property name="openMode" value="DIALOG"/>
+                    </properties>
+                </action>
+                <action id="removeAction" type="list_remove"/>
+            </actions>
+            <columns>
+                <column property="name"/>
+                <column property="type"/>
+            </columns>
+        </dataGrid>
+        <textArea id="descriptionField" property="description" width="100%" label="описание изменений"/>
+        <hbox id="detailActions">
+            <button id="saveAndCloseButton" action="saveAction"/>
+            <button id="closeButton" action="closeAction"/>
+        </hbox>
+    </layout>
+</view>
