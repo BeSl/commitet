@@ -4,10 +4,12 @@ import io.jmix.core.entity.annotation.JmixGeneratedValue
 import io.jmix.core.metamodel.annotation.Composition
 import io.jmix.core.metamodel.annotation.InstanceName
 import io.jmix.core.metamodel.annotation.JmixEntity
+import io.jmix.data.DbView
 import io.jmix.eclipselink.lazyloading.NotInstantiatedList
 import jakarta.persistence.*
 import java.util.*
 
+@DbView
 @JmixEntity
 @Table(name = "COMMIT_", indexes = [
     Index(name = "IDX_COMMIT__AUTHOR", columnList = "AUTHOR_ID"),
@@ -39,7 +41,7 @@ open class Commit {
     var fixCommit: Boolean? = null
 
     @Column(name = "STATUS")
-    var status: String? = null
+    private var status: String? = null
 
     @InstanceName
     @Column(name = "DESCRIPTION", length = 500)

@@ -55,7 +55,7 @@ class CommitDetailView : StandardDetailView<Commit>() {
     private fun onInitEntity(event: InitEntityEvent<Commit>) {
 
         var recommit = event.entity
-        recommit.status = StatusSheduler.NEW.id
+        recommit.setStatus(StatusSheduler.NEW)
 
     }
 

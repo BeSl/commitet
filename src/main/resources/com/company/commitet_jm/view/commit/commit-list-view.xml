@@ -30,7 +30,7 @@
     <layout>
         <genericFilter id="genericFilter"
                        dataLoader="commitsDl">
-            <properties include=".*"/>
+<!--            <properties include=".*"/>-->
         </genericFilter>
         <hbox id="buttonsPanel" classNames="buttons-panel">
             <button id="createButton" action="commitsDataGrid.createAction"/>
