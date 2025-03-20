@@ -39,11 +39,14 @@ open class Commit {
     var fixCommit: Boolean? = null
 
     @Column(name = "STATUS")
-    private var status: String? = null
+    var status: String? = null
 
     @InstanceName
     @Column(name = "DESCRIPTION", length = 500)
     var description: String? = null
+
+    @Column(name = "ERROR_INFO")
+    var errorInfo: String? = null
 
     fun getStatus(): StatusSheduler? = status?.let { StatusSheduler.fromId(it) }
 

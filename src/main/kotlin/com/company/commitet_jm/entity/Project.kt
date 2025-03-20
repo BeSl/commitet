@@ -15,6 +15,12 @@ open class Project {
     @Id
     var id: UUID? = null
 
+    @Column(name = "ADMIN_GIT_NAME")
+    var adminGitName: String? = null
+
+    @Column(name = "ADMIN_GIT_PASSWORD")
+    var adminGitPassword: String? = null
+
     @Column(name = "LOCAL_PATH")
     var localPath: String? = null
 

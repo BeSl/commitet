@@ -2,20 +2,20 @@ package com.company.commitet_jm.view.commit
 
 import com.company.commitet_jm.entity.Commit
 import com.company.commitet_jm.entity.Project
+import com.company.commitet_jm.entity.StatusSheduler
 import com.company.commitet_jm.view.main.MainView
-import com.company.commitet_jm.view.project.ProjectListSelect
 import com.vaadin.flow.component.ClickEvent
 import com.vaadin.flow.router.Route
 import io.jmix.core.DataManager
+import io.jmix.core.security.CurrentAuthentication
 import io.jmix.flowui.DialogWindows
 import io.jmix.flowui.action.entitypicker.EntityLookupAction
-import io.jmix.flowui.kit.action.ActionPerformedEvent
+import io.jmix.flowui.component.textfield.TypedTextField
 import io.jmix.flowui.kit.component.button.JmixButton
 import io.jmix.flowui.view.*
 import io.jmix.flowui.view.builder.LookupWindowBuilderProcessor
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import java.util.function.Consumer
 
 
 @Route(value = "commits/:id", layout = MainView::class)
@@ -23,6 +23,17 @@ import java.util.function.Consumer
 @ViewDescriptor(path = "commit-detail-view.xml")
 @EditedEntityContainer("commitDc")
 class CommitDetailView : StandardDetailView<Commit>() {
+    @Autowired
+    private lateinit var currentAuthentication: CurrentAuthentication
+
+    @Subscribe
+    private fun onBeforeSave(event: BeforeSaveEvent) {
+        println("test")
+
+    }
+
+
+
     @Autowired
     private lateinit var dataManager: DataManager
 
@@ -38,6 +49,14 @@ class CommitDetailView : StandardDetailView<Commit>() {
 
     companion object {
         private  val log = LoggerFactory.getLogger(CommitDetailView::class.java)
+    }
+
+    @Subscribe
+    private fun onInitEntity(event: InitEntityEvent<Commit>) {
+
+        var recommit = event.entity
+        recommit.status = StatusSheduler.NEW.id
+
     }
 
     @Subscribe(id = "saveAndCloseButton", subject = "clickListener")

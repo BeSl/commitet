@@ -21,12 +21,14 @@
         <action id="closeAction" type="detail_close"/>
     </actions>
     <layout>
-        <formLayout id="form" dataContainer="commitDc">
-            <responsiveSteps>
+        <formLayout id="form" width="" dataContainer="commitDc">
+            <responsiveSteps >
                 <responsiveStep minWidth="0" columns="1"/>
                 <responsiveStep minWidth="40em" columns="2"/>
             </responsiveSteps>
-            <entityPicker id="projectField" property="project" label="проект">
+            <vbox width="100%" >
+            <hbox width="100%"  >
+            <entityPicker  id="projectField" property="project" label="Проект">
                 <actions>
                     <action id="entityLookupAction" type="entity_lookup">
                         <properties>
@@ -36,9 +38,12 @@
                     <action id="entityClearAction" type="entity_clear"/>
                 </actions>
             </entityPicker>
+<!--            <textField id="statusCommit" property="status" label="Статус обработки" />-->
+            </hbox>
             <textField id="taskNumField" property="taskNum" label="Номер задачи"/>
+            </vbox>
         </formLayout>
-        <h4 text="msg://com.company.commitet_jm.entity/Commit.files"/>
+        <h4 text="Файлы коммита:"/>
         <hbox id="buttonsPanel" classNames="buttons-panel">
             <button action="filesDataGrid.createAction"/>
             <button action="filesDataGrid.editAction"/>
