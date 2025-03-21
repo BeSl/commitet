@@ -1,0 +1,18 @@
+{
+  "productionMode": false,
+  "eagerServerLoad": false,
+  "npmFolder": "D:\\glab_repo\\commitet",
+  "node.version": "v22.13.1",
+  "node.download.root": "https://nodejs.org/dist/",
+  "frontendFolder": "D:\\glab_repo\\commitet\\.\\src\\main\\frontend",
+  "connect.javaSourceFolder": "D:\\glab_repo\\commitet\\src\\main\\java",
+  "javaResourceFolder": "D:\\glab_repo\\commitet\\src\\main\\resources",
+  "connect.applicationProperties": "D:\\glab_repo\\commitet\\src\\main\\resources\\application.properties",
+  "connect.openApiFile": "D:\\glab_repo\\commitet\\build\\generated-resources\\openapi.json",
+  "project.frontend.generated": "D:\\glab_repo\\commitet\\.\\src\\main\\frontend\\generated",
+  "pnpm.enable": false,
+  "bun.enable": false,
+  "require.home.node": false,
+  "build.folder": "build",
+  "react.enable": true
+}

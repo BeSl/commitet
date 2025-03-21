@@ -7,14 +7,16 @@ import com.company.commitet_jm.entity.Commit
 import com.company.commitet_jm.entity.Project
 import com.company.commitet_jm.entity.StatusSheduler
 import io.jmix.core.DataManager
+import jakarta.persistence.EntityManager
+import kotlinx.coroutines.delay
 import java.io.File
+import kotlin.concurrent.thread
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.lib.PersonIdent
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
-import java.util.concurrent.TimeUnit
 
 @Service
 class GitWorker(private val dataManager: DataManager) {
@@ -27,7 +29,7 @@ class GitWorker(private val dataManager: DataManager) {
         if (commitInfo == null) {
             return
         }
-//        commitInfo.project?.let { newCommit(it, commitInfo) }
+        commitInfo.project?.let { newCommit(it, commitInfo) }
 //        return
 //        //check files repo
 //        if(commitInfo.project?.localPath?.let { repoIsCloned(it) } == false){
@@ -35,32 +37,7 @@ class GitWorker(private val dataManager: DataManager) {
 //            commitInfo.project?.urlRepo?.let { commitInfo?.project?.localPath?.let { it1 -> cloneRepo(it, it1) } }
 //            log.info("Finished cloning repo "+ commitInfo.project?.urlRepo)
 //        }
-////        //pull origin
-        //git reset
-        val path = File(commitInfo.project?.localPath)
-        println(path.exists())
-        var processBuilder = ProcessBuilder("git reset --hard")
-        processBuilder.directory(path)
-//        processBuilder.run {  }
-        processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
-//        processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT)
-        processBuilder.start()
-//            .waitFor(1, TimeUnit.MINUTES)
-
-        processBuilder = ProcessBuilder( "git checkout  ${commitInfo.project!!.defaultBranch}")
-        processBuilder.directory(path)
-        processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
-        processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT)
-        processBuilder.start()
-
-//        processBuilder.inputStream.bufferedReader().readText()
-
-        processBuilder = ProcessBuilder(" git pull origin")
-        processBuilder.directory(path)
-        processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
-        processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT)
-        processBuilder.start()
-
+//        //pull origin
 //        commitInfo.project?.localPath?.let { commitInfo.project!!.defaultBranch?.let { it1 -> pullOrigin(it, it1) } }
 //        //create branch
 //        val branchName = commitInfo.project?.defaultBranch?.let { sanitizeGitBranchName(it) }
@@ -105,63 +82,60 @@ class GitWorker(private val dataManager: DataManager) {
         val newBranch = "feature/${commitData.taskNum}"
 
         try {
-//            // Открываем репозиторий
+            // Открываем репозиторий
             val repository: Repository = FileRepositoryBuilder()
                 .setGitDir(repoPath)
                 .readEnvironment()
                 .findGitDir()
-//                .setMustExist(true)
                 .build()
-//
+
             val git = Git(repository)
-//
-//            // Получаем изменения из удаленной ветки
-            val cBranch = repository.branch
-          val fbr = repository.fullBranch
-//            git.checkout().setName(project.defaultBranch).call()//            if ( cBranch != remoteBranch) {
+
+            // Получаем изменения из удаленной ветки
+            if (repository.branch != remoteBranch) {
                 git.checkout()
                     .setName(remoteBranch)
                     .call()
+            }
+
+            git.pull()
+//                .setRemoteBranchName("origin/$remoteBranch")
+                .setCredentialsProvider(UsernamePasswordCredentialsProvider(project.adminGitName, project.adminGitPassword))
+                .call()
+
+
+            // Создаем новую ветку
+            git.checkout()
+                .setCreateBranch(true)
+                .setName(newBranch)
+                .call()
+
+            // Копируем файлы в репозиторий (например, из другого места)
+//            filesToAdd.forEach { filePath ->
+//                val sourceFile = File(filePath)
+//                val destinationFile = File(repository.workTree, sourceFile.name)
+//                sourceFile.copyTo(destinationFile, overwrite = true)
 //            }
 
-//            git.pull()
-////                .setRemoteBranchName("origin/$remoteBranch")
-//                .setCredentialsProvider(UsernamePasswordCredentialsProvider(project.adminGitName, project.adminGitPassword))
-//                .call()
-//
-//
-//            // Создаем новую ветку
-////            git.checkout()
-////                .setCreateBranch(true)
-////                .setName(newBranch)
-////                .call()
-//
-//            // Копируем файлы в репозиторий (например, из другого места)
-////            filesToAdd.forEach { filePath ->
-////                val sourceFile = File(filePath)
-////                val destinationFile = File(repository.workTree, sourceFile.name)
-////                sourceFile.copyTo(destinationFile, overwrite = true)
-////            }
-//
-//            // Добавляем файлы в индекс
-//            git.add()
-//                .addFilepattern(".")
-//                .call()
-//
-//            // Создаем коммит от имени другого пользователя
-//            git.commit()
-//                .setMessage(commitData.description)
-//                .setAuthor(PersonIdent(commitData.author?.gitLogin, commitData.author?.gitLogin))
-//                .call()
-//
-//            // Отправляем изменения на сервер
-//            git.push()
-//                .setCredentialsProvider(UsernamePasswordCredentialsProvider(project.adminGitName, project.adminGitPassword))
-//                .setRemote("origin")
-//                .add(newBranch)
-//                .call()
-//
-//            println("Новая ветка $newBranch успешно создана и отправлена на сервер.")
+            // Добавляем файлы в индекс
+            git.add()
+                .addFilepattern(".")
+                .call()
+
+            // Создаем коммит от имени другого пользователя
+            git.commit()
+                .setMessage(commitData.description)
+                .setAuthor(PersonIdent(commitData.author?.gitLogin, commitData.author?.gitLogin))
+                .call()
+
+            // Отправляем изменения на сервер
+            git.push()
+                .setCredentialsProvider(UsernamePasswordCredentialsProvider(project.adminGitName, project.adminGitPassword))
+                .setRemote("origin")
+                .add(newBranch)
+                .call()
+
+            println("Новая ветка $newBranch успешно создана и отправлена на сервер.")
         } catch (e: GitAPIException) {
             e.printStackTrace()
             println("Ошибка при работе с Git: ${e.message}")
@@ -169,8 +143,11 @@ class GitWorker(private val dataManager: DataManager) {
     }
 
 
-
     fun firstNewDataCommit(): Commit?{
+//        val entity = dataManager.loadV(Commit::class.java)
+//        .query("select dCommit from Commit_ dCommit where dCommit.status = :status1 order by dCommit.id asc")
+//        .parameter("status1", StatusSheduler.NEW)
+//            .list()
         val entity = dataManager.load(Commit::class.java)
         .query("select cmt from Commit_ cmt where cmt.status = :status1 order by cmt.id asc")
         .parameter("status1", StatusSheduler.NEW)
@@ -179,9 +156,11 @@ class GitWorker(private val dataManager: DataManager) {
          if (entity.isEmpty()) {
             return null
         }else{
-            val commit = entity.get()
+//             val commit =    dataManager.load(Commit::class.java).id(entity.get().id).one()
+             val commit = entity.get()
             commit.author = entity.get().author
-            commit.files = entity.get().files
+             commit.files = entity.get().files
+//             commit.status = StatusSheduler.IN_PROGRESS
 
             return commit
         }
