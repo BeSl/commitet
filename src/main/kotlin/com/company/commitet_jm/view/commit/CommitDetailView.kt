@@ -29,7 +29,8 @@ class CommitDetailView : StandardDetailView<Commit>() {
 
     @Subscribe
     private fun onBeforeSave(event: BeforeSaveEvent) {
-        println("test")
+
+
 
     }
 

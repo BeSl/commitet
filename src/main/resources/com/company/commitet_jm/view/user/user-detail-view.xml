@@ -18,21 +18,33 @@
     </facets>
     <layout>
         <formLayout id="form" dataContainer="userDc">
-            <textField id="usernameField" property="username" readOnly="true"/>
-            <passwordField id="passwordField"
-                           label="msg://com.company.commitet_jm.entity/User.password"
-                           required="true"
-                           visible="false"/>
-            <passwordField id="confirmPasswordField"
-                           label="msg://confirmPassword"
-                           required="true"
-                           visible="false"/>
-            <textField id="firstNameField" property="firstName"/>
-            <textField id="lastNameField" property="lastName"/>
-            <textField id="emailField" property="email"/>
-            <comboBox id="timeZoneField" property="timeZoneId" clearButtonVisible="true"/>
-            <checkbox id="activeField" property="active"/>
+            <hbox>
+            <textField id="usernameField" property="username" readOnly="true" label="Логин"/>
+            <vbox>
+                <textField id="firstNameField" property="firstName" label="Имя"/>
+                <textField id="lastNameField" property="lastName" label="Фамилия"/>
+                <textField id="emailField" property="email" label="Email"/>
+            </vbox>
+           <vbox>
+               <passwordField id="passwordField"
+                              label="msg://com.company.commitet_jm.entity/User.password"
+                              required="true"
+                              visible="false"/>
+               <passwordField id="confirmPasswordField"
+                              label="Подтверждение пароля"
+                              required="true"
+                              visible="false"/>
+
+
+           </vbox>
+
+            <checkbox id="activeField" property="active" label="Активный"/>
+            <checkbox id="isAdminField" property="isAdmin" label="Администратор"/>
+
+            </hbox>
         </formLayout>
+
+
         <hbox id="detailActions">
             <button id="saveAndCloseButton" action="saveAction"/>
             <button id="closeButton" action="closeAction"/>

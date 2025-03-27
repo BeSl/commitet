@@ -12,6 +12,11 @@
             <loader id="commitsDl" readOnly="true">
                 <query>
                     <![CDATA[select e from Commit_ e]]>
+                    <condition>
+                        <c:jpql>
+                            <c:where> e.author = :user</c:where>
+                        </c:jpql>
+                    </condition>
                 </query>
             </loader>
         </collection>

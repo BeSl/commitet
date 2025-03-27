@@ -6,14 +6,11 @@ import com.company.commitet_jm.entity.Project
 import com.company.commitet_jm.entity.User
 import io.jmix.security.model.EntityAttributePolicyAction
 import io.jmix.security.model.EntityPolicyAction
-import io.jmix.security.role.annotation.EntityAttributePolicy
-import io.jmix.security.role.annotation.EntityAttributePolicyContainer
-import io.jmix.security.role.annotation.EntityPolicy
-import io.jmix.security.role.annotation.ResourceRole
+import io.jmix.security.role.annotation.*
 import io.jmix.securityflowui.role.annotation.MenuPolicy
 import io.jmix.securityflowui.role.annotation.ViewPolicy
 
-@ResourceRole(name = "Developer", code = DeveloperRole.CODE, scope = ["UI"])
+@ResourceRole(name = "Developer", code = DeveloperRole.CODE)
 interface DeveloperRole {
 
     companion object {
@@ -24,17 +21,22 @@ interface DeveloperRole {
         EntityAttributePolicy(
             entityClass = Commit::class,
             attributes = ["*"],
-            action = EntityAttributePolicyAction.VIEW
+            action = EntityAttributePolicyAction.MODIFY
         )
     )
-    @EntityPolicy(entityClass = Commit::class, actions = [EntityPolicyAction.CREATE, EntityPolicyAction.READ])
+    @EntityPolicy(entityClass = Commit::class, actions = [EntityPolicyAction.ALL])
     fun commit()
 
     @EntityAttributePolicyContainer(
         EntityAttributePolicy(
             entityClass = FileCommit::class,
-            attributes = ["*"],
+            attributes = ["id"],
             action = EntityAttributePolicyAction.VIEW
+        ),
+        EntityAttributePolicy(
+            entityClass = FileCommit::class,
+            attributes = ["name", "data", "commit", "type"],
+            action = EntityAttributePolicyAction.MODIFY
         )
     )
     @EntityPolicy(entityClass = FileCommit::class, actions = [EntityPolicyAction.CREATE, EntityPolicyAction.READ])
@@ -53,10 +55,14 @@ interface DeveloperRole {
     @EntityAttributePolicyContainer(
         EntityAttributePolicy(entityClass = User::class, attributes = ["*"], action = EntityAttributePolicyAction.VIEW)
     )
-    @EntityPolicy(entityClass = User::class, actions = [EntityPolicyAction.READ])
+    @EntityPolicy(entityClass = User::class, actions = [EntityPolicyAction.READ, EntityPolicyAction.UPDATE])
     fun user()
 
-    @MenuPolicy(menuIds = ["Commit_.detail"])
-    @ViewPolicy(viewIds = ["Commit_.detail"])
+    @MenuPolicy(menuIds = ["Commit_.list"])
+    @ViewPolicy(viewIds = ["Commit_.list", "Project.list"])
     fun screens()
+
+    @SpecificPolicy(resources = ["*"])
+    fun specific()
+
 }
