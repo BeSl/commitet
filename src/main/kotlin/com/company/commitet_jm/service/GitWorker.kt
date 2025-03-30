@@ -38,9 +38,9 @@ class GitWorker(private val dataManager: DataManager) {
 ////        //pull origin
         //git reset
         val path = File(commitInfo.project?.localPath)
-        println(path.exists())
         var processBuilder = ProcessBuilder("git reset --hard")
         processBuilder.directory(path)
+
 //        processBuilder.run {  }
         processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
 //        processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT)
@@ -60,24 +60,6 @@ class GitWorker(private val dataManager: DataManager) {
         processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
         processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT)
         processBuilder.start()
-
-//        commitInfo.project?.localPath?.let { commitInfo.project!!.defaultBranch?.let { it1 -> pullOrigin(it, it1) } }
-//        //create branch
-//        val branchName = commitInfo.project?.defaultBranch?.let { sanitizeGitBranchName(it) }
-//        log.info("Start creating branch "+ branchName)
-//        commitInfo.project?.localPath?.let {
-//            if (branchName != null) {
-//                createBranch(it, branchName)
-//            }else{
-//                log.error("Branch name is null or empty")
-//            }
-//        }
-        //save files
-//        saveFiles(commitInfo.project?.localPath, commitInfo.files)
-
-        //commit
-        //push origin/branch
-
     }
 
     fun CloneRepo(repoUrl:String, directoryPath: String):Pair<Boolean, String> {
@@ -87,7 +69,7 @@ class GitWorker(private val dataManager: DataManager) {
                 Git.cloneRepository()
                     .setURI(repoUrl)
                     .setDirectory(targetDirectory)
-                    .setCredentialsProvider(UsernamePasswordCredentialsProvider("vbelyakov@darlok.ru", "fpc-7SN-Pa9-haA"))
+                    .setCredentialsProvider(UsernamePasswordCredentialsProvider("vb", "fpc"))
                     .call()
             git.close()
         }catch (e:Exception){
