@@ -1,25 +1,63 @@
 package com.company.commitet_jm.service;
 
-import org.springframework.stereotype.Service
-import kotlin.math.log
-import org.slf4j.LoggerFactory
 import com.company.commitet_jm.entity.Commit
-import com.company.commitet_jm.entity.Project
+import com.company.commitet_jm.entity.FileCommit
 import com.company.commitet_jm.entity.StatusSheduler
 import io.jmix.core.DataManager
+import io.jmix.core.FileRef
+import io.jmix.core.FileStorage
+import io.jmix.core.FileStorageLocator
+import io.jmix.localfs.LocalFileStorageProperties
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Service
 import java.io.File
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
-import org.eclipse.jgit.api.errors.GitAPIException
-import org.eclipse.jgit.lib.PersonIdent
-import org.eclipse.jgit.lib.Repository
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import java.util.*
 import java.util.concurrent.TimeUnit
 
+
 @Service
-class GitWorker(private val dataManager: DataManager) {
+class GitWorker(
+    private val dataManager: DataManager,
+
+    storage: LocalFileStorageProperties
+) {
+    @Autowired
+    private val fileStorageLocator: FileStorageLocator? = null
+
+
     companion object {
         private  val log = LoggerFactory.getLogger(GitWorker::class.java)
+    }
+
+    fun CloneRepo(repoUrl:String, directoryPath: String, branch: String):Pair<Boolean, String> {
+
+        validateGitUrl(repoUrl)
+
+        val dir = File(directoryPath)
+
+        if (dir.exists() && dir.list()?.isNotEmpty() == true) {
+            throw IllegalArgumentException("Target directory must be empty")
+        }
+
+        executeCommand(listOf(
+            "git", "clone",
+            "--branch", "$branch",
+            "--single-branch",
+            repoUrl,
+            directoryPath
+        ))
+
+        return Pair(true, "")
+    }
+
+    private fun validateGitUrl(url: String) {
+        if (!url.matches(Regex("^(https?|git|ssh)://.*"))) {
+            throw IllegalArgumentException("Invalid Git URL format")
+        }
     }
 
     fun CreateCommit() {
@@ -27,208 +65,150 @@ class GitWorker(private val dataManager: DataManager) {
         if (commitInfo == null) {
             return
         }
-//        commitInfo.project?.let { newCommit(it, commitInfo) }
-//        return
-//        //check files repo
-//        if(commitInfo.project?.localPath?.let { repoIsCloned(it) } == false){
-//            log.info("Start cloning repo "+ commitInfo.project?.urlRepo)
-//            commitInfo.project?.urlRepo?.let { commitInfo?.project?.localPath?.let { it1 -> cloneRepo(it, it1) } }
-//            log.info("Finished cloning repo "+ commitInfo.project?.urlRepo)
-//        }
-////        //pull origin
-        //git reset
-        val path = File(commitInfo.project?.localPath)
-        var processBuilder = ProcessBuilder("git reset --hard")
-        processBuilder.directory(path)
 
-//        processBuilder.run {  }
-        processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
-//        processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT)
-        processBuilder.start()
-//            .waitFor(1, TimeUnit.MINUTES)
+        val repoPath = commitInfo.project!!.localPath!!
+        val repoDir = File(commitInfo.project!!.localPath)
+        val remoteBranch = commitInfo.project!!.defaultBranch
+        val newBranch = "feature/${commitInfo.taskNum}"
 
-        processBuilder = ProcessBuilder( "git checkout  ${commitInfo.project!!.defaultBranch}")
-        processBuilder.directory(path)
-        processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
-        processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT)
-        processBuilder.start()
-
-//        processBuilder.inputStream.bufferedReader().readText()
-
-        processBuilder = ProcessBuilder(" git pull origin")
-        processBuilder.directory(path)
-        processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
-        processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT)
-        processBuilder.start()
-    }
-
-    fun CloneRepo(repoUrl:String, directoryPath: String):Pair<Boolean, String> {
-        val targetDirectory = File(directoryPath)
-       try {
-            val git =
-                Git.cloneRepository()
-                    .setURI(repoUrl)
-                    .setDirectory(targetDirectory)
-                    .setCredentialsProvider(UsernamePasswordCredentialsProvider("vb", "fpc"))
-                    .call()
-            git.close()
-        }catch (e:Exception){
-            log.error("Error cloning repo "+ repoUrl)
-            log.error(e.printStackTrace().toString())
-            return Pair(false, e.toString())
+        if (!File(repoDir, ".git").exists()) {
+            throw IllegalArgumentException("Not a git repository")
         }
-        log.info("Finished cloning repo "+ repoUrl)
-        return Pair(true, "")
+
+        // Переключаемся на develop и сбрасываем изменения
+        executeCommand(listOf("git", "checkout", remoteBranch), repoDir)
+        executeCommand(listOf("git", "reset", "--hard", "origin/$remoteBranch"), repoDir)
+
+        // Очищаем неотслеживаемые файлы (опционально)
+        executeCommand(listOf("git", "clean", "-fd"), repoDir)
+        commitInfo.id?.let { setStatusCommit(it, StatusSheduler.PROCESSED) }
+        // Проверяем существование ветки develop
+        val branches = executeCommand(listOf("git", "branch", "-a"), repoDir)
+        if (!branches.contains("remotes/origin/$remoteBranch")) {
+            throw IllegalStateException("Develop branch does not exist")
+        }
+
+        executeCommand(listOf("git", "checkout", remoteBranch), repoDir)
+
+        executeCommand(listOf("git", "fetch", "origin", remoteBranch), repoDir)
+
+        executeCommand(listOf("git", "checkout", remoteBranch), repoDir)
+
+        // Создаем новую ветку
+        if (branchExists(repoPath, newBranch)) {
+            executeCommand(listOf("git", "checkout", newBranch), repoDir)
+            executeCommand(listOf("git", "fetch", "origin", newBranch), repoDir)
+        }else {
+            executeCommand(listOf("git", "checkout", "-b", newBranch), repoDir)
+        }
+
+
+        saveFileCommit(repoPath, commitInfo.files)
+
+        executeCommand(listOf("git", "push", "origin", newBranch), repoDir)
+        commitInfo.id?.let { setStatusCommit(it, StatusSheduler.COMPLETE) }
+        log.info("Created new branch $newBranch from $remoteBranch")
+
+
+
+
     }
 
-    fun newCommit(project:Project, commitData:Commit){
-        val repoPath = File(project.localPath)
-        val remoteBranch = project.defaultBranch
-        val newBranch = "feature/${commitData.taskNum}"
+    fun saveFileCommit(baseDir: String, files: MutableList<FileCommit>){
+        // Сохраняем файлы
+        for (file in files) {
+            val content = file.data
+            if (content == null)
+                continue
 
+            val path = File(baseDir)
+            val fileStorage = fileStorageLocator?.getDefault<FileStorage>()
+            val targetPath = path.resolve(file.name.toString()).normalize()
+
+            if (fileStorage != null) {
+                fileStorage.openStream(content).use { inputStream ->
+                    Files.copy(
+                        inputStream,
+                         targetPath,
+                        StandardCopyOption.REPLACE_EXISTING
+                    )
+                }
+            }
+        }
+    }
+
+    fun setStatusCommit(commitId: UUID, status: StatusSheduler){
+        val commit = dataManager.load(Commit::class.java)
+                    .id(commitId)
+                    .one()
+        commit.setStatus(status)
+        dataManager.save(commit)
+    }
+
+    fun branchExists(repoPath: String, branchName: String): Boolean {
+        val branches = executeCommand(listOf("git", "branch", "--list", branchName), File(repoPath))
+        return branches.isNotBlank()
+    }
+
+private fun firstNewDataCommit(): Commit? {
+    val entity = dataManager.load(Commit::class.java)
+                    .query("select cmt from Commit_ cmt where cmt.status = :status1 order by cmt.id asc")
+                    .parameter("status1", StatusSheduler.NEW)
+                    .optional()
+
+    if (entity.isEmpty()) {
+        return null
+    } else {
+        val commit = entity.get()
+        commit.author = entity.get().author
+        commit.files = entity.get().files
+        commit.project = entity.get().project
+
+        return commit
+        }
+
+    }
+
+
+    private fun executeCommand(command: List<String?>, workingDir: File = File(".")): String {
         try {
-//            // Открываем репозиторий
-            val repository: Repository = FileRepositoryBuilder()
-                .setGitDir(repoPath)
-                .readEnvironment()
-                .findGitDir()
-//                .setMustExist(true)
-                .build()
-//
-            val git = Git(repository)
-//
-//            // Получаем изменения из удаленной ветки
-            val cBranch = repository.branch
-          val fbr = repository.fullBranch
-//            git.checkout().setName(project.defaultBranch).call()//            if ( cBranch != remoteBranch) {
-                git.checkout()
-                    .setName(remoteBranch)
-                    .call()
-//            }
+            val process = ProcessBuilder(command)
+                .directory(workingDir)
+                .redirectOutput(ProcessBuilder.Redirect.PIPE)
+                .redirectError(ProcessBuilder.Redirect.PIPE)
+                .start()
 
-//            git.pull()
-////                .setRemoteBranchName("origin/$remoteBranch")
-//                .setCredentialsProvider(UsernamePasswordCredentialsProvider(project.adminGitName, project.adminGitPassword))
-//                .call()
-//
-//
-//            // Создаем новую ветку
-////            git.checkout()
-////                .setCreateBranch(true)
-////                .setName(newBranch)
-////                .call()
-//
-//            // Копируем файлы в репозиторий (например, из другого места)
-////            filesToAdd.forEach { filePath ->
-////                val sourceFile = File(filePath)
-////                val destinationFile = File(repository.workTree, sourceFile.name)
-////                sourceFile.copyTo(destinationFile, overwrite = true)
-////            }
-//
-//            // Добавляем файлы в индекс
-//            git.add()
-//                .addFilepattern(".")
-//                .call()
-//
-//            // Создаем коммит от имени другого пользователя
-//            git.commit()
-//                .setMessage(commitData.description)
-//                .setAuthor(PersonIdent(commitData.author?.gitLogin, commitData.author?.gitLogin))
-//                .call()
-//
-//            // Отправляем изменения на сервер
-//            git.push()
-//                .setCredentialsProvider(UsernamePasswordCredentialsProvider(project.adminGitName, project.adminGitPassword))
-//                .setRemote("origin")
-//                .add(newBranch)
-//                .call()
-//
-//            println("Новая ветка $newBranch успешно создана и отправлена на сервер.")
-        } catch (e: GitAPIException) {
-            e.printStackTrace()
-            println("Ошибка при работе с Git: ${e.message}")
+            val output = process.inputStream.bufferedReader().readText()
+            val error = process.errorStream.bufferedReader().readText()
+
+            process.waitFor(1, TimeUnit.MINUTES)
+
+            if (process.exitValue() != 0) {
+                log.error("Command failed: ${command.joinToString(" ")}\nError: $error")
+                throw RuntimeException("Git command failed: $error")
+            }
+
+            log.debug("Command executed: ${command.joinToString(" ")}\nOutput: $output")
+            return output
+        } catch (e: IOException) {
+            log.error("IO error executing command: ${e.message}")
+            throw e
+        } catch (e: InterruptedException) {
+            log.error("Command interrupted: ${e.message}")
+            throw RuntimeException("Operation interrupted")
         }
     }
 
 
 
-    fun firstNewDataCommit(): Commit?{
-        val entity = dataManager.load(Commit::class.java)
-        .query("select cmt from Commit_ cmt where cmt.status = :status1 order by cmt.id asc")
-        .parameter("status1", StatusSheduler.NEW)
-            .optional()
 
-         if (entity.isEmpty()) {
-            return null
-        }else{
-            val commit = entity.get()
-            commit.author = entity.get().author
-            commit.files = entity.get().files
-
-            return commit
-        }
-
+    // Дополнительные методы
+    fun pullChanges(repoPath: String, branch: String) {
+        executeCommand(listOf("git", "pull", "origin", branch), File(repoPath))
     }
 
-    fun repoIsCloned(localPath: String): Boolean{
-        val folder = File(localPath)
-        return folder.exists()
+    fun pushBranch(repoPath: String, branch: String) {
+        executeCommand(listOf("git", "push", "-u", "origin", branch), File(repoPath))
     }
 
-    fun cloneRepo(url:String, localPath: String){
-        val processBuilder = ProcessBuilder("git", "clone", url, localPath)
-        processBuilder.start()
-    }
-
-    fun pullOrigin(localPath: String, branchName: String){
-        val processBuilder = ProcessBuilder("git", "pull", "origin", branchName)
-        processBuilder.directory(File(localPath))
-        processBuilder.start()
-    }
-
-    fun createBranch(localPath: String, branchName: String){
-        val processBuilder = ProcessBuilder("git", "branch", branchName)
-        processBuilder.directory(File(localPath))
-        processBuilder.start()
-    }
-
-    fun checkoutBranch(localPath: String, branchName: String){
-        val processBuilder = ProcessBuilder("git", "checkout", branchName)
-        processBuilder.directory(File(localPath))
-        processBuilder.start()
-    }
-
-    fun sanitizeGitBranchName(input: String): String {
-        // Заменяем все запрещённые символы на "_"
-        var sanitized = input.replace(Regex("[^a-zA-Z0-9_.-]"), "_")
-
-        // Удаляем запрещённые символы в начале и конце
-        sanitized = sanitized.replace(Regex("^[._-]+"), "")  // начало
-        sanitized = sanitized.replace(Regex("[._-]+$"), "")  // конец
-
-        // Заменяем множественные подчёркивания на одно
-        sanitized = sanitized.replace(Regex("_+"), "_")
-
-        // Удаляем последовательности из точек/дефисов (например, "..", "--")
-        sanitized = sanitized.replace(Regex("[.-]{2,}")) { match -> match.value.first().toString() }
-
-        // Обработка специальных случаев
-        return when {
-            sanitized.isEmpty() -> "default_branch"
-            sanitized == "." || sanitized == ".." -> "branch_${sanitized}"
-            else -> sanitized
-        }
-    }
-
-    fun saveFiles(localPath: String, branchName: String){
-        val processBuilder = ProcessBuilder("git", "add", ".")
-        processBuilder.directory(File(localPath))
-        processBuilder.start()
-    }
-
-    fun commit(localPath: String, branchName: String, message: String){
-        val processBuilder = ProcessBuilder("git", "commit", "-m", message)
-        processBuilder.directory(File(localPath))
-        processBuilder.start()
-    }
 }

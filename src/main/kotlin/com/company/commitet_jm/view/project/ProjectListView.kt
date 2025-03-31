@@ -25,7 +25,6 @@ import io.jmix.flowui.model.InstanceLoader
 import io.jmix.flowui.view.*
 import io.jmix.flowui.view.Target
 import org.springframework.beans.factory.annotation.Autowired
-import com.company.commitet_jm.entity.Commit
 import io.jmix.flowui.Dialogs
 import io.jmix.flowui.component.textfield.TypedTextField
 
@@ -70,6 +69,9 @@ class ProjectListView : StandardListView<Project>() {
 
     @ViewComponent
     private lateinit var localPathField: TypedTextField<String>
+
+    @ViewComponent
+    private lateinit var defaultBranchField: TypedTextField<String>
 
     @Autowired
     private lateinit var dialogs: Dialogs
@@ -119,7 +121,7 @@ class ProjectListView : StandardListView<Project>() {
     @Subscribe("cloneGitButton")
     fun cloneGitButtonClick(event: ClickEvent<JmixButton>) {
         val gw = GitWorker(dataManager = dataManager)
-        val res = gw.CloneRepo(urlRepoField.value, localPathField.value)
+        val res = gw.CloneRepo(urlRepoField.value, localPathField.value, defaultBranchField.value)
         if (res.first) {
             dialogs.createMessageDialog().withHeader("Информация")
                 .withText("Clone Success")

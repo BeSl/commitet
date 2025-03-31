@@ -14,7 +14,6 @@ import io.jmix.flowui.view.*
 import io.jmix.flowui.view.Target
 import org.springframework.beans.factory.annotation.Autowired
 import com.company.commitet_jm.entity.User
-import io.jmix.core.LoadContext
 
 
 @Route(value = "commits", layout = MainView::class)
@@ -44,18 +43,6 @@ class CommitListView : StandardListView<Commit>() {
         )
         gitWorker.CreateCommit()
     }
-
-//    @Subscribe(id = "commitsDl", target = Target.DATA_LOADER)
-//    private fun onCommitsDlPreLoad(event: CollectionLoader.PreLoadEvent<Commit>) {
-////        event.source.parameters.
-//
-//
-//    }
-//
-//    @Install(to = "commitsDl", target = Target.DATA_LOADER)
-//    private fun commitsDlLoadDelegate(t: LoadContext): MutableList<Commit> {
-//        TODO()
-//    }
 
     @Subscribe
     private fun onInit(event: InitEvent) {
