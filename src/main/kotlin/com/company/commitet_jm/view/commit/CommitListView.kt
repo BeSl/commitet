@@ -14,6 +14,9 @@ import io.jmix.flowui.view.*
 import io.jmix.flowui.view.Target
 import org.springframework.beans.factory.annotation.Autowired
 import com.company.commitet_jm.entity.User
+import io.jmix.core.FileStorageLocator
+import io.jmix.core.FileRef
+import io.jmix.core.FileStorage
 
 
 @Route(value = "commits", layout = MainView::class)
@@ -22,6 +25,9 @@ import com.company.commitet_jm.entity.User
 @LookupComponent("commitsDataGrid")
 @DialogMode(width = "64em")
 class CommitListView : StandardListView<Commit>() {
+    @Autowired
+    private lateinit var fileStorageLocator: FileStorageLocator
+
     @Autowired
     private lateinit var currentAuthentication: CurrentAuthentication
 
@@ -40,8 +46,10 @@ class CommitListView : StandardListView<Commit>() {
     private fun onCreateCommitButtonClick(event: ClickEvent<JmixButton>) {
         val gitWorker = GitWorker(
             dataManager = dataManager
+            ,            fileStorageLocator = fileStorageLocator,
         )
         gitWorker.CreateCommit()
+
     }
 
     @Subscribe

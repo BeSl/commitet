@@ -10,6 +10,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.router.Route
 import io.jmix.core.DataManager
+import io.jmix.core.FileStorageLocator
 import io.jmix.core.validation.group.UiCrossFieldChecks
 import io.jmix.flowui.action.SecuredBaseAction
 import io.jmix.flowui.component.UiComponentUtils
@@ -34,6 +35,9 @@ import io.jmix.flowui.component.textfield.TypedTextField
 @LookupComponent("projectsDataGrid")
 @DialogMode(width = "64em")
 class ProjectListView : StandardListView<Project>() {
+    @Autowired
+    private lateinit var fileStorageLocator: FileStorageLocator
+
     @Autowired
     private lateinit var dataManager: DataManager
 
@@ -120,7 +124,7 @@ class ProjectListView : StandardListView<Project>() {
 
     @Subscribe("cloneGitButton")
     fun cloneGitButtonClick(event: ClickEvent<JmixButton>) {
-        val gw = GitWorker(dataManager = dataManager)
+        val gw = GitWorker(dataManager = dataManager, fileStorageLocator = fileStorageLocator)
         val res = gw.CloneRepo(urlRepoField.value, localPathField.value, defaultBranchField.value)
         if (res.first) {
             dialogs.createMessageDialog().withHeader("Информация")

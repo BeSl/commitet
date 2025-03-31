@@ -24,6 +24,7 @@
                 <textField id="firstNameField" property="firstName" label="Имя"/>
                 <textField id="lastNameField" property="lastName" label="Фамилия"/>
                 <textField id="emailField" property="email" label="Email"/>
+                <textField id="gitLoginField" property="gitLogin" label="Git login"/>
             </vbox>
            <vbox>
                <passwordField id="passwordField"

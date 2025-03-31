@@ -40,7 +40,12 @@
             </entityPicker>
 <!--            <textField id="statusCommit" property="status" label="Статус обработки" />-->
             </hbox>
+            <hbox>
             <textField id="taskNumField" property="taskNum" label="Номер задачи"/>
+                <textField id="statusField" property="status" label="Статус"/>
+            </hbox>
+                <textField id="errorInfoField" property="errorInfo" label="Ошибка обработки"/>
+                <textArea id="descriptionField" property="description" width="100%" label="описание изменений"/>
             </vbox>
         </formLayout>
         <h4 text="Файлы коммита:"/>
@@ -68,7 +73,7 @@
                 <column property="type"/>
             </columns>
         </dataGrid>
-        <textArea id="descriptionField" property="description" width="100%" label="описание изменений"/>
+
         <hbox id="detailActions">
             <button id="saveAndCloseButton" action="saveAction"/>
             <button id="closeButton" action="closeAction"/>

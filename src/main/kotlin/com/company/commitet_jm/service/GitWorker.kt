@@ -3,13 +3,11 @@ package com.company.commitet_jm.service;
 import com.company.commitet_jm.entity.Commit
 import com.company.commitet_jm.entity.FileCommit
 import com.company.commitet_jm.entity.StatusSheduler
+import com.company.commitet_jm.entity.TypesFiles
 import io.jmix.core.DataManager
-import io.jmix.core.FileRef
 import io.jmix.core.FileStorage
 import io.jmix.core.FileStorageLocator
-import io.jmix.localfs.LocalFileStorageProperties
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.File
 import java.io.IOException
@@ -21,13 +19,10 @@ import java.util.concurrent.TimeUnit
 
 @Service
 class GitWorker(
-    private val dataManager: DataManager,
-
-    storage: LocalFileStorageProperties
+    private val dataManager: DataManager
+    ,
+    private val fileStorageLocator: FileStorageLocator,
 ) {
-    @Autowired
-    private val fileStorageLocator: FileStorageLocator? = null
-
 
     companion object {
         private  val log = LoggerFactory.getLogger(GitWorker::class.java)
@@ -70,47 +65,64 @@ class GitWorker(
         val repoDir = File(commitInfo.project!!.localPath)
         val remoteBranch = commitInfo.project!!.defaultBranch
         val newBranch = "feature/${commitInfo.taskNum}"
+        try {
+            if (!File(repoDir, ".git").exists()) {
+                throw IllegalArgumentException("Not a git repository")
+            }
 
-        if (!File(repoDir, ".git").exists()) {
-            throw IllegalArgumentException("Not a git repository")
+            // Переключаемся на develop и сбрасываем изменения
+            executeCommand(listOf("git", "checkout", remoteBranch), repoDir)
+            executeCommand(listOf("git", "reset", "--hard", "origin/$remoteBranch"), repoDir)
+
+            executeCommand(listOf("git", "clean", "-fd"), repoDir)
+            commitInfo.id?.let { setStatusCommit(it, StatusSheduler.PROCESSED) }
+
+            val branches = executeCommand(listOf("git", "branch", "-a"), repoDir)
+            if (!branches.contains("remotes/origin/$remoteBranch")) {
+                throw IllegalStateException("Develop branch does not exist")
+            }
+
+            executeCommand(listOf("git", "checkout", remoteBranch), repoDir)
+            executeCommand(listOf("git", "fetch", "origin", remoteBranch), repoDir)
+            executeCommand(listOf("git", "checkout", remoteBranch), repoDir)
+
+            // Создаем новую ветку
+            if (branchExists(repoPath, newBranch)) {
+                executeCommand(listOf("git", "checkout", newBranch), repoDir)
+                executeCommand(listOf("git", "fetch", "origin", newBranch), repoDir)
+            }else {
+                executeCommand(listOf("git", "checkout", "-b", newBranch), repoDir)
+            }
+
+            saveFileCommit(repoPath, commitInfo.files)
+
+            executeCommand(listOf("git", "add", "."), repoDir)
+
+            // 4. Создаем коммит от указанного пользователя
+            executeCommand(
+                listOf(
+                    "git",
+                    "-c", "user.name=${commitInfo.author!!.email}",
+                    "-c", "user.email=${commitInfo.author!!.email}",
+                    "commit",
+                    "-m", commitInfo.description
+                ),
+                repoDir
+            )
+
+            executeCommand(listOf("git", "push", "origin", newBranch), repoDir)
+
+            log.info("Successfully committed and pushed changes to branch $newBranch")
+
+            commitInfo.id?.let { setStatusCommit(it, StatusSheduler.COMPLETE) }
+            log.info("Created new branch $newBranch from $remoteBranch")
+
+        } catch (e: Exception) {
+            log.error("Error occurred while creating commit", e)
+            commitInfo.errorInfo = e.toString()
+            dataManager.save(commitInfo)
+            commitInfo.id?.let { setStatusCommit(it, StatusSheduler.ERROR) }
         }
-
-        // Переключаемся на develop и сбрасываем изменения
-        executeCommand(listOf("git", "checkout", remoteBranch), repoDir)
-        executeCommand(listOf("git", "reset", "--hard", "origin/$remoteBranch"), repoDir)
-
-        // Очищаем неотслеживаемые файлы (опционально)
-        executeCommand(listOf("git", "clean", "-fd"), repoDir)
-        commitInfo.id?.let { setStatusCommit(it, StatusSheduler.PROCESSED) }
-        // Проверяем существование ветки develop
-        val branches = executeCommand(listOf("git", "branch", "-a"), repoDir)
-        if (!branches.contains("remotes/origin/$remoteBranch")) {
-            throw IllegalStateException("Develop branch does not exist")
-        }
-
-        executeCommand(listOf("git", "checkout", remoteBranch), repoDir)
-
-        executeCommand(listOf("git", "fetch", "origin", remoteBranch), repoDir)
-
-        executeCommand(listOf("git", "checkout", remoteBranch), repoDir)
-
-        // Создаем новую ветку
-        if (branchExists(repoPath, newBranch)) {
-            executeCommand(listOf("git", "checkout", newBranch), repoDir)
-            executeCommand(listOf("git", "fetch", "origin", newBranch), repoDir)
-        }else {
-            executeCommand(listOf("git", "checkout", "-b", newBranch), repoDir)
-        }
-
-
-        saveFileCommit(repoPath, commitInfo.files)
-
-        executeCommand(listOf("git", "push", "origin", newBranch), repoDir)
-        commitInfo.id?.let { setStatusCommit(it, StatusSheduler.COMPLETE) }
-        log.info("Created new branch $newBranch from $remoteBranch")
-
-
-
 
     }
 
@@ -121,19 +133,28 @@ class GitWorker(
             if (content == null)
                 continue
 
-            val path = File(baseDir)
+            val path = file.getType()?.let { correctPath(baseDir, it) }
             val fileStorage = fileStorageLocator?.getDefault<FileStorage>()
-            val targetPath = path.resolve(file.name.toString()).normalize()
+            val targetPath = path!!.resolve(file.name.toString()).normalize()
 
             if (fileStorage != null) {
                 fileStorage.openStream(content).use { inputStream ->
                     Files.copy(
                         inputStream,
-                         targetPath,
+                         targetPath!!.toPath(),
                         StandardCopyOption.REPLACE_EXISTING
                     )
                 }
             }
+        }
+    }
+
+    fun correctPath(baseDir: String, type: TypesFiles):File{
+        return when (type) {
+            TypesFiles.REPORT -> File(baseDir, "DataProcessorsExt\\erf\\")
+            TypesFiles.DATAPROCESSOR -> File(baseDir, "DataProcessorsExt\\epf\\")
+            TypesFiles.SCHEDULEDJOBS -> File(baseDir, "ExtCode")
+            TypesFiles.EXTERNAL_CODE -> File(baseDir, "ExtCode")
         }
     }
 
@@ -197,18 +218,6 @@ private fun firstNewDataCommit(): Commit? {
             log.error("Command interrupted: ${e.message}")
             throw RuntimeException("Operation interrupted")
         }
-    }
-
-
-
-
-    // Дополнительные методы
-    fun pullChanges(repoPath: String, branch: String) {
-        executeCommand(listOf("git", "pull", "origin", branch), File(repoPath))
-    }
-
-    fun pushBranch(repoPath: String, branch: String) {
-        executeCommand(listOf("git", "push", "-u", "origin", branch), File(repoPath))
     }
 
 }
