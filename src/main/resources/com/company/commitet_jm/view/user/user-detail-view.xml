@@ -30,18 +30,18 @@
                <passwordField id="passwordField"
                               label="msg://com.company.commitet_jm.entity/User.password"
                               required="true"
-                              visible="false"/>
+                              />
                <passwordField id="confirmPasswordField"
                               label="Подтверждение пароля"
                               required="true"
-                              visible="false"/>
+                              />
 
 
-           </vbox>
+
 
             <checkbox id="activeField" property="active" label="Активный"/>
             <checkbox id="isAdminField" property="isAdmin" label="Администратор"/>
-
+           </vbox>
             </hbox>
         </formLayout>
 

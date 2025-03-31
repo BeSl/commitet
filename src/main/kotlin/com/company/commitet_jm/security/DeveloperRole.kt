@@ -59,7 +59,7 @@ interface DeveloperRole {
     fun user()
 
     @MenuPolicy(menuIds = ["Commit_.list"])
-    @ViewPolicy(viewIds = ["Commit_.list", "Project.list"])
+    @ViewPolicy(viewIds = ["Commit_.list", "Project.list", "Project.listSelect", "FileCommit.detail"])
     fun screens()
 
     @SpecificPolicy(resources = ["*"])
