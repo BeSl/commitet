@@ -25,59 +25,64 @@
             <button id="saveAndCloseButton" action="saveAction"/>
             <button id="closeButton" action="closeAction"/>
         </hbox>
-        <formLayout id="form" width="" dataContainer="commitDc">
-            <responsiveSteps >
-                <responsiveStep minWidth="0" columns="1"/>
-                <responsiveStep minWidth="40em" columns="2"/>
-            </responsiveSteps>
-            <vbox width="100%" >
-            <hbox width="100%"  >
-                <hbox>
-                    <textField id="taskNumField" property="taskNum" label="Номер задачи"/>
+        <hbox width="100%">
+            <vbox height="100%">
+            <h4 text="Задача:"/>
+            <formLayout id="form" width="" dataContainer="commitDc">
+                <responsiveSteps >
+                    <responsiveStep minWidth="0" columns="1"/>
+                    <responsiveStep minWidth="40em" columns="2"/>
+                </responsiveSteps>
+                <vbox width="100%" >
+                    <hbox width="100%"  >
+                        <hbox>
+                            <textField id="taskNumField" property="taskNum" label="Номер задачи"/>
 
-                </hbox>
-            <entityPicker  id="projectField" property="project" label="Проект">
+                        </hbox>
+                        <entityPicker  id="projectField" property="project" label="Проект">
+                            <actions>
+                                <action id="entityLookupAction" type="entity_lookup">
+                                    <properties>
+                                        <property name="viewClass" value="com.company.commitet_jm.view.project.ProjectListSelect"/>
+                                    </properties>
+                                </action>
+                                <action id="entityClearAction" type="entity_clear"/>
+                            </actions>
+                        </entityPicker>
+                        <textField id="statusField" property="status" label="Статус"/>
+                    </hbox>
+                    <textArea id="descriptionField" property="description" width="100%" label="описание изменений"/>
+                    <textField id="errorInfoField" property="errorInfo" width="100%" label="Ошибка обработки"/>
+                </vbox>
+            </formLayout>
+            </vbox>
+            <vbox height="100%">
+            <h4 text="Файлы коммита:"/>
+            <hbox id="buttonsPanel" classNames="buttons-panel">
+                <button action="filesDataGrid.createAction"/>
+                <button action="filesDataGrid.editAction"/>
+                <button action="filesDataGrid.removeAction"/>
+            </hbox>
+            <dataGrid id="filesDataGrid" dataContainer="filesDc" width="100%" minHeight="20em">
                 <actions>
-                    <action id="entityLookupAction" type="entity_lookup">
+                    <action id="createAction" type="list_create">
                         <properties>
-                            <property name="viewClass" value="com.company.commitet_jm.view.project.ProjectListSelect"/>
+                            <property name="openMode" value="DIALOG"/>
                         </properties>
                     </action>
-                    <action id="entityClearAction" type="entity_clear"/>
+                    <action id="editAction" type="list_edit">
+                        <properties>
+                            <property name="openMode" value="DIALOG"/>
+                        </properties>
+                    </action>
+                    <action id="removeAction" type="list_remove"/>
                 </actions>
-            </entityPicker>
-                <textField id="statusField" property="status" label="Статус"/>
-            </hbox>
-                <textArea id="descriptionField" property="description" width="100%" label="описание изменений"/>
-
+                <columns>
+                    <column property="name"/>
+                    <column property="type"/>
+                </columns>
+            </dataGrid>
             </vbox>
-        </formLayout>
-        <h4 text="Файлы коммита:"/>
-        <hbox id="buttonsPanel" classNames="buttons-panel">
-            <button action="filesDataGrid.createAction"/>
-            <button action="filesDataGrid.editAction"/>
-            <button action="filesDataGrid.removeAction"/>
         </hbox>
-        <dataGrid id="filesDataGrid" dataContainer="filesDc" width="100%" minHeight="20em">
-            <actions>
-                <action id="createAction" type="list_create">
-                    <properties>
-                        <property name="openMode" value="DIALOG"/>
-                    </properties>
-                </action>
-                <action id="editAction" type="list_edit">
-                    <properties>
-                        <property name="openMode" value="DIALOG"/>
-                    </properties>
-                </action>
-                <action id="removeAction" type="list_remove"/>
-            </actions>
-            <columns>
-                <column property="name"/>
-                <column property="type"/>
-            </columns>
-        </dataGrid>
-        <textField id="errorInfoField" property="errorInfo" width="100%" label="Ошибка обработки"/>
-
     </layout>
 </view>

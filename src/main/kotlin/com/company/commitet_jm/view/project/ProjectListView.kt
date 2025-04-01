@@ -125,7 +125,7 @@ class ProjectListView : StandardListView<Project>() {
     @Subscribe("cloneGitButton")
     fun cloneGitButtonClick(event: ClickEvent<JmixButton>) {
         val gw = GitWorker(dataManager = dataManager, fileStorageLocator = fileStorageLocator)
-        val res = gw.CloneRepo(urlRepoField.value, localPathField.value, defaultBranchField.value)
+        val res = gw.cloneRepo(urlRepoField.value, localPathField.value, defaultBranchField.value)
         if (res.first) {
             dialogs.createMessageDialog().withHeader("Информация")
                 .withText("Clone Success")

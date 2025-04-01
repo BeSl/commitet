@@ -8,6 +8,7 @@ import com.company.commitet_jm.view.main.MainView
 import com.vaadin.flow.component.ClickEvent
 import com.vaadin.flow.router.Route
 import io.jmix.core.DataManager
+import io.jmix.core.TimeSource
 import io.jmix.core.security.CurrentAuthentication
 import io.jmix.flowui.DialogWindows
 import io.jmix.flowui.action.entitypicker.EntityLookupAction
@@ -17,6 +18,9 @@ import io.jmix.flowui.view.*
 import io.jmix.flowui.view.builder.LookupWindowBuilderProcessor
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import java.time.LocalDateTime
+import java.time.LocalDateTime.now
+import java.util.*
 
 
 @Route(value = "commits/:id", layout = MainView::class)
@@ -24,17 +28,12 @@ import org.springframework.beans.factory.annotation.Autowired
 @ViewDescriptor(path = "commit-detail-view.xml")
 @EditedEntityContainer("commitDc")
 class CommitDetailView : StandardDetailView<Commit>() {
+
+    @Autowired
+    private lateinit var timeSource: TimeSource
+
     @Autowired
     private lateinit var currentAuthentication: CurrentAuthentication
-
-    @Subscribe
-    private fun onBeforeSave(event: BeforeSaveEvent) {
-
-
-
-    }
-
-
 
     @Autowired
     private lateinit var dataManager: DataManager
@@ -57,23 +56,15 @@ class CommitDetailView : StandardDetailView<Commit>() {
     private fun onInitEntity(event: InitEntityEvent<Commit>) {
 
         var recommit = event.entity
+
         recommit.setStatus(StatusSheduler.NEW)
         recommit.author= currentAuthentication.getUser() as User
+//        recommit.dateCreated = timeSource.currentTimestamp()
 
-    }
-
-    @Subscribe
-    private fun onAfterSave(event: AfterSaveEvent) {
-//        var commit = event.dataContext as Commit
-//
-//        if (commit.author == null) {
-//            commit.author = currentAuthentication.getUser() as User
-//        }
     }
 
     @Subscribe(id = "saveAndCloseButton", subject = "clickListener")
     private fun onSaveAndCloseButtonClick(event: ClickEvent<JmixButton>) {
-        log.trace("hello")
-
+        log.info("save commit")
     }
 }
