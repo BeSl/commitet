@@ -1,22 +1,30 @@
 package com.company.commitet_jm.view.commit
 
-import com.company.commitet_jm.entity.Commit
-import com.company.commitet_jm.entity.Project
-import com.company.commitet_jm.entity.StatusSheduler
-import com.company.commitet_jm.entity.User
+import com.company.commitet_jm.entity.*
 import com.company.commitet_jm.view.main.MainView
 import com.vaadin.flow.component.ClickEvent
+import com.vaadin.flow.component.DetachEvent
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 import com.vaadin.flow.router.Route
 import io.jmix.core.DataManager
+import io.jmix.core.TimeSource
 import io.jmix.core.security.CurrentAuthentication
 import io.jmix.flowui.DialogWindows
 import io.jmix.flowui.action.entitypicker.EntityLookupAction
+import io.jmix.flowui.component.delegate.TextAreaFieldDelegate
+import io.jmix.flowui.component.grid.DataGrid
+import io.jmix.flowui.component.textarea.JmixTextArea
 import io.jmix.flowui.component.textfield.TypedTextField
+import io.jmix.flowui.component.valuepicker.EntityPicker
 import io.jmix.flowui.kit.component.button.JmixButton
 import io.jmix.flowui.view.*
 import io.jmix.flowui.view.builder.LookupWindowBuilderProcessor
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import java.awt.TextArea
+import java.time.LocalDateTime
+import java.time.LocalDateTime.now
+import java.util.*
 
 
 @Route(value = "commits/:id", layout = MainView::class)
@@ -24,17 +32,12 @@ import org.springframework.beans.factory.annotation.Autowired
 @ViewDescriptor(path = "commit-detail-view.xml")
 @EditedEntityContainer("commitDc")
 class CommitDetailView : StandardDetailView<Commit>() {
+
+    @Autowired
+    private lateinit var timeSource: TimeSource
+
     @Autowired
     private lateinit var currentAuthentication: CurrentAuthentication
-
-    @Subscribe
-    private fun onBeforeSave(event: BeforeSaveEvent) {
-
-
-
-    }
-
-
 
     @Autowired
     private lateinit var dataManager: DataManager
@@ -48,6 +51,26 @@ class CommitDetailView : StandardDetailView<Commit>() {
     @Autowired
     private lateinit var lookupWindowBuilderProcessor: LookupWindowBuilderProcessor
 
+    @ViewComponent
+    private lateinit var errorInfoField: JmixTextArea
+
+    @ViewComponent
+    private lateinit var statusField: TypedTextField<Any>
+
+    @ViewComponent
+    private lateinit var descriptionField: JmixTextArea
+
+    @ViewComponent
+    private lateinit var taskNumField: TypedTextField<Any>
+
+    @ViewComponent
+    private lateinit var projectField: EntityPicker<Any>
+
+    @ViewComponent
+    private lateinit var filesDataGrid: DataGrid<FileCommit>
+
+    @ViewComponent
+    private lateinit var buttonsPanel: HorizontalLayout
 
     companion object {
         private  val log = LoggerFactory.getLogger(CommitDetailView::class.java)
@@ -56,24 +79,39 @@ class CommitDetailView : StandardDetailView<Commit>() {
     @Subscribe
     private fun onInitEntity(event: InitEntityEvent<Commit>) {
 
+        errorInfoField.isVisible = false
         var recommit = event.entity
+
         recommit.setStatus(StatusSheduler.NEW)
         recommit.author= currentAuthentication.getUser() as User
 
     }
 
     @Subscribe
-    private fun onAfterSave(event: AfterSaveEvent) {
-//        var commit = event.dataContext as Commit
-//
-//        if (commit.author == null) {
-//            commit.author = currentAuthentication.getUser() as User
-//        }
+    private fun onInit(event: InitEvent) {
     }
 
     @Subscribe(id = "saveAndCloseButton", subject = "clickListener")
     private fun onSaveAndCloseButtonClick(event: ClickEvent<JmixButton>) {
-        log.trace("hello")
-
+        log.info("save commit")
     }
+
+    @Subscribe
+    private fun onReady(event: ReadyEvent) {
+        val cuser = currentAuthentication.getUser() as User
+        if (cuser.isAdmin == true){
+            return
+        }
+        if (statusField.value.toString().lowercase() == "new" ||
+            statusField.value.toString().lowercase() == "новый") {
+            return
+        }
+
+        descriptionField.isEnabled = false
+        taskNumField.isEnabled  =  false
+        projectField.isEnabled = false
+        filesDataGrid.isEnabled = false
+        buttonsPanel.isVisible = false
+    }
+
 }

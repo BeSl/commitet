@@ -37,6 +37,9 @@
             </section>
         </drawerLayout>
         <initialLayout>
+            <vbox alignItems="CENTER" height="100%" width="100%">
+                <image resource="git_icon_logo.svg" classNames="login-image" maxWidth="50%"/>
+            </vbox>
         </initialLayout>
     </appLayout>
 </mainView>

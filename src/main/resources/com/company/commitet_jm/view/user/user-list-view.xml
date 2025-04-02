@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:c="http://jmix.io/schema/flowui/jpql-condition"
       title="msg://UserListView.title"
       focusComponent="usersDataGrid">
     <data>
@@ -9,6 +10,11 @@
             <loader id="usersDl" readOnly="true">
                 <query>
                     <![CDATA[select e from User e order by e.username]]>
+                    <condition>
+                        <c:jpql>
+                            <c:where> e.id = :id</c:where>
+                        </c:jpql>
+                    </condition>
                 </query>
             </loader>
         </collection>
@@ -30,11 +36,13 @@
             <properties include=".*"/>
         </genericFilter>
         <hbox id="buttonsPanel" classNames="buttons-panel">
-            <button id="createButton" action="usersDataGrid.createAction"/>
-            <button id="editButton" action="usersDataGrid.editAction"/>
-            <button id="removeButton" action="usersDataGrid.removeAction"/>
-            <button id="showRoleAssignmentsButton" action="usersDataGrid.showRoleAssignmentsAction"/>
-            <dropdownButton id="additionalButton" text="msg://additionalMenu" icon="COG">
+            <hbox id="btnAdmin">
+                <button id="createButton" action="usersDataGrid.createAction"/>
+                <button id="editButton" action="usersDataGrid.editAction"/>
+                <button id="removeButton" action="usersDataGrid.removeAction"/>
+                <button id="showRoleAssignmentsButton" action="usersDataGrid.showRoleAssignmentsAction"/>
+            </hbox>
+                <dropdownButton id="additionalButton" text="msg://additionalMenu" icon="COG">
                 <items>
                     <actionItem id="changePasswordItem" ref="usersDataGrid.changePasswordAction"/>
                     <actionItem id="resetPasswordItem" ref="usersDataGrid.resetPasswordAction"/>

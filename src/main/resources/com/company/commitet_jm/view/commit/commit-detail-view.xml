@@ -54,7 +54,7 @@
                 </flexLayout>
         </vbox>
 
-        <flexLayout alignItems="STRETCH" flexDirection="ROW"
+        <flexLayout alignItems="STRETCH" flexDirection="COLUMN"
                         justifyContent="START" flexWrap="WRAP" width="100%"
                         >
             <h4 text="Файлы коммита:"/>

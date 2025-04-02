@@ -40,8 +40,8 @@
         <hbox id="buttonsPanel" classNames="buttons-panel">
             <button id="createButton" action="commitsDataGrid.createAction"/>
             <button id="editButton" action="commitsDataGrid.editAction"/>
-            <button id="removeButton" action="commitsDataGrid.removeAction"/>
-            <button id="CreateCommitButton" text="Коммит"/>
+            <button id="removeButton" action="commitsDataGrid.removeAction" visible="false"/>
+            <button id="CreateCommitButton" text="Коммит" visible="false"/>
             <simplePagination id="pagination" dataLoader="commitsDl"/>
         </hbox>
         <dataGrid id="commitsDataGrid"

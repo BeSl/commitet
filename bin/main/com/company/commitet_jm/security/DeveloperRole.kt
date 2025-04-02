@@ -53,13 +53,22 @@ interface DeveloperRole {
     fun project()
 
     @EntityAttributePolicyContainer(
-        EntityAttributePolicy(entityClass = User::class, attributes = ["*"], action = EntityAttributePolicyAction.VIEW)
+        EntityAttributePolicy(
+            entityClass = User::class,
+            attributes = ["isAdmin", "active"],
+            action = EntityAttributePolicyAction.VIEW
+        ),
+        EntityAttributePolicy(
+            entityClass = User::class,
+            attributes = ["id", "version", "username", "password", "firstName", "lastName", "email", "gitLogin", "timeZoneId"],
+            action = EntityAttributePolicyAction.MODIFY
+        )
     )
     @EntityPolicy(entityClass = User::class, actions = [EntityPolicyAction.READ, EntityPolicyAction.UPDATE])
     fun user()
 
-    @MenuPolicy(menuIds = ["Commit_.list"])
-    @ViewPolicy(viewIds = ["Commit_.list", "Project.list", "Project.listSelect", "FileCommit.detail"])
+    @MenuPolicy(menuIds = ["Commit_.list", "User.list"])
+    @ViewPolicy(viewIds = ["Commit_.list", "Project.list", "Project.listSelect", "FileCommit.detail", "User.list", "User.detail"])
     fun screens()
 
     @SpecificPolicy(resources = ["*"])

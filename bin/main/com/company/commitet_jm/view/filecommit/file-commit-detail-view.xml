@@ -24,10 +24,11 @@
             </responsiveSteps>
             <vbox>
             <fileStorageUploadField id="dataField" clearButtonVisible="true" fileNameVisible="true" property="data"/>
-            <hbox>
-            <textField id="nameField" property="name" label="Имя файла"/>
-            <select id="typeField" property="type" label="Тип файла"/>
-            </hbox>
+            <vbox>
+                <select id="typeField" property="type" label="Тип файла"/>
+                <textField id="nameField" property="name" label="Имя файла на сервере" width="100%"/>
+
+            </vbox>
             </vbox>
         </formLayout>
         <hbox id="detailActions">

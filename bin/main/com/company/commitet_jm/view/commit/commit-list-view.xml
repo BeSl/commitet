@@ -8,10 +8,11 @@
                     class="com.company.commitet_jm.entity.Commit">
             <fetchPlan extends="_base">
                 <property name="project" fetch="AUTO" fetchPlan="_local"/>
+                <property name="author" fetchPlan="_base"/>
             </fetchPlan>
             <loader id="commitsDl" readOnly="true">
                 <query>
-                    <![CDATA[select e from Commit_ e]]>
+                    <![CDATA[select e from Commit_ e order by e.id desc]]>
                     <condition>
                         <c:jpql>
                             <c:where> e.author = :user</c:where>
@@ -35,13 +36,12 @@
     <layout>
         <genericFilter id="genericFilter"
                        dataLoader="commitsDl">
-<!--            <properties include=".*"/>-->
         </genericFilter>
         <hbox id="buttonsPanel" classNames="buttons-panel">
             <button id="createButton" action="commitsDataGrid.createAction"/>
             <button id="editButton" action="commitsDataGrid.editAction"/>
-            <button id="removeButton" action="commitsDataGrid.removeAction"/>
-            <button id="CreateCommitButton" text="Коммит"/>
+            <button id="removeButton" action="commitsDataGrid.removeAction" visible="false"/>
+            <button id="CreateCommitButton" text="Коммит" visible="false"/>
             <simplePagination id="pagination" dataLoader="commitsDl"/>
         </hbox>
         <dataGrid id="commitsDataGrid"
@@ -58,9 +58,7 @@
                 <column property="project"/>
                 <column property="status"/>
                 <column property="taskNum"/>
-                <column property="author"/>
-                <!--                <column property="description"/>-->
-
+                <column property="author" />
             </columns>
         </dataGrid>
         <hbox id="lookupActions" visible="false">
