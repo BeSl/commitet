@@ -12,8 +12,8 @@ jmix {
     bomVersion = '2.5.0'
 }
 
-group = 'com.company'
-version = '0.0.1-SNAPSHOT'
+group = 'com.besl'
+version = '1.0.1-build'
 
 repositories {
     mavenCentral()

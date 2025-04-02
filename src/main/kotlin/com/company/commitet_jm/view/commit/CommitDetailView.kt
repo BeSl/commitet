@@ -6,18 +6,22 @@ import com.company.commitet_jm.entity.StatusSheduler
 import com.company.commitet_jm.entity.User
 import com.company.commitet_jm.view.main.MainView
 import com.vaadin.flow.component.ClickEvent
+import com.vaadin.flow.component.DetachEvent
 import com.vaadin.flow.router.Route
 import io.jmix.core.DataManager
 import io.jmix.core.TimeSource
 import io.jmix.core.security.CurrentAuthentication
 import io.jmix.flowui.DialogWindows
 import io.jmix.flowui.action.entitypicker.EntityLookupAction
+import io.jmix.flowui.component.delegate.TextAreaFieldDelegate
+import io.jmix.flowui.component.textarea.JmixTextArea
 import io.jmix.flowui.component.textfield.TypedTextField
 import io.jmix.flowui.kit.component.button.JmixButton
 import io.jmix.flowui.view.*
 import io.jmix.flowui.view.builder.LookupWindowBuilderProcessor
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import java.awt.TextArea
 import java.time.LocalDateTime
 import java.time.LocalDateTime.now
 import java.util.*
@@ -47,6 +51,8 @@ class CommitDetailView : StandardDetailView<Commit>() {
     @Autowired
     private lateinit var lookupWindowBuilderProcessor: LookupWindowBuilderProcessor
 
+    @ViewComponent
+    private lateinit var errorInfoField: JmixTextArea
 
     companion object {
         private  val log = LoggerFactory.getLogger(CommitDetailView::class.java)
@@ -55,11 +61,11 @@ class CommitDetailView : StandardDetailView<Commit>() {
     @Subscribe
     private fun onInitEntity(event: InitEntityEvent<Commit>) {
 
+        errorInfoField.isVisible = false
         var recommit = event.entity
 
         recommit.setStatus(StatusSheduler.NEW)
         recommit.author= currentAuthentication.getUser() as User
-//        recommit.dateCreated = timeSource.currentTimestamp()
 
     }
 
@@ -67,4 +73,5 @@ class CommitDetailView : StandardDetailView<Commit>() {
     private fun onSaveAndCloseButtonClick(event: ClickEvent<JmixButton>) {
         log.info("save commit")
     }
+
 }

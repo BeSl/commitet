@@ -21,6 +21,10 @@
         <action id="closeAction" type="detail_close"/>
     </actions>
     <layout>
+        <hbox id="detailActions">
+            <button id="saveAndCloseButton" action="saveAction"/>
+            <button id="closeButton" action="closeAction"/>
+        </hbox>
         <formLayout id="form" width="" dataContainer="commitDc">
             <responsiveSteps >
                 <responsiveStep minWidth="0" columns="1"/>
@@ -28,6 +32,10 @@
             </responsiveSteps>
             <vbox width="100%" >
             <hbox width="100%"  >
+                <hbox>
+                    <textField id="taskNumField" property="taskNum" label="Номер задачи"/>
+
+                </hbox>
             <entityPicker  id="projectField" property="project" label="Проект">
                 <actions>
                     <action id="entityLookupAction" type="entity_lookup">
@@ -38,9 +46,10 @@
                     <action id="entityClearAction" type="entity_clear"/>
                 </actions>
             </entityPicker>
-<!--            <textField id="statusCommit" property="status" label="Статус обработки" />-->
+                <textField id="statusField" property="status" label="Статус"/>
             </hbox>
-            <textField id="taskNumField" property="taskNum" label="Номер задачи"/>
+                <textArea id="descriptionField" property="description" width="100%" label="описание изменений"/>
+
             </vbox>
         </formLayout>
         <h4 text="Файлы коммита:"/>
@@ -68,10 +77,7 @@
                 <column property="type"/>
             </columns>
         </dataGrid>
-        <textArea id="descriptionField" property="description" width="100%" label="описание изменений"/>
-        <hbox id="detailActions">
-            <button id="saveAndCloseButton" action="saveAction"/>
-            <button id="closeButton" action="closeAction"/>
-        </hbox>
+        <textField id="errorInfoField" property="errorInfo" width="100%" label="Ошибка обработки"/>
+
     </layout>
 </view>

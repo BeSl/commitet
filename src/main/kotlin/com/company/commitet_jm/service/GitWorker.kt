@@ -56,7 +56,7 @@ class GitWorker(
         val repoPath = commitInfo.project!!.localPath!!
         val repoDir = commitInfo.project!!.localPath?.let { File(it) }
         val remoteBranch = commitInfo.project!!.defaultBranch
-        val newBranch = "feature/${commitInfo.taskNum}"
+        val newBranch = "feature/${commitInfo.taskNum?.let { sanitizeGitBranchName(it) }}"
 
         try {
             if (repoDir != null) {
@@ -228,5 +228,29 @@ class GitWorker(
             throw RuntimeException("Operation interrupted")
         }
     }
+    fun sanitizeGitBranchName(input: String): String {
+        // Правила для имён веток Git:
+        // - Не могут начинаться с '-'
+        // - Не могут содержать:
+        //   - пробелы
+        //   - символы: ~, ^, :, *, ?, [, ], @, \, /, {, }, ...
+        // - Не могут заканчиваться на .lock
+        // - Не могут содержать последовательность //
 
+        val forbiddenChars = setOf(
+            ' ', '~', '^', ':', '*', '?', '[', ']', '@', '\\', '/', '{', '}',
+            '<', '>', '|', '"', '\'', '!', '#', '$', '%', '&', '(', ')', ',', ';', '='
+        )
+
+        return input.map { char ->
+            when {
+                char in forbiddenChars -> '_'
+                else -> char
+            }
+        }.joinToString("")
+            .removePrefix(".") // Убираем точку в начале (если есть)
+            .replace(Regex("[/\\\\]+"), "_") // Заменяем несколько / или \ на один _
+            .replace(Regex("[._]{2,}"), "_") // Заменяем несколько точек или _ подряд на один _
+            .replace(Regex("_+$"), "") // Убираем _ в конце
+    }
 }

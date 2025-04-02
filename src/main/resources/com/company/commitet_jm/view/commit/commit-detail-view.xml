@@ -20,39 +20,43 @@
         <action id="saveAction" type="detail_saveClose"/>
         <action id="closeAction" type="detail_close"/>
     </actions>
-<layout>
+<layout alignItems="STRETCH">
     <split width="100%" themeNames="splitter-spacing">
-        <flexLayout alignItems="STRETCH" flexDirection="COLUMN">
-            <h4 text="Задача:"/>
-            <formLayout id="form" dataContainer="commitDc">
-                <responsiveSteps >
-                    <responsiveStep minWidth="0" columns="1"/>
-                    <responsiveStep minWidth="40em" columns="2"/>
-                </responsiveSteps>
-                <vbox width="100%">
-                            <hbox >
-                                <textField id="taskNumField" property="taskNum" label="Номер задачи" width="100%"/>
-                                <entityPicker  id="projectField" property="project" label="Проект">
-                                <actions>
-                                <action id="entityLookupAction" type="entity_lookup">
-                                    <properties>
-                                        <property name="viewClass" value="com.company.commitet_jm.view.project.ProjectListSelect"/>
-                                    </properties>
-                                </action>
-                                    <action id="entityClearAction" type="entity_clear"/>
-                                </actions>
-                                </entityPicker>
-                            </hbox>
-                    <textArea id="descriptionField"  property="description" label="Описание изменений" width="100%" />
-                    <textArea id="errorInfoField" property="errorInfo" label="Ошибка обработки" readOnly="true"/>
-                    <textField id="statusField" property="status" label="Статус"/>
-                </vbox>
-            </formLayout>
-            </flexLayout>
+        <vbox alignItems="STRETCH" alignSelf="STRETCH">
+            <flexLayout alignSelf="STRETCH"  flexDirection="COLUMN" >
+                <h4 text="Задача:"/>
+                <formLayout id="form" dataContainer="commitDc" >
+                    <responsiveSteps >
+                        <responsiveStep minWidth="0" columns="1"/>
+                        <responsiveStep minWidth="40em" columns="2"/>
+                    </responsiveSteps>
+                    <vbox alignItems="STRETCH" width="100%">
+                                <hbox height="100%">
+                                    <textField id="taskNumField" property="taskNum" label="Номер задачи"/>
+                                    <entityPicker  id="projectField" property="project" label="Проект" alignSelf="STRETCH" >
+                                    <actions>
+                                    <action id="entityLookupAction" type="entity_lookup">
+                                        <properties>
+                                            <property name="viewClass" value="com.company.commitet_jm.view.project.ProjectListSelect"/>
+                                        </properties>
+                                    </action>
+                                        <action id="entityClearAction" type="entity_clear"/>
+                                    </actions>
+                                    </entityPicker>
+                                </hbox>
+                        <vbox alignSelf="STRETCH">
+                            <textArea id="descriptionField"  property="description" label="Описание изменений" width="100%" />
+                            <textArea id="errorInfoField" property="errorInfo" label="Ошибка обработки" readOnly="true"  width="100%"/>
+                            <textField id="statusField" property="status" label="Статус"/>
+                        </vbox>
+                    </vbox>
+                </formLayout>
+                </flexLayout>
+        </vbox>
 
-        <flexLayout alignItems="CENTER" flexDirection="ROW"
-                        justifyContent="CENTER" flexWrap="WRAP"
-                        classNames="gap-s">
+        <flexLayout alignItems="STRETCH" flexDirection="ROW"
+                        justifyContent="START" flexWrap="WRAP" width="100%"
+                        >
             <h4 text="Файлы коммита:"/>
             <hbox id="buttonsPanel" classNames="buttons-panel">
                 <button action="filesDataGrid.createAction"/>

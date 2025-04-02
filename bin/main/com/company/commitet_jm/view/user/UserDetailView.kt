@@ -31,8 +31,8 @@ open class UserDetailView : StandardDetailView<User>() {
     @ViewComponent
     private lateinit var confirmPasswordField: PasswordField
 
-    @ViewComponent
-    private lateinit var timeZoneField: ComboBox<String>
+//    @ViewComponent
+//    private lateinit var timeZoneField: ComboBox<String>
 
     @ViewComponent
     private lateinit var messageBundle: MessageBundle
@@ -51,7 +51,7 @@ open class UserDetailView : StandardDetailView<User>() {
 
     @Subscribe
     fun onInit(event: InitEvent) {
-        timeZoneField.setItems(listOf(*TimeZone.getAvailableIDs()))
+//        timeZoneField.setItems(listOf(*TimeZone.getAvailableIDs()))
     }
 
     @Subscribe

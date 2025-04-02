@@ -22,9 +22,13 @@
                 <responsiveStep minWidth="0" columns="1"/>
                 <responsiveStep minWidth="40em" columns="2"/>
             </responsiveSteps>
-            <textField id="nameField" property="name"/>
+            <vbox>
             <fileStorageUploadField id="dataField" clearButtonVisible="true" fileNameVisible="true" property="data"/>
-            <select id="typeField" property="type"/>
+            <hbox>
+            <textField id="nameField" property="name" label="Имя файла"/>
+            <select id="typeField" property="type" label="Тип файла"/>
+            </hbox>
+            </vbox>
         </formLayout>
         <hbox id="detailActions">
             <button id="saveAndCloseButton" action="saveAction"/>
