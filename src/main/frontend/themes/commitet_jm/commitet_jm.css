@@ -1,1 +1,11 @@
 /* Define your styles here */
+
+.section-title {
+    margin-top: var(--lumo-space-m);
+    font-size: var(--lumo-font-size-l);
+    font-weight: bold;
+}
+
+.wide-grid {
+    width: 100%;
+}

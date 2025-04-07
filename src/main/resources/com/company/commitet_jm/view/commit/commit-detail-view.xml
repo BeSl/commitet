@@ -1,91 +1,79 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <view xmlns="http://jmix.io/schema/flowui/view"
       title="msg://commitDetailView.title"
       focusComponent="form">
+
     <data>
         <instance id="commitDc"
                   class="com.company.commitet_jm.entity.Commit">
             <fetchPlan extends="_base">
-                <property name="project" fetchPlan="_base" />
+                <property name="project" fetchPlan="_base"/>
                 <property name="files" fetchPlan="_base"/>
             </fetchPlan>
             <loader id="commitDl"/>
             <collection id="filesDc" property="files"/>
         </instance>
     </data>
+
     <facets>
         <dataLoadCoordinator auto="true"/>
     </facets>
+
     <actions>
         <action id="saveAction" type="detail_saveClose"/>
         <action id="closeAction" type="detail_close"/>
     </actions>
-<layout alignItems="STRETCH">
-    <split width="100%" themeNames="splitter-spacing">
-        <vbox alignItems="STRETCH" alignSelf="STRETCH">
-            <flexLayout alignSelf="STRETCH"  flexDirection="COLUMN" >
-                <h4 text="Задача:"/>
-                <formLayout id="form" dataContainer="commitDc" >
-                    <responsiveSteps >
-                        <responsiveStep minWidth="0" columns="1"/>
-                        <responsiveStep minWidth="40em" columns="2"/>
-                    </responsiveSteps>
-                    <vbox alignItems="STRETCH" width="100%">
-                                <hbox height="100%">
-                                    <textField id="taskNumField" property="taskNum" label="Номер задачи"/>
-                                    <entityPicker  id="projectField" property="project" label="Проект" alignSelf="STRETCH" >
-                                    <actions>
-                                    <action id="entityLookupAction" type="entity_lookup">
-                                        <properties>
-                                            <property name="viewClass" value="com.company.commitet_jm.view.project.ProjectListSelect"/>
-                                        </properties>
-                                    </action>
-                                        <action id="entityClearAction" type="entity_clear"/>
-                                    </actions>
-                                    </entityPicker>
-                                </hbox>
-                        <vbox alignSelf="STRETCH">
-                            <textArea id="descriptionField"  property="description" label="Описание изменений" width="100%" />
-                            <textArea id="errorInfoField" property="errorInfo" label="Ошибка обработки" readOnly="true"  width="100%"/>
-                            <textField id="statusField" property="status" label="Статус"/>
-                        </vbox>
-                    </vbox>
-                </formLayout>
-                </flexLayout>
-        </vbox>
 
-        <flexLayout alignItems="STRETCH" flexDirection="COLUMN"
-                        justifyContent="START" flexWrap="WRAP" width="100%"
-                        >
-            <h4 text="Файлы коммита:"/>
-            <hbox id="buttonsPanel" classNames="buttons-panel">
-                <button action="filesDataGrid.createAction"/>
-                <button action="filesDataGrid.editAction"/>
-                <button action="filesDataGrid.removeAction"/>
-            </hbox>
-            <dataGrid id="filesDataGrid" dataContainer="filesDc" minHeight="20em">
+    <layout spacing="true" padding="true" styleName="view-layout">
+
+        <h3 text="Информация о коммите" styleName="section-title"/>
+
+        <formLayout id="form" dataContainer="commitDc" spacing="true" responsiveSteps="0,1;40em,2">
+            <textField id="taskNumField" property="taskNum" label="Номер задачи" required="true"/>
+            <entityPicker id="projectField" property="project" label="Проект" required="true">
                 <actions>
-                    <action id="createAction" type="list_create">
+                    <action id="entityLookupAction" type="entity_lookup">
                         <properties>
-                            <property name="openMode" value="DIALOG"/>
+                            <property name="viewClass" value="com.company.commitet_jm.view.project.ProjectListSelect"/>
                         </properties>
                     </action>
-                    <action id="editAction" type="list_edit">
-                        <properties>
-                            <property name="openMode" value="DIALOG"/>
-                        </properties>
-                    </action>
-                    <action id="removeAction" type="list_remove"/>
+                    <action id="entityClearAction" type="entity_clear"/>
                 </actions>
-                <columns>
-                    <column property="name"/>
-                    <column property="type"/>
-                </columns>
-            </dataGrid>
-            </flexLayout>
-    </split>
+            </entityPicker>
+            <textArea id="descriptionField" property="description" label="Описание изменений" colspan="2" rows="3" width="100%"/>
+            <textArea id="errorInfoField" property="errorInfo" label="Ошибка обработки" readOnly="true" colspan="2" rows="2" width="100%"/>
+            <textField id="statusField" property="status" label="Статус"/>
+        </formLayout>
 
-        <hbox id="detailActions">
+        <h3 text="Файлы коммита" styleName="section-title" />
+
+        <hbox id="buttonsPanel" classNames="buttons-panel">
+            <button action="filesDataGrid.createAction"/>
+            <button action="filesDataGrid.editAction"/>
+            <button action="filesDataGrid.removeAction"/>
+        </hbox>
+
+        <dataGrid id="filesDataGrid" dataContainer="filesDc" minHeight="300px" styleName="wide-grid">
+            <actions>
+                <action id="createAction" type="list_create">
+                    <properties>
+                        <property name="openMode" value="DIALOG"/>
+                    </properties>
+                </action>
+                <action id="editAction" type="list_edit">
+                    <properties>
+                        <property name="openMode" value="DIALOG"/>
+                    </properties>
+                </action>
+                <action id="removeAction" type="list_remove"/>
+            </actions>
+            <columns>
+                <column property="name"/>
+                <column property="type"/>
+            </columns>
+        </dataGrid>
+
+        <hbox id="detailActions" spacing="true" justifyContent="END" classNames="footer-buttons">
             <button id="saveAndCloseButton" action="saveAction"/>
             <button id="closeButton" action="closeAction"/>
         </hbox>
