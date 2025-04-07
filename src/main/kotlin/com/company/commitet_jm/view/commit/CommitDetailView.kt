@@ -98,10 +98,7 @@ class CommitDetailView : StandardDetailView<Commit>() {
 
     @Subscribe
     private fun onReady(event: ReadyEvent) {
-//        dataManager.load()
-//        val ent = editedEntity
         initHtmlContent(editedEntity.urlBranch?:"")
-
         val cuser = currentAuthentication.getUser() as User
         if (cuser.isAdmin == true){
             return
@@ -119,15 +116,12 @@ class CommitDetailView : StandardDetailView<Commit>() {
     }
 
     protected fun initHtmlContent(branchLink: String) {
+        if (branchLink.isEmpty()) return
 
-//        val html: Html = Html("")
         val div: Div = Div()
         div.add(H3("Ссылка на ветку:"))
-//        div.add(createParagraph("Hyperlinks can be added using the <a> tag:"))
-        div.add(Anchor("", branchLink))
-//        html.add(div)
+        div.add(Anchor(branchLink, branchLink))
         urlBranchBox.add(div)
-//        content.add(div)
     }
 
 
