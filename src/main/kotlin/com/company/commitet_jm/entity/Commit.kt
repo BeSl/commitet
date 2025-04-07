@@ -26,6 +26,9 @@ open class Commit {
     @ManyToOne(fetch = FetchType.LAZY)
     var author: User? = null
 
+    @Column(name = "URL_BRANCH")
+    var urlBranch: String? = null
+
     @JoinColumn(name = "PROJECT_ID")
     @ManyToOne(fetch = FetchType.LAZY)
     var project: Project? = null

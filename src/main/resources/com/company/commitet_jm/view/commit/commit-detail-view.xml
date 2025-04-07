@@ -42,7 +42,10 @@
             </entityPicker>
             <textArea id="descriptionField" property="description" label="Описание изменений" colspan="2" rows="3" width="100%"/>
             <textArea id="errorInfoField" property="errorInfo" label="Ошибка обработки" readOnly="true" colspan="2" rows="2" width="100%"/>
+            <vbox>
             <textField id="statusField" property="status" label="Статус"/>
+            <hbox id="urlBranchBox"/>
+            </vbox>
         </formLayout>
 
         <h3 text="Файлы коммита" styleName="section-title" />

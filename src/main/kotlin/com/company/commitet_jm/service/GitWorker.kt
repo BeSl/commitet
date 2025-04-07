@@ -136,7 +136,8 @@ class GitWorker(
         executeCommand(listOf("git", "push", "origin", newBranch), repoDir)
 
         log.info("Successfully committed and pushed changes to branch $newBranch")
-
+        commitInfo.urlBranch = "${commitInfo.project!!.urlRepo}/tree/$newBranch"
+        dataManager.save(commitInfo)
         commitInfo.id?.let { setStatusCommit(it, StatusSheduler.COMPLETE) }
     }
 
