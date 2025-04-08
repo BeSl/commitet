@@ -3,7 +3,8 @@ package com.company.commitet_jm.view.commit
 import com.company.commitet_jm.entity.*
 import com.company.commitet_jm.view.main.MainView
 import com.vaadin.flow.component.ClickEvent
-import com.vaadin.flow.component.DetachEvent
+import com.vaadin.flow.component.Html
+import com.vaadin.flow.component.html.*
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 import com.vaadin.flow.router.Route
 import io.jmix.core.DataManager
@@ -11,7 +12,6 @@ import io.jmix.core.TimeSource
 import io.jmix.core.security.CurrentAuthentication
 import io.jmix.flowui.DialogWindows
 import io.jmix.flowui.action.entitypicker.EntityLookupAction
-import io.jmix.flowui.component.delegate.TextAreaFieldDelegate
 import io.jmix.flowui.component.grid.DataGrid
 import io.jmix.flowui.component.textarea.JmixTextArea
 import io.jmix.flowui.component.textfield.TypedTextField
@@ -21,9 +21,6 @@ import io.jmix.flowui.view.*
 import io.jmix.flowui.view.builder.LookupWindowBuilderProcessor
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import java.awt.TextArea
-import java.time.LocalDateTime
-import java.time.LocalDateTime.now
 import java.util.*
 
 
@@ -72,6 +69,9 @@ class CommitDetailView : StandardDetailView<Commit>() {
     @ViewComponent
     private lateinit var buttonsPanel: HorizontalLayout
 
+    @ViewComponent
+    private lateinit var urlBranchBox: HorizontalLayout
+
     companion object {
         private  val log = LoggerFactory.getLogger(CommitDetailView::class.java)
     }
@@ -98,6 +98,7 @@ class CommitDetailView : StandardDetailView<Commit>() {
 
     @Subscribe
     private fun onReady(event: ReadyEvent) {
+        initHtmlContent(editedEntity.urlBranch?:"")
         val cuser = currentAuthentication.getUser() as User
         if (cuser.isAdmin == true){
             return
@@ -113,5 +114,17 @@ class CommitDetailView : StandardDetailView<Commit>() {
         filesDataGrid.isEnabled = false
         buttonsPanel.isVisible = false
     }
+
+    protected fun initHtmlContent(branchLink: String) {
+        if (branchLink.isEmpty()) return
+
+        val div: Div = Div()
+        div.add(H3("Ссылка на ветку:"))
+        div.add(Anchor(branchLink, branchLink))
+        urlBranchBox.add(div)
+    }
+
+
+
 
 }

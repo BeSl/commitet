@@ -1,4 +1,4 @@
-package com.company.commitet_jm.service;
+package com.company.commitet_jm.service
 
 import com.company.commitet_jm.entity.Commit
 import com.company.commitet_jm.entity.FileCommit
@@ -28,7 +28,7 @@ class GitWorker(
         private  val log = LoggerFactory.getLogger(GitWorker::class.java)
     }
 
-    fun CloneRepo(repoUrl:String, directoryPath: String, branch: String):Pair<Boolean, String> {
+    fun cloneRepo(repoUrl:String, directoryPath: String, branch: String):Pair<Boolean, String> {
 
         validateGitUrl(repoUrl)
 
@@ -40,7 +40,7 @@ class GitWorker(
 
         executeCommand(listOf(
             "git", "clone",
-            "--branch", "$branch",
+            "--branch", branch,
             "--single-branch",
             repoUrl,
             directoryPath
@@ -49,73 +49,25 @@ class GitWorker(
         return Pair(true, "")
     }
 
-    private fun validateGitUrl(url: String) {
-        if (!url.matches(Regex("^(https?|git|ssh)://.*"))) {
-            throw IllegalArgumentException("Invalid Git URL format")
-        }
-    }
+    fun createCommit() {
 
-    fun CreateCommit() {
-        var commitInfo = firstNewDataCommit()
-        if (commitInfo == null) {
-            return
-        }
+        val commitInfo = firstNewDataCommit() ?: return
 
         val repoPath = commitInfo.project!!.localPath!!
-        val repoDir = File(commitInfo.project!!.localPath)
+        val repoDir = commitInfo.project!!.localPath?.let { File(it) }
         val remoteBranch = commitInfo.project!!.defaultBranch
-        val newBranch = "feature/${commitInfo.taskNum}"
+        val newBranch = "feature/${commitInfo.taskNum?.let { sanitizeGitBranchName(it) }}"
+
         try {
-            if (!File(repoDir, ".git").exists()) {
-                throw IllegalArgumentException("Not a git repository")
+            if (repoDir != null) {
+                beforeCmdCommit(repoDir, remoteBranch!!,newBranch, commitInfo)
             }
-
-            // Переключаемся на develop и сбрасываем изменения
-            executeCommand(listOf("git", "checkout", remoteBranch), repoDir)
-            executeCommand(listOf("git", "reset", "--hard", "origin/$remoteBranch"), repoDir)
-
-            executeCommand(listOf("git", "clean", "-fd"), repoDir)
-            commitInfo.id?.let { setStatusCommit(it, StatusSheduler.PROCESSED) }
-
-            val branches = executeCommand(listOf("git", "branch", "-a"), repoDir)
-            if (!branches.contains("remotes/origin/$remoteBranch")) {
-                throw IllegalStateException("Develop branch does not exist")
-            }
-
-            executeCommand(listOf("git", "checkout", remoteBranch), repoDir)
-            executeCommand(listOf("git", "fetch", "origin", remoteBranch), repoDir)
-            executeCommand(listOf("git", "checkout", remoteBranch), repoDir)
-
-            // Создаем новую ветку
-            if (branchExists(repoPath, newBranch)) {
-                executeCommand(listOf("git", "checkout", newBranch), repoDir)
-                executeCommand(listOf("git", "fetch", "origin", newBranch), repoDir)
-            }else {
-                executeCommand(listOf("git", "checkout", "-b", newBranch), repoDir)
-            }
-
             saveFileCommit(repoPath, commitInfo.files)
 
-            executeCommand(listOf("git", "add", "."), repoDir)
+            if (repoDir != null) {
+                afterCmdCommit(commitInfo, repoDir, newBranch)
+            }
 
-            // 4. Создаем коммит от указанного пользователя
-            executeCommand(
-                listOf(
-                    "git",
-                    "-c", "user.name=${commitInfo.author!!.email}",
-                    "-c", "user.email=${commitInfo.author!!.email}",
-                    "commit",
-                    "-m", commitInfo.description
-                ),
-                repoDir
-            )
-
-            executeCommand(listOf("git", "push", "origin", newBranch), repoDir)
-
-            log.info("Successfully committed and pushed changes to branch $newBranch")
-
-            commitInfo.id?.let { setStatusCommit(it, StatusSheduler.COMPLETE) }
-            log.info("Created new branch $newBranch from $remoteBranch")
 
         } catch (e: Exception) {
             log.error("Error occurred while creating commit", e)
@@ -126,30 +78,89 @@ class GitWorker(
 
     }
 
-    fun saveFileCommit(baseDir: String, files: MutableList<FileCommit>){
+    private fun validateGitUrl(url: String) {
+        if (!url.matches(Regex("^(https?|git|ssh)://.*"))) {
+            throw IllegalArgumentException("Invalid Git URL format")
+        }
+    }
+
+    private fun beforeCmdCommit(repoDir: File, remoteBranch: String, newBranch:String, commitInfo: Commit){
+        if (!File(repoDir, ".git").exists()) {
+            throw IllegalArgumentException("Not a git repository")
+        }
+        val repoPath = commitInfo.project!!.localPath!!
+
+
+        // Переключаемся на develop и сбрасываем изменения
+        executeCommand(listOf("git", "checkout", remoteBranch), repoDir)
+        executeCommand(listOf("git", "reset", "--hard", "origin/$remoteBranch"), repoDir)
+
+        executeCommand(listOf("git", "clean", "-fd"), repoDir)
+
+        commitInfo.id?.let { setStatusCommit(it, StatusSheduler.PROCESSED) }
+
+        val branches = executeCommand(listOf("git", "branch", "-a"), repoDir)
+        if (!branches.contains("remotes/origin/$remoteBranch")) {
+            throw IllegalStateException("Develop branch does not exist")
+        }
+
+        executeCommand(listOf("git", "checkout", remoteBranch), repoDir)
+        executeCommand(listOf("git", "fetch", "origin", remoteBranch), repoDir)
+        executeCommand(listOf("git", "checkout", remoteBranch), repoDir)
+
+        // Создаем новую ветку
+        if (branchExists(repoPath, newBranch)) {
+            executeCommand(listOf("git", "checkout", newBranch), repoDir)
+            executeCommand(listOf("git", "fetch", "origin", newBranch), repoDir)
+        }else {
+            executeCommand(listOf("git", "checkout", "-b", newBranch), repoDir)
+        }
+    }
+
+    private fun afterCmdCommit(commitInfo: Commit, repoDir: File, newBranch: String) {
+
+        executeCommand(listOf("git", "add", "."), repoDir)
+
+        // 4. Создаем коммит от указанного пользователя
+        executeCommand(
+            listOf(
+                "git",
+                "-c", "user.name=${commitInfo.author!!.gitLogin}",
+                "-c", "user.email=${commitInfo.author!!.email}",
+                "commit",
+                "-m", commitInfo.description
+            ),
+            repoDir
+        )
+
+        executeCommand(listOf("git", "push", "origin", newBranch), repoDir)
+
+        log.info("Successfully committed and pushed changes to branch $newBranch")
+        commitInfo.urlBranch = "${commitInfo.project!!.urlRepo}/tree/$newBranch"
+        dataManager.save(commitInfo)
+        commitInfo.id?.let { setStatusCommit(it, StatusSheduler.COMPLETE) }
+    }
+
+    private fun saveFileCommit(baseDir: String, files: MutableList<FileCommit>){
         // Сохраняем файлы
         for (file in files) {
-            val content = file.data
-            if (content == null)
-                continue
+            val content = file.data ?: continue
 
             val path = file.getType()?.let { correctPath(baseDir, it) }
-            val fileStorage = fileStorageLocator?.getDefault<FileStorage>()
+            val fileStorage = fileStorageLocator.getDefault<FileStorage>()
             val targetPath = path!!.resolve(file.name.toString()).normalize()
 
-            if (fileStorage != null) {
-                fileStorage.openStream(content).use { inputStream ->
-                    Files.copy(
-                        inputStream,
-                         targetPath!!.toPath(),
-                        StandardCopyOption.REPLACE_EXISTING
-                    )
-                }
+            fileStorage.openStream(content).use { inputStream ->
+                Files.copy(
+                    inputStream,
+                    targetPath.toPath(),
+                    StandardCopyOption.REPLACE_EXISTING
+                )
             }
         }
     }
 
-    fun correctPath(baseDir: String, type: TypesFiles):File{
+    private fun correctPath(baseDir: String, type: TypesFiles):File{
         return when (type) {
             TypesFiles.REPORT -> File(baseDir, "DataProcessorsExt\\erf\\")
             TypesFiles.DATAPROCESSOR -> File(baseDir, "DataProcessorsExt\\epf\\")
@@ -158,7 +169,7 @@ class GitWorker(
         }
     }
 
-    fun setStatusCommit(commitId: UUID, status: StatusSheduler){
+    private fun setStatusCommit(commitId: UUID, status: StatusSheduler){
         val commit = dataManager.load(Commit::class.java)
                     .id(commitId)
                     .one()
@@ -166,30 +177,29 @@ class GitWorker(
         dataManager.save(commit)
     }
 
-    fun branchExists(repoPath: String, branchName: String): Boolean {
+    private fun branchExists(repoPath: String, branchName: String): Boolean {
         val branches = executeCommand(listOf("git", "branch", "--list", branchName), File(repoPath))
         return branches.isNotBlank()
     }
 
-private fun firstNewDataCommit(): Commit? {
-    val entity = dataManager.load(Commit::class.java)
-                    .query("select cmt from Commit_ cmt where cmt.status = :status1 order by cmt.id asc")
-                    .parameter("status1", StatusSheduler.NEW)
-                    .optional()
+    private fun firstNewDataCommit(): Commit? {
+        val entity = dataManager.load(Commit::class.java)
+            .query("select cmt from Commit_ cmt where cmt.status = :status1 order by cmt.id asc")
+            .parameter("status1", StatusSheduler.NEW)
+            .optional()
 
-    if (entity.isEmpty()) {
-        return null
-    } else {
-        val commit = entity.get()
-        commit.author = entity.get().author
-        commit.files = entity.get().files
-        commit.project = entity.get().project
+        if (entity.isEmpty) {
+            return null
+        } else {
+            val commit = entity.get()
+            commit.author = entity.get().author
+            commit.files = entity.get().files
+            commit.project = entity.get().project
 
-        return commit
+            return commit
         }
 
     }
-
 
     private fun executeCommand(command: List<String?>, workingDir: File = File(".")): String {
         try {
@@ -219,5 +229,29 @@ private fun firstNewDataCommit(): Commit? {
             throw RuntimeException("Operation interrupted")
         }
     }
+    fun sanitizeGitBranchName(input: String): String {
+        // Правила для имён веток Git:
+        // - Не могут начинаться с '-'
+        // - Не могут содержать:
+        //   - пробелы
+        //   - символы: ~, ^, :, *, ?, [, ], @, \, /, {, }, ...
+        // - Не могут заканчиваться на .lock
+        // - Не могут содержать последовательность //
 
+        val forbiddenChars = setOf(
+            ' ', '~', '^', ':', '*', '?', '[', ']', '@', '\\', '/', '{', '}',
+            '<', '>', '|', '"', '\'', '!', '#', '$', '%', '&', '(', ')', ',', ';', '='
+        )
+
+        return input.map { char ->
+            when {
+                char in forbiddenChars -> '_'
+                else -> char
+            }
+        }.joinToString("")
+            .removePrefix(".") // Убираем точку в начале (если есть)
+            .replace(Regex("[/\\\\]+"), "_") // Заменяем несколько / или \ на один _
+            .replace(Regex("[._]{2,}"), "_") // Заменяем несколько точек или _ подряд на один _
+            .replace(Regex("_+$"), "") // Убираем _ в конце
+    }
 }
