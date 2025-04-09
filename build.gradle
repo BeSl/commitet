@@ -13,7 +13,7 @@ jmix {
 }
 
 group = 'com.besl'
-version = '1.0.3-build'
+version = '1.0.4-build'
 
 repositories {
     mavenCentral()

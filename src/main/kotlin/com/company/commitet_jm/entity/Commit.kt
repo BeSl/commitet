@@ -7,6 +7,7 @@ import io.jmix.core.metamodel.annotation.JmixEntity
 import io.jmix.data.DbView
 import io.jmix.eclipselink.lazyloading.NotInstantiatedList
 import jakarta.persistence.*
+import jakarta.validation.constraints.NotNull
 import java.util.*
 
 @DbView
@@ -46,6 +47,7 @@ open class Commit {
     @Column(name = "STATUS")
     private var status: String? = null
 
+    @NotNull(message = "обязательно к заполнению")
     @InstanceName
     @Column(name = "DESCRIPTION", length = 500)
     var description: String? = null

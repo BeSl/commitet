@@ -111,7 +111,9 @@ class GitWorker(
         // Создаем новую ветку
         if (branchExists(repoPath, newBranch)) {
             executeCommand(listOf("git", "checkout", newBranch), repoDir)
-            executeCommand(listOf("git", "fetch", "origin", newBranch), repoDir)
+
+//            executeCommand(listOf("git", "fetch", "origin", newBranch), repoDir)
+
         }else {
             executeCommand(listOf("git", "checkout", "-b", newBranch), repoDir)
         }
