@@ -19,8 +19,7 @@ import java.util.concurrent.TimeUnit
 
 @Service
 class GitWorker(
-    private val dataManager: DataManager
-    ,
+    private val dataManager: DataManager,
     private val fileStorageLocator: FileStorageLocator,
 ) {
 
@@ -44,7 +43,8 @@ class GitWorker(
             "--single-branch",
             repoUrl,
             directoryPath
-        ))
+
+        ), timeout = 7)
 
         return Pair(true, "")
     }
@@ -201,7 +201,7 @@ class GitWorker(
 
     }
 
-    private fun executeCommand(command: List<String?>, workingDir: File = File(".")): String {
+    private fun executeCommand(command: List<String?>, workingDir: File = File("."), timeout:Long = 1): String {
         try {
             val process = ProcessBuilder(command)
                 .directory(workingDir)
@@ -212,14 +212,14 @@ class GitWorker(
             val output = process.inputStream.bufferedReader().readText()
             val error = process.errorStream.bufferedReader().readText()
 
-            process.waitFor(1, TimeUnit.MINUTES)
+            process.waitFor(timeout, TimeUnit.MINUTES)
 
             if (process.exitValue() != 0) {
                 log.error("Command failed: ${command.joinToString(" ")}\nError: $error")
                 throw RuntimeException("Git command failed: $error")
             }
 
-            log.debug("Command executed: ${command.joinToString(" ")}\nOutput: $output")
+            log.info("Command executed: ${command.joinToString(" ")}\nOutput: $output")
             return output
         } catch (e: IOException) {
             log.error("IO error executing command: ${e.message}")
@@ -229,6 +229,7 @@ class GitWorker(
             throw RuntimeException("Operation interrupted")
         }
     }
+
     fun sanitizeGitBranchName(input: String): String {
         // Правила для имён веток Git:
         // - Не могут начинаться с '-'

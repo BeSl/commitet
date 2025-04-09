@@ -1,7 +1,7 @@
 package com.company.commitet_jm.view.project
 
+import com.company.commitet_jm.app.GitCloneTask
 import com.company.commitet_jm.entity.Project
-import com.company.commitet_jm.service.GitWorker
 import com.company.commitet_jm.view.main.MainView
 import com.vaadin.flow.component.ClickEvent
 import com.vaadin.flow.component.HasValueAndElement
@@ -12,9 +12,11 @@ import com.vaadin.flow.router.Route
 import io.jmix.core.DataManager
 import io.jmix.core.FileStorageLocator
 import io.jmix.core.validation.group.UiCrossFieldChecks
+import io.jmix.flowui.Dialogs
 import io.jmix.flowui.action.SecuredBaseAction
 import io.jmix.flowui.component.UiComponentUtils
 import io.jmix.flowui.component.grid.DataGrid
+import io.jmix.flowui.component.textfield.TypedTextField
 import io.jmix.flowui.component.validation.ValidationErrors
 import io.jmix.flowui.kit.action.Action
 import io.jmix.flowui.kit.action.ActionPerformedEvent
@@ -26,8 +28,6 @@ import io.jmix.flowui.model.InstanceLoader
 import io.jmix.flowui.view.*
 import io.jmix.flowui.view.Target
 import org.springframework.beans.factory.annotation.Autowired
-import io.jmix.flowui.Dialogs
-import io.jmix.flowui.component.textfield.TypedTextField
 
 @Route(value = "projects", layout = MainView::class)
 @ViewController(id = "Project.list")
@@ -40,9 +40,6 @@ class ProjectListView : StandardListView<Project>() {
 
     @Autowired
     private lateinit var dataManager: DataManager
-
-    @ViewComponent
-    private lateinit var cloneGitButton: JmixButton
 
     @ViewComponent
     private lateinit var dataContext: DataContext
@@ -82,7 +79,7 @@ class ProjectListView : StandardListView<Project>() {
 
     @Subscribe
     fun onInit(event: InitEvent) {
-        projectsDataGrid.getActions().forEach { action ->
+        projectsDataGrid.actions.forEach { action ->
             if (action is SecuredBaseAction) {
                 action.addEnabledRule { listLayout.isEnabled }
             }
@@ -124,17 +121,21 @@ class ProjectListView : StandardListView<Project>() {
 
     @Subscribe("cloneGitButton")
     fun cloneGitButtonClick(event: ClickEvent<JmixButton>) {
-        val gw = GitWorker(dataManager = dataManager, fileStorageLocator = fileStorageLocator)
-        val res = gw.cloneRepo(urlRepoField.value +".git", localPathField.value, defaultBranchField.value)
-        if (res.first) {
-            dialogs.createMessageDialog().withHeader("Информация")
-                .withText("Clone Success")
-                .open();
-        }else{
-            dialogs.createMessageDialog().withHeader("Ошибка операции")
-                .withText(res.second)
-                .open();
+
+        val task = GitCloneTask(
+            dataManager = dataManager,
+            fileStorageLocator = fileStorageLocator
+        ).apply {
+            urlRepo = urlRepoField.value
+            localPath = localPathField.value
+            defaultBranch = defaultBranchField.value
+
         }
+
+        dialogs.createBackgroundTaskDialog(task)
+            .withHeader("Клонирование репозитория")
+            .withText("Подождите, идет клонирование...")
+            .open()
     }
 
     @Subscribe("cancelButton")
