@@ -132,7 +132,7 @@ class GitWorker(
             repoDir
         )
 
-        executeCommand(listOf("git", "push", "origin", newBranch), repoDir)
+        executeCommand(listOf("git", "push", "-u", "origin", newBranch), repoDir)
 
         log.info("Successfully committed and pushed changes to branch $newBranch")
         commitInfo.urlBranch = "${commitInfo.project!!.urlRepo}/tree/$newBranch"
@@ -163,8 +163,8 @@ class GitWorker(
         return when (type) {
             TypesFiles.REPORT -> File(baseDir, "DataProcessorsExt\\erf\\")
             TypesFiles.DATAPROCESSOR -> File(baseDir, "DataProcessorsExt\\epf\\")
-            TypesFiles.SCHEDULEDJOBS -> File(baseDir, "ExtCode")
-            TypesFiles.EXTERNAL_CODE -> File(baseDir, "ExtCode")
+            TypesFiles.SCHEDULEDJOBS -> File(baseDir, "CodeExt")
+            TypesFiles.EXTERNAL_CODE -> File(baseDir, "CodeExt")
         }
     }
 
