@@ -218,7 +218,7 @@ class GitWorker(
                 throw RuntimeException("Git command failed: $error")
             }
 
-            log.debug("Command executed: ${command.joinToString(" ")}\nOutput: $output")
+            log.info("Command executed: ${command.joinToString(" ")}\nOutput: $output")
             return output
         } catch (e: IOException) {
             log.error("IO error executing command: ${e.message}")

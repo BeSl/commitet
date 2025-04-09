@@ -151,13 +151,18 @@ class ProjectListView : StandardListView<Project>() {
 //        val task: BackgroundTask<Int, Void> = EmailTask(selected)
 
 
-        var task: BackgroundTask<Int, Void> = GitCloneTask(dataManager, fileStorageLocator)
+        val task = GitCloneTask(
+            dataManager = dataManager,
+            fileStorageLocator = fileStorageLocator
+        ).apply {
+            urlRepo = urlRepoField.value
+            localPath = localPathField.value
+            defaultBranch = defaultBranchField.value
 
-        task.urlRepo = urlRepoField.value
-        task.localPath = localPathField.value
-        task.defaultBranch = defaultBranchField.value
+        }
 
-        dialogs!!.createBackgroundTaskDialog(task)
+
+        dialogs.createBackgroundTaskDialog(task)
             .withHeader("Клонирование репозитория")
             .withText("Подождите, идет клонирование...")
             .open()
@@ -201,19 +206,6 @@ class ProjectListView : StandardListView<Project>() {
 //            .withShowProgressInPercentage(false)
 //            .open()
 
-    }
-
-    private fun getDefaultBackgroundTask(): Any {
-        return object : BackgroundTask(100) {
-            @Throws(Exception::class)
-            fun run(taskLifeCycle: TaskLifeCycle<Int?>): Void? {
-                for (i in 1..5) {
-                    TimeUnit.SECONDS.sleep(1)
-                    taskLifeCycle.publish(i)
-                }
-                return null
-            }
-        }
     }
 
     @Subscribe("cancelButton")

@@ -16,7 +16,10 @@ import java.util.concurrent.TimeUnit
 class GitCloneTask(
     private val dataManager: DataManager,
     private val fileStorageLocator: FileStorageLocator,
-    ) : BackgroundTask<Int, Void?>(10, TimeUnit.MINUTES) {
+    ) : BackgroundTask<Int, Void?>(
+    10,
+    TimeUnit.MINUTES
+) {
 
     companion object {
         private  val log = LoggerFactory.getLogger(GitWorker::class.java)
@@ -26,7 +29,7 @@ class GitCloneTask(
     var defaultBranch: String = ""
 
     @Throws(Exception::class)
-    override fun run(taskLifeCycle: TaskLifeCycle<Int?>): Void? {
+    override fun run(taskLifeCycle: TaskLifeCycle<Int>): Void? {
         val gw = GitWorker(dataManager = dataManager, fileStorageLocator = fileStorageLocator)
 
         val result = gw.cloneRepo("$urlRepo.git", localPath, defaultBranch)
@@ -39,10 +42,6 @@ class GitCloneTask(
         }
 
         return null
-    }
-
-    override fun done(result: Void?) {
-        log.info("Репозиторий склонирован успешно")
     }
 
 }
