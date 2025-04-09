@@ -1,7 +1,7 @@
 package com.company.commitet_jm.view.project
 
+import com.company.commitet_jm.app.GitCloneTask
 import com.company.commitet_jm.entity.Project
-import com.company.commitet_jm.service.GitWorker
 import com.company.commitet_jm.view.main.MainView
 import com.vaadin.flow.component.ClickEvent
 import com.vaadin.flow.component.HasValueAndElement
@@ -12,9 +12,15 @@ import com.vaadin.flow.router.Route
 import io.jmix.core.DataManager
 import io.jmix.core.FileStorageLocator
 import io.jmix.core.validation.group.UiCrossFieldChecks
+import io.jmix.flowui.Dialogs
+import io.jmix.flowui.Notifications
 import io.jmix.flowui.action.SecuredBaseAction
+import io.jmix.flowui.asynctask.UiAsyncTasks
+import io.jmix.flowui.backgroundtask.BackgroundTask
+import io.jmix.flowui.backgroundtask.TaskLifeCycle
 import io.jmix.flowui.component.UiComponentUtils
 import io.jmix.flowui.component.grid.DataGrid
+import io.jmix.flowui.component.textfield.TypedTextField
 import io.jmix.flowui.component.validation.ValidationErrors
 import io.jmix.flowui.kit.action.Action
 import io.jmix.flowui.kit.action.ActionPerformedEvent
@@ -26,8 +32,7 @@ import io.jmix.flowui.model.InstanceLoader
 import io.jmix.flowui.view.*
 import io.jmix.flowui.view.Target
 import org.springframework.beans.factory.annotation.Autowired
-import io.jmix.flowui.Dialogs
-import io.jmix.flowui.component.textfield.TypedTextField
+import java.util.concurrent.TimeUnit
 
 @Route(value = "projects", layout = MainView::class)
 @ViewController(id = "Project.list")
@@ -40,6 +45,9 @@ class ProjectListView : StandardListView<Project>() {
 
     @Autowired
     private lateinit var dataManager: DataManager
+
+    @Autowired
+    private lateinit var notifications: Notifications
 
     @ViewComponent
     private lateinit var cloneGitButton: JmixButton
@@ -79,6 +87,9 @@ class ProjectListView : StandardListView<Project>() {
 
     @Autowired
     private lateinit var dialogs: Dialogs
+
+    @Autowired
+    private lateinit var uiAsyncTasks: UiAsyncTasks
 
     @Subscribe
     fun onInit(event: InitEvent) {
@@ -124,16 +135,84 @@ class ProjectListView : StandardListView<Project>() {
 
     @Subscribe("cloneGitButton")
     fun cloneGitButtonClick(event: ClickEvent<JmixButton>) {
-        val gw = GitWorker(dataManager = dataManager, fileStorageLocator = fileStorageLocator)
-        val res = gw.cloneRepo(urlRepoField.value +".git", localPathField.value, defaultBranchField.value)
-        if (res.first) {
-            dialogs.createMessageDialog().withHeader("Информация")
-                .withText("Clone Success")
-                .open();
-        }else{
-            dialogs.createMessageDialog().withHeader("Ошибка операции")
-                .withText(res.second)
-                .open();
+//        uiAsyncTasks.supplierConfigurer<Any>()
+//            .withResultHandler { customers: Any? ->
+//                notifications.create("Customers loaded").show()
+//            }
+//            .supplyAsync()
+//        dialogs.createBackgroundTaskDialog(getDefaultBackgroundTask())
+//            .withHeader("Background task dialog")
+//            .open();
+
+//        val selected: Set<User> = usersTable.getSelectedItems()
+//        if (selected.isEmpty()) {
+//            return
+//        }
+//        val task: BackgroundTask<Int, Void> = EmailTask(selected)
+
+
+        var task: BackgroundTask<Int, Void> = GitCloneTask(dataManager, fileStorageLocator)
+
+        task.urlRepo = urlRepoField.value
+        task.localPath = localPathField.value
+        task.defaultBranch = defaultBranchField.value
+
+        dialogs!!.createBackgroundTaskDialog(task)
+            .withHeader("Клонирование репозитория")
+            .withText("Подождите, идет клонирование...")
+            .open()
+//        backgroundTaskManager.
+//            .task(object : BackgroundTask<String, Void?>(10, TimeUnit.MINUTES, this) {
+//
+//                override fun run(taskLifeCycle: TaskLifeCycle<String>): Void? {
+//                    val gw = GitWorker(dataManager, fileStorageLocator)
+//
+//                    val result = gw.cloneRepo(
+//                        "${urlRepoField.value}.git",
+//                        localPathField.value,
+//                        defaultBranchField.value
+//                    )
+//
+//                    if (!result.first) {
+//                        taskLifeCycle.publish("❌ Ошибка: ${result.second}")
+//                    } else {
+//                        taskLifeCycle.publish("✅ Репозиторий успешно клонирован")
+//                    }
+//
+//                    return null
+//                }
+//
+//                override fun done(result: Void?) {
+//                    notifications.create("Операция завершена")
+//                        .withType( Type.SUCCESS)
+//                        .show()
+//                }
+//
+//                fun progressUpdate(message: String) {
+//                    notifications.create(message)
+//                        .withType(Type.WARNING)
+//                        .show()
+//                }
+//
+//            })
+//            .withCaption("Клонирование репозитория")
+//            .withDescription("Подождите, идет клонирование...")
+//            .withCancelAllowed(true)
+//            .withShowProgressInPercentage(false)
+//            .open()
+
+    }
+
+    private fun getDefaultBackgroundTask(): Any {
+        return object : BackgroundTask(100) {
+            @Throws(Exception::class)
+            fun run(taskLifeCycle: TaskLifeCycle<Int?>): Void? {
+                for (i in 1..5) {
+                    TimeUnit.SECONDS.sleep(1)
+                    taskLifeCycle.publish(i)
+                }
+                return null
+            }
         }
     }
 

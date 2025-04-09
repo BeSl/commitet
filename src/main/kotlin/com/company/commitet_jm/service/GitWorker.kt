@@ -19,8 +19,7 @@ import java.util.concurrent.TimeUnit
 
 @Service
 class GitWorker(
-    private val dataManager: DataManager
-    ,
+    private val dataManager: DataManager,
     private val fileStorageLocator: FileStorageLocator,
 ) {
 
