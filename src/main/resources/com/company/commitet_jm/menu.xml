@@ -2,10 +2,14 @@
 <menu-config xmlns="http://jmix.io/schema/flowui/menu">
 
     <menu id="application" title = "msg://com.company.commitet_jm/menu.application.title" opened="true">
-        <item view="User.list" title="msg://com.company.commitet_jm.view.user/UserListView.title"/>
-        <item view="Project.list" title="msg://com.company.commitet_jm.view.project/projectListView.title"/>
-        <item view="Commit_.list" title="msg://com.company.commitet_jm.view.commit/commitListView.title"/>
+        <item view="User.list" title="msg://com.company.commitet_jm.view.user/UserListView.title"
+              icon="vaadin:user-card" description="Настройки пользователей"/>
+        <item view="Project.list" title="msg://com.company.commitet_jm.view.project/projectListView.title"
+              icon="vaadin:database" description="Проекты"/>
+        <item view="Commit_.list" title="msg://com.company.commitet_jm.view.commit/commitListView.title"
+              icon="vaadin:abacus" description="Список коммитов"/>
 
     </menu>
+    <menu/>
 
 </menu-config>

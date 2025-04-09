@@ -4,6 +4,7 @@ import com.company.commitet_jm.entity.*
 import com.company.commitet_jm.view.main.MainView
 import com.vaadin.flow.component.ClickEvent
 import com.vaadin.flow.component.Html
+import com.vaadin.flow.component.button.Button
 import com.vaadin.flow.component.html.*
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 import com.vaadin.flow.router.Route
@@ -70,6 +71,9 @@ class CommitDetailView : StandardDetailView<Commit>() {
     private lateinit var buttonsPanel: HorizontalLayout
 
     @ViewComponent
+    private lateinit var clearStatusCommit: Button
+
+    @ViewComponent
     private lateinit var urlBranchBox: HorizontalLayout
 
     companion object {
@@ -101,6 +105,7 @@ class CommitDetailView : StandardDetailView<Commit>() {
         initHtmlContent(editedEntity.urlBranch?:"")
         val cuser = currentAuthentication.getUser() as User
         if (cuser.isAdmin == true){
+            clearStatusCommit.isVisible = true
             return
         }
         if (statusField.value.toString().lowercase() == "new" ||
@@ -122,6 +127,12 @@ class CommitDetailView : StandardDetailView<Commit>() {
         div.add(H3("Ссылка на ветку:"))
         div.add(Anchor(branchLink, branchLink))
         urlBranchBox.add(div)
+    }
+
+    @Subscribe(id = "clearStatusCommit", subject = "clickListener")
+    private fun onClearStatusCommitClick(event: ClickEvent<JmixButton>) {
+        editedEntity.setStatus(StatusSheduler.NEW)
+        dataManager.save(editedEntity)
     }
 
 

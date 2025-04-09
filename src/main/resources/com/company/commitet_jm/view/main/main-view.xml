@@ -38,6 +38,7 @@
         </drawerLayout>
         <initialLayout>
             <vbox alignItems="CENTER" height="100%" width="100%">
+                <h3 text="версия приложения 1.0.4 (beta)"/>
                 <image resource="icon.svg" classNames="login-image" maxWidth="50%"/>
             </vbox>
         </initialLayout>
