@@ -6,7 +6,8 @@ enum class TypesFiles(private val id: String) : EnumClass<String> {
     EXTERNAL_CODE("A"),
     DATAPROCESSOR("B"),
     REPORT("C"),
-    SCHEDULEDJOBS("D");
+    SCHEDULEDJOBS("D"),
+    EXCHANGE_RULES("E");
 
     override fun getId() = id
 

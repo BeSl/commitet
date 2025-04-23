@@ -37,10 +37,11 @@
             </section>
         </drawerLayout>
         <initialLayout>
-            <vbox alignItems="CENTER" height="100%" width="100%">
-                <h3 text="версия приложения 1.0.4 (beta)"/>
+            <vbox alignItems="CENTER" height="100%" width="100%" alignSelf="CENTER">
+                <h3 text="версия приложения 1.0.5_2504 (beta)"/>
                 <image resource="icon.svg" classNames="login-image" maxWidth="50%"/>
             </vbox>
+
         </initialLayout>
     </appLayout>
 </mainView>

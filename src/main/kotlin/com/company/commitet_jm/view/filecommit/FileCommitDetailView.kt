@@ -38,6 +38,7 @@ class FileCommitDetailView : StandardDetailView<FileCommit>() {
             "epf" -> typeField.value = TypesFiles.DATAPROCESSOR
             "erf" -> typeField.value = TypesFiles.REPORT
             "bsl" -> typeField.value = TypesFiles.EXTERNAL_CODE
+            "xml" -> typeField.value = TypesFiles.EXCHANGE_RULES
             else -> log.error("Type files not detected")
         }
         nameField.value = event.fileName

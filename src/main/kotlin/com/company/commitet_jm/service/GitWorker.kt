@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
+import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -111,9 +112,6 @@ class GitWorker(
         // Создаем новую ветку
         if (branchExists(repoPath, newBranch)) {
             executeCommand(listOf("git", "checkout", newBranch), repoDir)
-
-//            executeCommand(listOf("git", "fetch", "origin", newBranch), repoDir)
-
         }else {
             executeCommand(listOf("git", "checkout", "-b", newBranch), repoDir)
         }
@@ -130,7 +128,7 @@ class GitWorker(
                 "-c", "user.name=${commitInfo.author!!.gitLogin}",
                 "-c", "user.email=${commitInfo.author!!.email}",
                 "commit",
-                "-m", commitInfo.description
+                "-m", commitInfo.description?.let { escapeShellArgument(it) }
             ),
             repoDir
         )
@@ -143,19 +141,26 @@ class GitWorker(
         commitInfo.id?.let { setStatusCommit(it, StatusSheduler.COMPLETE) }
     }
 
-    private fun saveFileCommit(baseDir: String, files: MutableList<FileCommit>){
-        // Сохраняем файлы
+    private fun saveFileCommit(baseDir: String, files: MutableList<FileCommit>) {
         for (file in files) {
             val content = file.data ?: continue
 
-            val path = file.getType()?.let { correctPath(baseDir, it) }
-            val fileStorage = fileStorageLocator.getDefault<FileStorage>()
-            val targetPath = path!!.resolve(file.name.toString()).normalize()
+            // correctPath возвращает File, приводим к Path
+            val path = file.getType()?.let { correctPath(baseDir, it).toPath() } ?: continue
+            val targetPath = path.resolve(file.name.toString()).normalize()
 
+            try {
+                // Создаем директории, если нужно
+                Files.createDirectories(targetPath.parent)
+            } catch (e: IOException) {
+                throw RuntimeException("Не удалось создать директорию: ${targetPath.parent}", e)
+            }
+
+            val fileStorage = fileStorageLocator.getDefault<FileStorage>()
             fileStorage.openStream(content).use { inputStream ->
                 Files.copy(
                     inputStream,
-                    targetPath.toPath(),
+                    targetPath,
                     StandardCopyOption.REPLACE_EXISTING
                 )
             }
@@ -168,6 +173,7 @@ class GitWorker(
             TypesFiles.DATAPROCESSOR -> File(baseDir, "DataProcessorsExt\\epf\\")
             TypesFiles.SCHEDULEDJOBS -> File(baseDir, "CodeExt")
             TypesFiles.EXTERNAL_CODE -> File(baseDir, "CodeExt")
+            TypesFiles.EXCHANGE_RULES -> File(baseDir, "EXCHANGE_RULES")
         }
     }
 
@@ -202,6 +208,20 @@ class GitWorker(
         }
 
     }
+
+    fun escapeShellArgument(arg: String): String {
+        if (arg.isEmpty()) {
+            return "''"
+        }
+
+        // Если строка содержит пробелы, кавычки или другие спецсимволы, заключаем её в кавычки
+        if (!arg.matches(Regex("^[a-zA-Z0-9_\\-+=%/:.,@]+$"))) {
+            return "'" + arg.replace("'", "'\"'\"'") + "'"
+        }
+
+        return arg
+    }
+
 
     private fun executeCommand(command: List<String?>, workingDir: File = File("."), timeout:Long = 1): String {
         try {

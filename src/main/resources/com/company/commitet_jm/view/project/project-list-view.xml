@@ -3,22 +3,23 @@
       xmlns:c="http://jmix.io/schema/flowui/jpql-condition"
       title="msg://projectListView.title"
       focusComponent="projectsDataGrid">
+
     <data>
         <collection id="projectsDc"
                     class="com.company.commitet_jm.entity.Project">
             <fetchPlan extends="_base"/>
             <loader id="projectsDl" readOnly="true">
-                <query>
-                    <![CDATA[select e from Project e]]>
-                </query>
+                <query><![CDATA[select e from Project e]]></query>
             </loader>
         </collection>
+
         <instance id="projectDc"
                   class="com.company.commitet_jm.entity.Project">
             <fetchPlan extends="_base"/>
             <loader id="projectDl"/>
         </instance>
     </data>
+
     <facets>
         <dataLoadCoordinator auto="true"/>
         <urlQueryParameters>
@@ -26,23 +27,30 @@
             <pagination component="pagination"/>
         </urlQueryParameters>
     </facets>
+
     <actions>
         <action id="selectAction" type="lookup_select"/>
         <action id="discardAction" type="lookup_discard"/>
     </actions>
-    <layout padding="false">
+
+    <layout padding="true" spacing="true">
         <formLayout id="layoutWrapper" classNames="master-detail-layout" height="100%">
-            <vbox id="listLayout" height="100%">
+
+            <!-- Master List -->
+            <vbox id="listLayout" spacing="true" height="100%">
                 <genericFilter id="genericFilter"
-                               dataLoader="projectsDl">
+                               dataLoader="projectsDl"
+                               label="Фильтр проектов">
                     <properties include=".*"/>
                 </genericFilter>
-                <hbox id="buttonsPanel" classNames="buttons-panel">
+
+                <hbox id="buttonsPanel" classNames="buttons-panel" spacing="true">
                     <button id="createButton" action="projectsDataGrid.createAction"/>
                     <button id="editButton" action="projectsDataGrid.editAction"/>
                     <button id="removeButton" action="projectsDataGrid.removeAction"/>
                     <simplePagination id="pagination" dataLoader="projectsDl"/>
                 </hbox>
+
                 <dataGrid id="projectsDataGrid"
                           width="100%"
                           minHeight="20em"
@@ -58,46 +66,54 @@
                         <column property="urlRepo"/>
                     </columns>
                 </dataGrid>
-                <hbox id="lookupActions" visible="false">
+
+                <hbox id="lookupActions" visible="false" spacing="true">
                     <button id="selectButton" action="selectAction"/>
                     <button id="discardButton" action="discardAction"/>
                 </hbox>
             </vbox>
-            <vbox id="detailsLayout" height="100%"  width="100%" >
+
+            <!-- Detail Form -->
+            <vbox id="detailsLayout" width="100%" spacing="true"  alignItems="STRETCH">
                 <formLayout id="form" dataContainer="projectDc" width="100%">
                     <responsiveSteps>
                         <responsiveStep minWidth="0" columns="1"/>
                         <responsiveStep minWidth="40em" columns="2"/>
                     </responsiveSteps>
-                    <vbox width="100%">
-                        <textField id="nameField"  width="100%" property="name" label="name"/>
-                    <details summaryText="Git" width="100%">
+                    <vbox width="100%" justifyContent="START">
+                    <textField id="nameField" property="name" label="Название проекта" width="100%"/>
+
+                    <details summaryText="Настройки Git" width="100%">
                         <tabSheet width="100%" height="100%">
-                            <tab id="tab1" label="Основные" >
-                                <vbox width="100%">
-                                    <textField width="100%" id="localPathField" property="localPath" label="Каталог сервера"/>
-                                    <textField width="100%"  id="urlRepoField" property="urlRepo" label="Адрес репозитория"/>
-                                    <textField width="100%"  id="defaultBranchField" property="defaultBranch" label="Ветка по умолчанию"/>
-                                <button id="cloneGitButton" text="Git clone" icon="CART" themeNames="danger"/>
-                                </vbox>
+
+                            <!-- Git Основные -->
+                            <tab id="tab1" label="Основные">
+                                <formLayout width="100%">
+                                    <textField id="localPathField" property="localPath" label="Каталог сервера" width="100%"/>
+                                    <textField id="urlRepoField" property="urlRepo" label="Адрес репозитория" width="100%"/>
+                                    <textField id="defaultBranchField" property="defaultBranch" label="Ветка по умолчанию" width="100%"/>
+                                    <hbox spacing="true">
+                                        <button id="cloneGitButton" text="Git Clone" icon="DOWNLOAD" themeNames="primary"/>
+                                    </hbox>
+                                </formLayout>
                             </tab>
 
-                            <tab id="tab2" label="Admin" >
-                                <vbox width="100%">
-                                    <textField width="100%"  id="adminGitNameField" property="adminGitName" label="Имя администратора"/>
-                                    <passwordField  width="100%"  property="adminGitPassword" label="Пароль администратора"/>
-                                </vbox>
+                            <!-- Git Admin -->
+                            <tab id="tab2" label="Админ">
+                                <formLayout width="100%">
+                                    <textField id="adminGitNameField" property="adminGitName" label="Имя администратора" width="100%"/>
+                                    <passwordField id="adminGitPasswordField" property="adminGitPassword" label="Пароль администратора" width="100%"/>
+                                </formLayout>
                             </tab>
                         </tabSheet>
-
-<!--                        </split>-->
                     </details>
                     </vbox>
                 </formLayout>
-                <hbox id="detailActions">
-                    <button id="saveButton" text="msg:///actions.Save" icon="CHECK" themeNames="primary"/>
-                    <button id="cancelButton" text="msg:///actions.Cancel" icon="BAN"/>
 
+                <!-- Save / Cancel -->
+                <hbox id="detailActions" spacing="true" justifyContent="END">
+                    <button id="saveButton" text="Сохранить" icon="CHECK" themeNames="primary"/>
+                    <button id="cancelButton" text="msg:///actions.Cancel" icon="BAN"/>
                 </hbox>
             </vbox>
         </formLayout>
