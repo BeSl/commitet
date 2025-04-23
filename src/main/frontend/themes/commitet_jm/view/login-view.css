@@ -3,3 +3,26 @@
 .jmix-login-main-layout {
   background-color: var(--lumo-shade-4pct);
 }
+
+
+.custom-login {
+    width: 100%;
+    background-image: url("./background.png");
+    background-position: center;
+    background-size: cover;
+    display: flex;
+    height: 25em;
+
+}
+
+.custom-login jmix-login-form {
+    width: 100%;
+    align-items: center;
+    display: flex;
+    max-width: 25em;
+    background-color: var(--lumo-base-color);
+}
+
+.custom-login vaadin-login-form-wrapper {
+    background-image: none;
+}

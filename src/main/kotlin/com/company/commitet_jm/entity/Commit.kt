@@ -8,6 +8,7 @@ import io.jmix.data.DbView
 import io.jmix.eclipselink.lazyloading.NotInstantiatedList
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
+import java.time.LocalDateTime
 import java.util.*
 
 @DbView
@@ -26,6 +27,12 @@ open class Commit {
     @JoinColumn(name = "AUTHOR_ID")
     @ManyToOne(fetch = FetchType.LAZY)
     var author: User? = null
+
+    @Column(name = "HASH_COMMIT", columnDefinition = "хэш созданного коммита")
+    var hashCommit: String? = null
+
+    @Column(name = "DATE_CREATED", columnDefinition = "дата создания коммита")
+    var dateCreated: LocalDateTime? = null
 
     @Column(name = "URL_BRANCH")
     var urlBranch: String? = null
