@@ -2,8 +2,9 @@
 <view xmlns="http://jmix.io/schema/flowui/view"
       focusComponent="login"
       title="msg://LoginView.title">
-    <layout justifyContent="CENTER" alignItems="CENTER" classNames="jmix-login-main-layout">
-        <h1>Привет</h1>
+
+    <layout justifyContent="CENTER" alignItems="CENTER">
+
         <loginForm id="login"
                    forgotPasswordButtonVisible="false">
             <form title="msg://loginForm.headerTitle"
@@ -12,10 +13,12 @@
                   rememberMe="msg://loginForm.rememberMe"
                   submit="msg://loginForm.submit"
                   forgotPassword="msg://loginForm.forgotPassword"/>
+
             <errorMessage title="msg://loginForm.errorTitle"
                           message="msg://loginForm.badCredentials"
                           username="msg://loginForm.errorUsername"
                           password="msg://loginForm.errorPassword"/>
         </loginForm>
+
     </layout>
 </view>

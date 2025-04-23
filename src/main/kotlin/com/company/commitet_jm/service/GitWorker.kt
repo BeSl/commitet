@@ -135,6 +135,8 @@ class GitWorker(
 
         executeCommand(listOf("git", "push", "-u", "origin", newBranch), repoDir)
 
+        commitInfo.hashCommit = executeCommand(listOf("git", "rev-parse", "HEAD"), repoDir)
+
         log.info("Successfully committed and pushed changes to branch $newBranch")
         commitInfo.urlBranch = "${commitInfo.project!!.urlRepo}/tree/$newBranch"
         dataManager.save(commitInfo)

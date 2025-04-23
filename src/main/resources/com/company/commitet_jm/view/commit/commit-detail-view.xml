@@ -29,24 +29,45 @@
         <h3 text="Информация о коммите" styleName="section-title"/>
 
         <formLayout id="form" dataContainer="commitDc" spacing="true" responsiveSteps="0,1;40em,2">
+            <vbox width="100%" alignSelf="STRETCH">
+            <hbox>
             <textField id="taskNumField" property="taskNum" label="Номер задачи" required="true"/>
-            <entityPicker id="projectField" property="project" label="Проект" required="true">
-                <actions>
-                    <action id="entityLookupAction" type="entity_lookup">
-                        <properties>
-                            <property name="viewClass" value="com.company.commitet_jm.view.project.ProjectListSelect"/>
-                        </properties>
-                    </action>
-                    <action id="entityClearAction" type="entity_clear"/>
-                </actions>
-            </entityPicker>
-            <textArea id="descriptionField" property="description" label="Описание изменений" colspan="2" rows="3" width="100%"/>
-            <textArea id="errorInfoField" property="errorInfo" label="Ошибка обработки" readOnly="true" colspan="2" rows="2" width="100%"/>
+            <textField id="statusField" property="status" label="Статус"/>
+            </hbox>
+            <tabSheet width="100%">
+                <tab id="info" label="Описание">
+                <vbox>
+                    <entityPicker id="projectField" property="project" label="Проект" required="true">
+                        <actions>
+                            <action id="entityLookupAction" type="entity_lookup">
+                                <properties>
+                                    <property name="viewClass" value="com.company.commitet_jm.view.project.ProjectListSelect"/>
+                                </properties>
+                            </action>
+                            <action id="entityClearAction" type="entity_clear"/>
+                        </actions>
+                    </entityPicker>
+                    <textArea id="descriptionField" property="description" label="Описание изменений" colspan="2" rows="3" width="100%"/>
+                </vbox>
+                </tab>
+                <tab id="tech_info" label="Свойства">
+                    <vbox width="100%" alignSelf="STRETCH">
+                    <textArea id="errorInfoField" property="errorInfo" label="Ошибка обработки" readOnly="true" colspan="2" rows="2" width="100%"/>
+                    <textArea property="hashCommit" label="хэш коммита" width="100%"/>
+                    </vbox>
+                </tab>
+                <tab id="commit_value" label="Комментарии">
+                    <button id="startAnalyzeButton" text="Анализировать файлы"/>
+
+
+                </tab>
+            </tabSheet>
+
             <vbox>
             <hbox>
-                <textField id="statusField" property="status" label="Статус"/>
                 <button id="clearStatusCommit" text="Сбросить статус" icon="COFFEE" themeNames="danger" visible="false"/>
             </hbox>
+            </vbox>
             <hbox id="urlBranchBox"/>
             </vbox>
         </formLayout>

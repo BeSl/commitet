@@ -6,7 +6,7 @@ html {
     --lumo-border-radius: calc(var(--lumo-size-m) / 2);
 
     --lumo-primary-color: rgb(0, 80, 166);
-    --lumo-primary-color-50pct: rgba(0, 80, 166, 0.5);
+    --lumo-primary-color-50pct: rgba(150, 80, 166, 0.7);
     --lumo-primary-color-10pct: rgba(0, 80, 166, 0.1);
     --lumo-primary-text-color: rgb(0, 85, 166);
 }

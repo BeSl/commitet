@@ -20,6 +20,7 @@ import io.jmix.flowui.component.valuepicker.EntityPicker
 import io.jmix.flowui.kit.component.button.JmixButton
 import io.jmix.flowui.view.*
 import io.jmix.flowui.view.builder.LookupWindowBuilderProcessor
+import org.eclipse.persistence.jpa.jpql.parser.DateTime
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.*
@@ -86,6 +87,7 @@ class CommitDetailView : StandardDetailView<Commit>() {
         errorInfoField.isVisible = false
         var recommit = event.entity
 
+        recommit.dateCreated = timeSource.now().toLocalDateTime()
         recommit.setStatus(StatusSheduler.NEW)
         recommit.author= currentAuthentication.getUser() as User
 
@@ -135,7 +137,10 @@ class CommitDetailView : StandardDetailView<Commit>() {
         dataManager.save(editedEntity)
     }
 
+    @Subscribe(id = "startAnalyzeButton", subject = "clickListener")
+    private fun onStartAnalyzeButtonCommitClick(event: ClickEvent<JmixButton>) {
 
+    }
 
 
 }
