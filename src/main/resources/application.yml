@@ -1,0 +1,11 @@
+# application.yml
+app:
+  version: 1.0.7
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    com.besl: TRACE
