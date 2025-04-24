@@ -75,6 +75,9 @@ class CommitDetailView : StandardDetailView<Commit>() {
     private lateinit var clearStatusCommit: Button
 
     @ViewComponent
+    private lateinit var startAnalyzeButton: Button
+
+    @ViewComponent
     private lateinit var urlBranchBox: HorizontalLayout
 
     companion object {
@@ -108,6 +111,7 @@ class CommitDetailView : StandardDetailView<Commit>() {
         val cuser = currentAuthentication.getUser() as User
         if (cuser.isAdmin == true){
             clearStatusCommit.isVisible = true
+            startAnalyzeButton.isVisible = true
             return
         }
         if (statusField.value.toString().lowercase() == "new" ||

@@ -24,55 +24,54 @@
         <action id="closeAction" type="detail_close"/>
     </actions>
 
-    <layout spacing="true" padding="true" styleName="view-layout">
+    <layout spacing="true" padding="true"  classNames="view-layout">
 
-        <h3 text="Информация о коммите" styleName="section-title"/>
+        <h3 text="Информация о коммите" classNames="section-title"/>
 
-        <formLayout id="form" dataContainer="commitDc" spacing="true" responsiveSteps="0,1;40em,2">
+        <formLayout id="form" dataContainer="commitDc" >
             <vbox width="100%" alignSelf="STRETCH">
             <hbox>
             <textField id="taskNumField" property="taskNum" label="Номер задачи" required="true"/>
             <textField id="statusField" property="status" label="Статус"/>
             </hbox>
-            <tabSheet width="100%">
+            <tabSheet width="100%" alignSelf="STRETCH">
                 <tab id="info" label="Описание">
-                <vbox>
-                    <entityPicker id="projectField" property="project" label="Проект" required="true">
-                        <actions>
-                            <action id="entityLookupAction" type="entity_lookup">
-                                <properties>
-                                    <property name="viewClass" value="com.company.commitet_jm.view.project.ProjectListSelect"/>
-                                </properties>
-                            </action>
+                    <vbox width="100%">
+                        <entityPicker id="projectField"  width="100%" property="project" label="Проект" required="true">
+                            <actions>
+                                <action id="entityLookupAction" type="entity_lookup">
+                                    <properties>
+                                        <property name="viewClass" value="com.company.commitet_jm.view.project.ProjectListSelect"/>
+                                    </properties>
+                                </action>
                             <action id="entityClearAction" type="entity_clear"/>
                         </actions>
-                    </entityPicker>
-                    <textArea id="descriptionField" property="description" label="Описание изменений" colspan="2" rows="3" width="100%"/>
-                </vbox>
+                            </entityPicker>
+                        <textArea id="descriptionField" property="description" label="Описание изменений" colspan="2" width="100%"/>
+                    </vbox>
                 </tab>
+
                 <tab id="tech_info" label="Свойства">
                     <vbox width="100%" alignSelf="STRETCH">
-                    <textArea id="errorInfoField" property="errorInfo" label="Ошибка обработки" readOnly="true" colspan="2" rows="2" width="100%"/>
+                    <textArea id="errorInfoField" property="errorInfo" label="Ошибка обработки" readOnly="true" colspan="2" width="100%"/>
                     <textArea property="hashCommit" label="хэш коммита" width="100%"/>
                     </vbox>
                 </tab>
                 <tab id="commit_value" label="Комментарии">
-                    <button id="startAnalyzeButton" text="Анализировать файлы"/>
-
+                    <vbox>
+                        <button id="startAnalyzeButton" text="Анализировать файлы" visible="false"/>
+                        <button id="clearStatusCommit" text="Сбросить статус" icon="COFFEE" themeNames="danger" visible="false"/>
+                    </vbox>
 
                 </tab>
             </tabSheet>
 
-            <vbox>
-            <hbox>
-                <button id="clearStatusCommit" text="Сбросить статус" icon="COFFEE" themeNames="danger" visible="false"/>
-            </hbox>
-            </vbox>
+
             <hbox id="urlBranchBox"/>
             </vbox>
         </formLayout>
 
-        <h3 text="Файлы коммита" styleName="section-title" />
+        <h3 text="Файлы коммита" classNames="section-title" />
 
         <hbox id="buttonsPanel" classNames="buttons-panel">
             <button action="filesDataGrid.createAction"/>
@@ -80,7 +79,7 @@
             <button action="filesDataGrid.removeAction"/>
         </hbox>
 
-        <dataGrid id="filesDataGrid" dataContainer="filesDc" minHeight="300px" styleName="wide-grid">
+        <dataGrid id="filesDataGrid" dataContainer="filesDc" minHeight="300px" classNames="wide-grid">
             <actions>
                 <action id="createAction" type="list_create">
                     <properties>

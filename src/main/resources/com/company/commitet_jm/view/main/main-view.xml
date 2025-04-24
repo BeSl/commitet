@@ -11,6 +11,7 @@
                               classNames="jmix-main-view-drawer-toggle"
                               themeNames="contrast"
                               ariaLabel="msg://drawerToggle.ariaLabel"/>
+
                 <h1 id="viewTitle" classNames="jmix-main-view-title"/>
             </header>
         </navigationBar>
@@ -23,11 +24,20 @@
                             text="msg://applicationTitle.text"
                             classNames="jmix-main-view-application-title-base-link"/>
                 </h2>
+
+                <!-- Блок с описанием приложения -->
+                <div classNames="app-description" >
+                    <h4>О приложении</h4>
+                    <p>Это приложение предназначено для управления [вставьте краткое описание функционала, например:
+                        "учетом товаров и клиентов, автоматизации бизнес-процессов"]</p>
+                </div>
+
                 <nav id="navigation"
                      classNames="jmix-main-view-navigation"
                      ariaLabel="msg://navigation.ariaLabel">
                     <listMenu id="menu"/>
                 </nav>
+
                 <footer id="footer" classNames="jmix-main-view-footer">
                     <userIndicator id="userIndicator"/>
                     <button id="logoutButton"
@@ -36,13 +46,33 @@
                 </footer>
             </section>
         </drawerLayout>
-        <initialLayout>
-            <vbox alignItems="CENTER" height="100%" width="100%" alignSelf="CENTER">
-                <h3 text="версия приложения 1.0.5_2504 (beta)"/>
-                <image resource="icon.svg" classNames="login-image" maxWidth="50%"/>
-                <image resource="cat.jpg" classNames="login-image" maxWidth="50%"/>
-            </vbox>
+        <initialLayout height="100%" width="100%" alignItems="CENTER">
+            <vbox expand="welcomeBox" alignItems="STRETCH" height="100%">
+                <vbox spacing="true" id="welcomeBox" alignSelf="CENTER">
+                    <h2 id="welcomeMessage" alignSelf="CENTER"/>
+                    <image resource="cat.jpg" classNames="login-image" maxWidth="25%" alignSelf="CENTER"/>
+                </vbox>
 
+                <anchor href="https://github.com/BeSl/commitet"
+                        target="BLANK"
+                        themeNames="tertiary"
+                        alignSelf="END">
+                    <hbox alignItems="CENTER" themeNames="spacing-s">
+                        <icon icon="INFO_CIRCLE_O"/>
+
+                        <span id="appVersion" text="Загрузка приложения..."/>
+                    </hbox>
+                </anchor>
+            </vbox>
         </initialLayout>
+<!--        <initialLayout>-->
+<!--            <vbox alignItems="CENTER" height="100%" width="100%" alignSelf="CENTER">-->
+<!--                <h3 id="versionInfo">Добро пожаловать!</h3>-->
+<!--                <image resource="icon.svg" classNames="login-image" maxWidth="50%"/>-->
+<!--                <div classNames="welcome-message" >-->
+<!--                    <p>Загрузка приложения...</p>-->
+<!--                </div>-->
+<!--            </vbox>-->
+<!--        </initialLayout>-->
     </appLayout>
 </mainView>

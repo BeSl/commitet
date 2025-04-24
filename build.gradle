@@ -12,8 +12,16 @@ jmix {
     bomVersion = '2.5.0'
 }
 
+def getVersionTimestamp = {
+    def date = new Date()
+    def year = date.format('yyyy')
+    def dayOfYear = date.format('D')
+    def hour = date.format('HH')
+    "${year}.${dayOfYear}.${hour}"
+}
+
 group = 'com.besl'
-version = '1.0.6-build'
+version = getVersionTimestamp()
 
 repositories {
     mavenCentral()
@@ -45,6 +53,7 @@ dependencies {
     testImplementation 'io.jmix.flowui:jmix-flowui-test-assist'
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:null"
 }
+
 
 configurations.implementation {
     exclude group: 'com.vaadin', module: 'hilla'

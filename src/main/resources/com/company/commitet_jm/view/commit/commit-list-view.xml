@@ -48,7 +48,8 @@
                   width="100%"
                   minHeight="20em"
                   dataContainer="commitsDc"
-                  columnReorderingAllowed="true">
+                  columnReorderingAllowed="true"
+                  pageSize="30" columnRendering="LAZY">
             <actions>
                 <action id="createAction" type="list_create"/>
                 <action id="editAction" type="list_edit"/>
