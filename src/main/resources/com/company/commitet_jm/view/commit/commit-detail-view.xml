@@ -61,6 +61,7 @@
                     <vbox>
                         <button id="startAnalyzeButton" text="Анализировать файлы" visible="false"/>
                         <button id="clearStatusCommit" text="Сбросить статус" icon="COFFEE" themeNames="danger" visible="false"/>
+                        <button id="parseButton" text="Разобрать" icon="COFFEE" themeNames="danger" visible="true"/>
                     </vbox>
 
                 </tab>

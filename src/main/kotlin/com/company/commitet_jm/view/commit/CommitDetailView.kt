@@ -1,7 +1,10 @@
 package com.company.commitet_jm.view.commit
 
 import com.company.commitet_jm.entity.*
+import com.company.commitet_jm.service.ConfigurationModel
+import com.company.commitet_jm.service.ConfigurationParserService
 import com.company.commitet_jm.view.main.MainView
+import com.company.containerextractor.service.ContainerExtractService
 import com.vaadin.flow.component.ClickEvent
 import com.vaadin.flow.component.Html
 import com.vaadin.flow.component.button.Button
@@ -23,6 +26,7 @@ import io.jmix.flowui.view.builder.LookupWindowBuilderProcessor
 import org.eclipse.persistence.jpa.jpql.parser.DateTime
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import java.io.File
 import java.util.*
 
 
@@ -83,6 +87,8 @@ class CommitDetailView : StandardDetailView<Commit>() {
     companion object {
         private  val log = LoggerFactory.getLogger(CommitDetailView::class.java)
     }
+//    @Autowired
+//    private lateinit var containerExtractService: ContainerExtractService
 
     @Subscribe
     private fun onInitEntity(event: InitEntityEvent<Commit>) {
@@ -143,6 +149,20 @@ class CommitDetailView : StandardDetailView<Commit>() {
 
     @Subscribe(id = "startAnalyzeButton", subject = "clickListener")
     private fun onStartAnalyzeButtonCommitClick(event: ClickEvent<JmixButton>) {
+        val  path = "${editedEntity.project?.localPath!!}\\src\\Configuration.xml"
+        val parser = ConfigurationParserService(path = path)
+
+        val cfg = parser.parseConfiguration()
+
+    }
+
+    @Subscribe(id = "parseButton", subject = "clickListener")
+    private fun onParseButtonButtonCommitClick(event: ClickEvent<JmixButton>) {
+        val  path = File("F:\\test.epf")
+        val containerExtractService = ContainerExtractService()
+        containerExtractService.extractContainer("F:\\test.epf", "F:\\testkontainer")
+//        val pr = ParserBinary()
+//        pr.ParseFile(path)
 
     }
 
