@@ -45,8 +45,8 @@
                                     </properties>
                                 </action>
                             <action id="entityClearAction" type="entity_clear"/>
-                        </actions>
-                            </entityPicker>
+                            </actions>
+                        </entityPicker>
                         <textArea id="descriptionField" property="description" label="Описание изменений" colspan="2" width="100%"/>
                     </vbox>
                 </tab>

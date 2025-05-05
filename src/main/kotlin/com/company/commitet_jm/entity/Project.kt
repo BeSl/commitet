@@ -7,7 +7,9 @@ import jakarta.persistence.*
 import java.util.*
 
 @JmixEntity
-@Table(name = "PROJECT")
+@Table(name = "PROJECT", indexes = [
+    Index(name = "IDX_PROJECT_PLATFORM", columnList = "PLATFORM_ID")
+])
 @Entity
 open class Project {
     @JmixGeneratedValue
@@ -38,4 +40,10 @@ open class Project {
     @Version
     var version: Int? = null
 
+    @JoinColumn(name = "PLATFORM_ID")
+    @ManyToOne(fetch = FetchType.LAZY)
+    var platform: Platform? = null
+
+    @Column(name = "TEMP_BASE_PATH")
+    var tempBasePath: String? = null
 }

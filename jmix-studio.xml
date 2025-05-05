@@ -17,4 +17,11 @@
       </entry>
     </moduleSettings>
   </component>
+  <component name="VersionUpdateSettings">
+    <option name="ignoredVersions">
+      <set>
+        <option value="2.5.1" />
+      </set>
+    </option>
+  </component>
 </project>

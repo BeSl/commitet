@@ -8,6 +8,7 @@
               icon="vaadin:database" description="Проекты"/>
         <item view="Commit_.list" title="msg://com.company.commitet_jm.view.commit/commitListView.title"
               icon="vaadin:abacus" description="Список коммитов"/>
+        <item view="Platform.list" title="msg://com.company.commitet_jm.view.platform/platformListView.title"/>
 
     </menu>
     <menu/>
