@@ -1,12 +1,9 @@
 package com.company.commitet_jm.app
 
 import com.company.commitet_jm.entity.AppSettings
-import com.company.commitet_jm.entity.Commit
-import com.company.commitet_jm.entity.StatusSheduler
 import com.company.commitet_jm.service.GitWorker
 import io.jmix.core.DataManager
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Service
 
 import java.io.File
 
@@ -28,7 +25,7 @@ class OneRunner(private val dataManager: DataManager,private val pathInstall: St
         log.debug(res)
     }
 
-    fun UnpackExtFiles(inputFile: File, outDir: String){
+    fun unpackExtFiles(inputFile: File, outDir: String){
         val executor = ShellExecutor()
 
         val unpackPath = dataManager.load(AppSettings::class.java)

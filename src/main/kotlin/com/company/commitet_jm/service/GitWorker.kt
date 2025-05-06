@@ -12,11 +12,8 @@ import org.springframework.stereotype.Service
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
-import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.util.*
-import java.util.concurrent.TimeUnit
-
 
 @Service
 class GitWorker(
@@ -191,7 +188,7 @@ class GitWorker(
         val bFiles = findBinaryFiles(unpackPath)
         if (bFiles.isEmpty()){return}
         bFiles.forEach { binFile ->
-            ones?.UnpackExtFiles(binFile, binFile.parent)
+            ones?.unpackExtFiles(binFile, binFile.parent)
 
         }
 
