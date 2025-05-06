@@ -52,6 +52,7 @@ dependencies {
     }
     testImplementation 'io.jmix.flowui:jmix-flowui-test-assist'
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:null"
+    implementation 'io.jmix.translations:jmix-translations-ru'
 }
 
 

@@ -3,9 +3,6 @@ package com.company.commitet_jm.view.filecommit
 import com.company.commitet_jm.entity.FileCommit
 import com.company.commitet_jm.entity.TypesFiles
 import com.company.commitet_jm.view.main.MainView
-import com.vaadin.flow.component.select.Select
-import com.vaadin.flow.component.shared.HasClientValidation
-import com.vaadin.flow.component.textfield.TextField
 import com.vaadin.flow.router.Route
 import io.jmix.flowui.component.select.JmixSelect
 import io.jmix.flowui.component.textfield.TypedTextField
@@ -44,8 +41,4 @@ class FileCommitDetailView : StandardDetailView<FileCommit>() {
         nameField.value = event.fileName
     }
 
-    @Subscribe("typeField")
-    private fun onTypeFieldClientValidated(event: HasClientValidation.ClientValidatedEvent) {
-
-    }
 }
