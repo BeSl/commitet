@@ -59,7 +59,7 @@
                 </tab>
                 <tab id="commit_value" label="Комментарии">
                     <vbox>
-                        <button id="uploadFilesButton" text="Выгрузкить в файлы" visible="true"/>
+                        <button id="uploadFilesButton" text="Выгрузкить в файлы" visible="false"/>
                         <button id="startAnalyzeButton" text="Анализировать файлы" visible="false"/>
                         <button id="clearStatusCommit" text="Сбросить статус" icon="COFFEE" themeNames="danger" visible="false"/>
                     </vbox>

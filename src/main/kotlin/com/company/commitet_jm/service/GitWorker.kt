@@ -166,13 +166,13 @@ class GitWorker(
                 )
             }
             val unpackPath = when (file.getType()){
-                REPORT -> "erf"
-                DATAPROCESSOR -> "epf"
+                REPORT -> "$baseDir\\DataProcessorsExt\\erf"
+                DATAPROCESSOR -> "$baseDir\\DataProcessorsExt\\epf"
 
                 else -> {""}
             }
             unpackFile(
-                targetPath.toString(), "$baseDir\\DataProcessorsExt\\$unpackPath",
+                targetPath.toString(), unpackPath,
                 platform = platform
             )
         }
