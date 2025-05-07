@@ -1,6 +1,5 @@
 package com.company.commitet_jm.view.commit
 
-import com.company.commitet_jm.app.OneRunner
 import com.company.commitet_jm.entity.*
 import com.company.commitet_jm.service.GitWorker
 import com.company.commitet_jm.view.main.MainView
@@ -13,19 +12,14 @@ import io.jmix.core.DataManager
 import io.jmix.core.FileStorageLocator
 import io.jmix.core.TimeSource
 import io.jmix.core.security.CurrentAuthentication
-import io.jmix.flowui.DialogWindows
-import io.jmix.flowui.action.entitypicker.EntityLookupAction
 import io.jmix.flowui.component.grid.DataGrid
 import io.jmix.flowui.component.textarea.JmixTextArea
 import io.jmix.flowui.component.textfield.TypedTextField
 import io.jmix.flowui.component.valuepicker.EntityPicker
 import io.jmix.flowui.kit.component.button.JmixButton
 import io.jmix.flowui.view.*
-import io.jmix.flowui.view.builder.LookupWindowBuilderProcessor
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import java.io.File
-import java.util.*
 
 
 @Route(value = "commits/:id", layout = MainView::class)
@@ -42,15 +36,6 @@ class CommitDetailView : StandardDetailView<Commit>() {
 
     @Autowired
     private lateinit var dataManager: DataManager
-
-    @field:ViewComponent("projectField.entityLookupAction")
-    private lateinit var projectFieldEntityLookupAction: EntityLookupAction<Project>
-
-    @Autowired
-    private lateinit var dialogWindows: DialogWindows
-
-    @Autowired
-    private lateinit var lookupWindowBuilderProcessor: LookupWindowBuilderProcessor
 
     @ViewComponent
     private lateinit var errorInfoField: JmixTextArea
@@ -113,9 +98,9 @@ class CommitDetailView : StandardDetailView<Commit>() {
 
     @Subscribe
     private fun onReady(event: ReadyEvent) {
-        initHtmlContent(editedEntity.urlBranch?:"")
-        val cuser = currentAuthentication.getUser() as User
-        if (cuser.isAdmin == true){
+        initHtmlContent(branchLink = editedEntity.urlBranch?:"")
+        val cUser = currentAuthentication.user as User
+        if (cUser.isAdmin == true){
             clearStatusCommit.isVisible = true
             startAnalyzeButton.isVisible = true
             uploadFilesButton.isVisible = true
@@ -160,12 +145,6 @@ class CommitDetailView : StandardDetailView<Commit>() {
             fileStorageLocator = fileStorageLocator,
         )
         gitWorker.createCommit()
-//        val pl = editedEntity.project!!.platform
-//        val ones = OneRunner(pl?.pathInstalled.toString(), pl?.version.toString())
-//        val obr = File("F:\\test\\test.epf")
-//
-//        ones.UnpackExtFiles(obr,"F:\\test\\ext")
-
     }
 
 
