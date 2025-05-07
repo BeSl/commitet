@@ -71,26 +71,27 @@ open class MainView : StandardMainView() {
         val listMessage = chatHistory.getHistory(chatSession)
 
         val messageListItems = listMessage.map { mapToMessageListItem(it) }
-
         val list = MessageList()
-        val yesterday: Instant = LocalDateTime.now().minusDays(1)
-            .toInstant(ZoneOffset.UTC)
-        val fiftyMinsAgo: Instant = LocalDateTime.now().minusMinutes(50)
-            .toInstant(ZoneOffset.UTC)
-        val message1 = MessageListItem(
-            "Linsey, could you check if the details with the order are okay?",
-            yesterday, "Matt Mambo"
-        )
-
-//        addMessage(boxV, )
-
-        message1.userColorIndex = 1
-        val message2 = MessageListItem(
-            "All good. Ship it.",
-            fiftyMinsAgo, "Linsey Listy",
-        )
-        message2.userColorIndex = 2
-        list.setItems(listOf(message1, message2))
+        list.setItems(messageListItems)
+//        val list = MessageList()
+//        val yesterday: Instant = LocalDateTime.now().minusDays(1)
+//            .toInstant(ZoneOffset.UTC)
+//        val fiftyMinsAgo: Instant = LocalDateTime.now().minusMinutes(50)
+//            .toInstant(ZoneOffset.UTC)
+//        val message1 = MessageListItem(
+//            "Linsey, could you check if the details with the order are okay?",
+//            yesterday, "Matt Mambo"
+//        )
+//
+////        addMessage(boxV, )
+//
+//        message1.userColorIndex = 1
+//        val message2 = MessageListItem(
+//            "All good. Ship it.",
+//            fiftyMinsAgo, "Linsey Listy",
+//        )
+//        message2.userColorIndex = 2
+//        list.setItems(listOf(message1, message2))
         boxV.add(list)
 //        boxV.add(messageListItems)
 
