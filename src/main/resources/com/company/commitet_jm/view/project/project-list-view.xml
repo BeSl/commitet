@@ -42,7 +42,8 @@
             <vbox id="listLayout" spacing="true" height="100%">
                 <genericFilter id="genericFilter"
                                dataLoader="projectsDl"
-                               label="Фильтр проектов">
+                               >
+
                     <properties include=".*"/>
                 </genericFilter>
 
@@ -105,7 +106,7 @@
                                         </actions>
                                     </entityPicker>
 
-                                    <textField id="tempBasePathField" property="tempBasePath" label="Ветка по умолчанию" width="100%"/>
+                                    <textField id="tempBasePathField" property="tempBasePath" label="Временная база" width="100%"/>
 
                                     <hbox spacing="true">
                                         <button id="cloneGitButton" text="Git Clone" icon="DOWNLOAD" themeNames="primary"/>

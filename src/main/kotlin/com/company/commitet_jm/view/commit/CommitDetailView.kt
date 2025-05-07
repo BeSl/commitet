@@ -1,14 +1,16 @@
 package com.company.commitet_jm.view.commit
 
+import com.company.commitet_jm.app.OneRunner
 import com.company.commitet_jm.entity.*
+import com.company.commitet_jm.service.GitWorker
 import com.company.commitet_jm.view.main.MainView
 import com.vaadin.flow.component.ClickEvent
-import com.vaadin.flow.component.Html
 import com.vaadin.flow.component.button.Button
 import com.vaadin.flow.component.html.*
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 import com.vaadin.flow.router.Route
 import io.jmix.core.DataManager
+import io.jmix.core.FileStorageLocator
 import io.jmix.core.TimeSource
 import io.jmix.core.security.CurrentAuthentication
 import io.jmix.flowui.DialogWindows
@@ -20,9 +22,9 @@ import io.jmix.flowui.component.valuepicker.EntityPicker
 import io.jmix.flowui.kit.component.button.JmixButton
 import io.jmix.flowui.view.*
 import io.jmix.flowui.view.builder.LookupWindowBuilderProcessor
-import org.eclipse.persistence.jpa.jpql.parser.DateTime
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import java.io.File
 import java.util.*
 
 
@@ -78,8 +80,12 @@ class CommitDetailView : StandardDetailView<Commit>() {
     private lateinit var startAnalyzeButton: Button
 
     @ViewComponent
-    private lateinit var urlBranchBox: HorizontalLayout
+    private lateinit var uploadFilesButton: Button
 
+    @ViewComponent
+    private lateinit var urlBranchBox: HorizontalLayout
+    @Autowired
+    private lateinit var fileStorageLocator: FileStorageLocator
     companion object {
         private  val log = LoggerFactory.getLogger(CommitDetailView::class.java)
     }
@@ -112,6 +118,7 @@ class CommitDetailView : StandardDetailView<Commit>() {
         if (cuser.isAdmin == true){
             clearStatusCommit.isVisible = true
             startAnalyzeButton.isVisible = true
+            uploadFilesButton.isVisible = true
             return
         }
         if (statusField.value.toString().lowercase() == "new" ||
@@ -143,6 +150,21 @@ class CommitDetailView : StandardDetailView<Commit>() {
 
     @Subscribe(id = "startAnalyzeButton", subject = "clickListener")
     private fun onStartAnalyzeButtonCommitClick(event: ClickEvent<JmixButton>) {
+
+    }
+
+    @Subscribe(id = "uploadFilesButton", subject = "clickListener")
+    private fun onUploadFilesButtonCommitClick(event: ClickEvent<JmixButton>) {
+        val gitWorker = GitWorker(
+            dataManager = dataManager,
+            fileStorageLocator = fileStorageLocator,
+        )
+        gitWorker.createCommit()
+//        val pl = editedEntity.project!!.platform
+//        val ones = OneRunner(pl?.pathInstalled.toString(), pl?.version.toString())
+//        val obr = File("F:\\test\\test.epf")
+//
+//        ones.UnpackExtFiles(obr,"F:\\test\\ext")
 
     }
 
