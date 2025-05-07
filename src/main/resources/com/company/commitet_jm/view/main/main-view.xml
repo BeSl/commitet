@@ -51,6 +51,9 @@
                     <h2 id="welcomeMessage" alignSelf="CENTER"/>
                     <image resource="cat.jpg" classNames="login-image" maxWidth="25%" alignSelf="CENTER"/>
                 </vbox>
+                <vbox id="boxV">
+                    <h2 id="test" text="test" alignSelf="CENTER"/>
+                </vbox>
 
                 <anchor href="https://github.com/BeSl/commitet"
                         target="BLANK"
@@ -63,15 +66,7 @@
                     </hbox>
                 </anchor>
             </vbox>
+
         </initialLayout>
-<!--        <initialLayout>-->
-<!--            <vbox alignItems="CENTER" height="100%" width="100%" alignSelf="CENTER">-->
-<!--                <h3 id="versionInfo">Добро пожаловать!</h3>-->
-<!--                <image resource="icon.svg" classNames="login-image" maxWidth="50%"/>-->
-<!--                <div classNames="welcome-message" >-->
-<!--                    <p>Загрузка приложения...</p>-->
-<!--                </div>-->
-<!--            </vbox>-->
-<!--        </initialLayout>-->
     </appLayout>
 </mainView>
