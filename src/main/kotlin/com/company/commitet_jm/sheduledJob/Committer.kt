@@ -26,7 +26,5 @@ class Committer(private val dataManager: DataManager): Job {
             )
             gitWorker.createCommit()
         }
-
-
     }
 }

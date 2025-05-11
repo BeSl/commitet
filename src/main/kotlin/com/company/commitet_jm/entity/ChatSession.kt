@@ -22,4 +22,7 @@ open class ChatSession {
 
     @Column(name = "CREATED")
     var created: LocalDateTime? = null
+
+    @Column(name = "BOT_NAME")
+    var botName: String? = null
 }

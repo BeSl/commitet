@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1" author="commitet_jm">
+        <addColumn tableName="CHAT_MESSAGE">
+            <column name="GENERATED_" type="BOOLEAN"/>
+            <column name="PARRENT_MESSAGE_ID" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="2" author="commitet_jm">
+        <createIndex indexName="IDX_CHAT_MESSAGE_PARRENT_MESSAGE" tableName="CHAT_MESSAGE">
+            <column name="PARRENT_MESSAGE_ID"/>
+        </createIndex>
+
+        <addForeignKeyConstraint baseColumnNames="PARRENT_MESSAGE_ID" baseTableName="CHAT_MESSAGE"
+                                 constraintName="FK_CHAT_MESSAGE_ON_PARRENT_MESSAGE" referencedColumnNames="ID"
+                                 referencedTableName="CHAT_MESSAGE"/>
+    </changeSet>
+</databaseChangeLog>

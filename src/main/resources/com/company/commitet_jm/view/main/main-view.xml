@@ -17,6 +17,7 @@
         </navigationBar>
         <drawerLayout>
             <section id="section" classNames="jmix-main-view-section">
+
                 <h2 id="applicationTitle"
                     classNames="jmix-main-view-application-title">
                     <anchor id="baseLink"
@@ -51,8 +52,10 @@
                     <h2 id="welcomeMessage" alignSelf="CENTER"/>
                     <image resource="cat.jpg" classNames="login-image" maxWidth="25%" alignSelf="CENTER"/>
                 </vbox>
-                <vbox id="boxV">
-                    <h2 id="test" text="test" alignSelf="CENTER"/>
+
+                <vbox id="boxV" height="100%" >
+                    <h2 id="test" text="Чат" alignSelf="START" width="100%"/>
+                    <button text="Событие" id="AddEvent"/>
                 </vbox>
 
                 <anchor href="https://github.com/BeSl/commitet"

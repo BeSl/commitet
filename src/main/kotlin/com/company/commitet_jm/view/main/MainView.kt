@@ -2,36 +2,48 @@ package com.company.commitet_jm.view.main
 
 import com.company.commitet_jm.app.ChatHistoryService
 import com.company.commitet_jm.entity.ChatMessage
+import com.company.commitet_jm.entity.ChatSession
+import com.company.commitet_jm.entity.MessageRole
 import com.company.commitet_jm.entity.User
+import com.company.commitet_jm.sheduledJob.AiCompanion
+import com.vaadin.flow.component.ClickEvent
+import com.vaadin.flow.component.UI
 import com.vaadin.flow.component.html.H2
 import com.vaadin.flow.component.html.Span
 import com.vaadin.flow.component.messages.MessageInput
 import com.vaadin.flow.component.messages.MessageInput.SubmitEvent
 import com.vaadin.flow.component.messages.MessageList
 import com.vaadin.flow.component.messages.MessageListItem
-import com.vaadin.flow.component.notification.Notification
 import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.router.Route
 import io.jmix.core.DataManager
 import io.jmix.core.security.CurrentAuthentication
+import io.jmix.flowui.UiEventPublisher
 import io.jmix.flowui.app.main.StandardMainView
+import io.jmix.flowui.kit.component.button.JmixButton
 import io.jmix.flowui.view.Subscribe
 import io.jmix.flowui.view.ViewComponent
 import io.jmix.flowui.view.ViewController
 import io.jmix.flowui.view.ViewDescriptor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.info.BuildProperties
-import java.time.Instant
+import org.springframework.context.event.EventListener
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-
+import java.util.*
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
 
 @Route("")
 @ViewController(id = "MainView")
 @ViewDescriptor(path = "main-view.xml")
 open class MainView : StandardMainView() {
+    @ViewComponent
+    private lateinit var AddEvent: JmixButton
+
     @Autowired
     private lateinit var currentAuthentication: CurrentAuthentication
 
@@ -53,6 +65,18 @@ open class MainView : StandardMainView() {
     @Autowired
     private lateinit var dataManager: DataManager
 
+    private lateinit var messageListItems:List<MessageListItem>
+
+    @ViewComponent
+    private lateinit var msList: MessageList
+
+    @Autowired
+    private val uiEventPublisher: UiEventPublisher? = null
+
+    private lateinit var ui: UI
+    private val refreshInterval = 5000L // 5 секунд
+    private var refreshTask: ScheduledFuture<*>? = null
+
     @Subscribe
     private fun onInit(event: InitEvent) {
         val currentUser = currentAuthentication.user as User
@@ -61,70 +85,105 @@ open class MainView : StandardMainView() {
         appVersion.text = "Версия сборки ${buildProperties?.version}"
 
         addChat(user = currentUser)
+//        startAutoRefresh()
+    }
+
+//    AddEvent
+@Subscribe("AddEvent")
+fun onCancelButtonClick(event: ClickEvent<JmixButton>) {
+    uiEventPublisher?.publishEventForUsers(
+        AiCompanion(this),
+        Collections.singleton((currentAuthentication.user as User).getUsername())
+    )
+}
+
+//    private fun startAutoRefresh() {
+//        val executor = Executors.newSingleThreadScheduledExecutor()
+//        refreshTask = executor.scheduleAtFixedRate({
+//            ui.access {
+//                val session = chatHistory.getUserSessions(currentAuthentication.user as User)
+//                updateMessageList(session)
+//            }
+//        }, refreshInterval, refreshInterval, TimeUnit.MILLISECONDS)
+//    }
+
+    private fun updateMessageList(session: ChatSession) {
+        messageListItems = chatHistory
+            .getHistory(session)
+            .map { mapToMessageListItem(it) }
+
+        msList.setItems(messageListItems)
+
 
     }
-    private fun addChat(user: User){
-        val person = user
 
+    private fun addChat(user: User){
         val chatSession = chatHistory.getUserSessions(user)
 
         val listMessage = chatHistory.getHistory(chatSession)
 
-        val messageListItems = listMessage.map { mapToMessageListItem(it) }
-        val list = MessageList()
-        list.setItems(messageListItems)
-//        val list = MessageList()
-//        val yesterday: Instant = LocalDateTime.now().minusDays(1)
-//            .toInstant(ZoneOffset.UTC)
-//        val fiftyMinsAgo: Instant = LocalDateTime.now().minusMinutes(50)
-//            .toInstant(ZoneOffset.UTC)
-//        val message1 = MessageListItem(
-//            "Linsey, could you check if the details with the order are okay?",
-//            yesterday, "Matt Mambo"
-//        )
-//
-////        addMessage(boxV, )
-//
-//        message1.userColorIndex = 1
-//        val message2 = MessageListItem(
-//            "All good. Ship it.",
-//            fiftyMinsAgo, "Linsey Listy",
-//        )
-//        message2.userColorIndex = 2
-//        list.setItems(listOf(message1, message2))
-        boxV.add(list)
-//        boxV.add(messageListItems)
+        messageListItems = listMessage.map { mapToMessageListItem(it) }
+        msList = MessageList()
+        msList.setItems(messageListItems)
+        boxV.add(msList)
 
         val input = MessageInput()
         input.addSubmitListener { submitEvent: SubmitEvent ->
-            Notification.show(
-                "Message received: " + submitEvent.value,
-                3000, Notification.Position.MIDDLE
-            )
+            eventNewQuery(submitEvent, chatSession)
         }
         boxV.add(input)
     }
 
-    fun mapToMessageListItem(chatMessage: ChatMessage): MessageListItem {
-        return MessageListItem(
+    private fun mapToMessageListItem(chatMessage: ChatMessage): MessageListItem {
+
+        val mli = MessageListItem(
             chatMessage.content,
-//            Instant.now().minus(1, ChronoUnit.DAYS),
-            Instant.from(chatMessage.timestamp),
+            chatMessage.timestamp!!.toInstant(ZoneOffset.ofHours(3)),
             getDisplayName(chatMessage)
         )
-    }
-    private fun getDisplayName(message: ChatMessage): String? {
-        // 1. Проверка метаданных
-//        message.metadata["displayName"]?.let { return it.toString() }
+        if (chatMessage.getRole() == MessageRole.ASSISTANT){
+            mli.userColorIndex = 1
+        }else{
+            mli.userColorIndex = 2
+        }
 
-        // 2. Логика на основе роли
-        return message.session?.user?.firstName
-//        when (message.role) {
-//            MessageRole.USER -> message.session.userId // или получить из UserService
-//            MessageRole.ASSISTANT -> message.session.modelName
-//            MessageRole.SYSTEM -> "System"
-//        }
+        return mli
     }
+
+    private fun eventNewQuery(submitEvent: SubmitEvent, session: ChatSession) {
+
+        if (submitEvent.value.isEmpty()){
+            return
+        }
+
+        chatHistory.newMessage(session, submitEvent.value)
+
+        messageListItems = chatHistory
+                .getHistory(session)
+                .map { mapToMessageListItem(it) }
+
+        msList.setItems(messageListItems)
+
+    }
+
+    private fun getDisplayName(message: ChatMessage): String? {
+        val session = message.session
+
+        return when (message.getRole()) {
+            MessageRole.USER -> session?.user?.firstName
+            MessageRole.ASSISTANT -> session?.botName
+            MessageRole.SYSTEM -> "System"
+            else -> {"none"}
+        }
+    }
+
+    @EventListener
+    private fun addNewMessage(event: AiCompanion) {
+
+        chatHistory.newMessage(session = chatHistory.getUserSessions(currentAuthentication.user as User), "PODPISKA")
+        updateMessageList(session = chatHistory.getUserSessions(currentAuthentication.user as User))
+    }
+
     private fun formatRelativeDate(timestamp: LocalDateTime): String {
         val today = LocalDateTime.now().toLocalDate()
         val messageDate = timestamp.toLocalDate()

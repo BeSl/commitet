@@ -14,6 +14,10 @@
               icon="vaadin:database" description="Глобальные настройки приложения"/>
 
     </menu>
-    <menu/>
+    <separator>  - - - </separator>
 
+    <menu title="Системные настройки">
+
+        <item title="Фоновые" view="quartz_JobModel.list"/>
+    </menu>
 </menu-config>
