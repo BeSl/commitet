@@ -6,19 +6,23 @@ import io.jmix.flowui.UiEventPublisher
 import org.quartz.Job
 import org.quartz.JobExecutionContext
 import org.slf4j.LoggerFactory
+import org.springframework.ai.chat.model.ChatModel
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 class AiComponent(private val dataManager: DataManager,
-                  private val uiEventPublisher: UiEventPublisher): Job {
+                  private val uiEventPublisher: UiEventPublisher,
+                  private val chatModel: ChatModel
+): Job {
     @Autowired
     private val systemAuthenticator: SystemAuthenticator? = null
 
+
+
     override fun execute(context: JobExecutionContext) {
         systemAuthenticator?.runWithSystem {
-            println("job ai started")
-            val ai = AiDialogService(dataManager, uiEventPublisher)
+            val ai = AiDialogService(dataManager, uiEventPublisher, chatModel)
             ai.aiAnswerMessage()
         }
     }

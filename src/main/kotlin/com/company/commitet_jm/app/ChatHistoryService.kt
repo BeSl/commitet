@@ -44,6 +44,7 @@ class ChatHistoryService(
         ai_msg.content = "готовлю ответ..."
         ai_msg.timestamp = LocalDateTime.now()
         ai_msg.session = session
+        ai_msg.generated = false
         ai_msg.setRole(MessageRole.ASSISTANT)
         ai_msg.parrentMessage = cm
 
@@ -56,7 +57,7 @@ class ChatHistoryService(
             .query("select apps from ChatMessage apps where apps.session = :pSession order by apps.id desc")
             .parameter("pSession", session)
             .maxResults(5)
-            .list()
+            .list().reversed()
 
         return chatHistory
     }
@@ -82,7 +83,7 @@ class ChatHistoryService(
         val resp = dataManager.load(ChatMessage::class.java)
             .query("select apps from ChatMessage apps where apps.generated = :pG and apps.parrentMessage <> :pP  order by apps.timestamp")
             .parameter("pP", null)
-            .parameter("pG", null)
+            .parameter("pG", false)
             .optional()
 
         if (resp.isEmpty) {
@@ -93,6 +94,7 @@ class ChatHistoryService(
     }
 
     fun saveResponse(message: ChatMessage) {
+
         dataManager.save(message)
 
         uiEventPublisher.publishEventForUsers(

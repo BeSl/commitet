@@ -54,8 +54,8 @@
                 </vbox>
 
                 <vbox id="boxV" height="100%" >
-                    <h2 id="test" text="Чат" alignSelf="START" width="100%"/>
-                    <button text="Событие" id="AddEvent"/>
+                    <h2 id="test" text="ai_Чат" alignSelf="START" width="100%"/>
+                    <button text="Событие" id="AddEvent" visible="false"/>
                 </vbox>
 
                 <anchor href="https://github.com/BeSl/commitet"

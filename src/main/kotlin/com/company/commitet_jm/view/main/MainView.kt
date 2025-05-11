@@ -73,10 +73,6 @@ open class MainView : StandardMainView() {
     @Autowired
     private val uiEventPublisher: UiEventPublisher? = null
 
-    private lateinit var ui: UI
-    private val refreshInterval = 5000L // 5 секунд
-    private var refreshTask: ScheduledFuture<*>? = null
-
     @Subscribe
     private fun onInit(event: InitEvent) {
         val currentUser = currentAuthentication.user as User
@@ -85,10 +81,8 @@ open class MainView : StandardMainView() {
         appVersion.text = "Версия сборки ${buildProperties?.version}"
 
         addChat(user = currentUser)
-//        startAutoRefresh()
     }
 
-//    AddEvent
 @Subscribe("AddEvent")
 fun onCancelButtonClick(event: ClickEvent<JmixButton>) {
     uiEventPublisher?.publishEventForUsers(
@@ -97,23 +91,12 @@ fun onCancelButtonClick(event: ClickEvent<JmixButton>) {
     )
 }
 
-//    private fun startAutoRefresh() {
-//        val executor = Executors.newSingleThreadScheduledExecutor()
-//        refreshTask = executor.scheduleAtFixedRate({
-//            ui.access {
-//                val session = chatHistory.getUserSessions(currentAuthentication.user as User)
-//                updateMessageList(session)
-//            }
-//        }, refreshInterval, refreshInterval, TimeUnit.MILLISECONDS)
-//    }
-
     private fun updateMessageList(session: ChatSession) {
         messageListItems = chatHistory
             .getHistory(session)
             .map { mapToMessageListItem(it) }
 
         msList.setItems(messageListItems)
-
 
     }
 
@@ -180,7 +163,7 @@ fun onCancelButtonClick(event: ClickEvent<JmixButton>) {
     @EventListener
     private fun addNewMessage(event: AiCompanion) {
 
-        chatHistory.newMessage(session = chatHistory.getUserSessions(currentAuthentication.user as User), "PODPISKA")
+//        chatHistory.newMessage(session = chatHistory.getUserSessions(currentAuthentication.user as User), "PODPISKA")
         updateMessageList(session = chatHistory.getUserSessions(currentAuthentication.user as User))
     }
 
