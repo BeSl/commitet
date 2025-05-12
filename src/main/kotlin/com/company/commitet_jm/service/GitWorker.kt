@@ -27,9 +27,10 @@ class GitWorker(
 
     fun cloneRepo(repoUrl:String, directoryPath: String, branch: String):Pair<Boolean, String> {
         val executor = ShellExecutor(timeout = 7)
+        log.info("start clone repo $repoUrl")
         validateGitUrl(repoUrl)
 
-        //get info variable
+
         val dir = File(directoryPath)
 
         if (dir.exists() && dir.list()?.isNotEmpty() == true) {
@@ -43,7 +44,7 @@ class GitWorker(
             repoUrl,
             directoryPath
         ))
-
+        log.info("end clone repo $repoUrl")
         return Pair(true, "")
     }
 
@@ -51,27 +52,28 @@ class GitWorker(
 
         val commitInfo = firstNewDataCommit() ?: return
 
+        log.info("start createCommit ${commitInfo.taskNum}")
+
         val repoPath = commitInfo.project!!.localPath!!
         val repoDir = commitInfo.project!!.localPath?.let { File(it) }
         val remoteBranch = commitInfo.project!!.defaultBranch
         val newBranch = "feature/${commitInfo.taskNum?.let { sanitizeGitBranchName(it) }}"
 
         try {
+
             if (repoDir != null) {
                 beforeCmdCommit(repoDir, remoteBranch!!,newBranch, commitInfo)
+            }else{
+                throw RuntimeException("$repoDir not exist!!!")
             }
+
             commitInfo.project?.platform?.let { saveFileCommit(repoPath, commitInfo.files, it) }
-
-            if (repoDir != null) {
-                afterCmdCommit(commitInfo, repoDir, newBranch)
-            }
-
-
+            afterCmdCommit(commitInfo, repoDir, newBranch)
         } catch (e: Exception) {
-            log.error("Error occurred while creating commit", e)
-            commitInfo.errorInfo = e.toString()
+            log.error("Error occurred while creating commit ${e.message}")
+            commitInfo.errorInfo = e.message
+            commitInfo.setStatus(StatusSheduler.ERROR)
             dataManager.save(commitInfo)
-            commitInfo.id?.let { setStatusCommit(it, StatusSheduler.ERROR) }
         }
 
     }
@@ -88,29 +90,59 @@ class GitWorker(
         }
         val repoPath = commitInfo.project!!.localPath!!
         val executor = ShellExecutor(workingDir = repoDir, timeout = 7)
+        try {
+            executor.executeCommand(listOf("git", "checkout", remoteBranch))
+        }catch (e: Exception){
 
-        // Переключаемся на develop и сбрасываем изменения
-        executor.executeCommand(listOf("git", "checkout", remoteBranch))
+            if (e.message?.contains("index.lock") == true) {
+                log.info("Обнаружена блокировка Git. Удаление index.lock...")
+
+                val lockFile = File("$repoDir/.git/index.lock")
+                if (lockFile.exists()) {
+                    lockFile.delete()
+                    log.info("Файл index.lock удалён. Повторная попытка...")
+
+                    executor.executeCommand(listOf("git", "checkout", remoteBranch))
+                } else {
+                    throw IllegalStateException("Файл блокировки не найден, но ошибка возникла: ${e.message}")
+                }
+            } else if (e.message?.contains("would be overwritten by checkout") == true) {
+
+                executor.executeCommand(listOf("git", "reset", "--hard"))
+                executor.executeCommand(listOf("git", "clean", "-fd"))
+
+            } else {
+                throw e
+            }
+        }
+
         executor.executeCommand(listOf("git", "reset", "--hard", "origin/$remoteBranch"))
-
         executor.executeCommand(listOf("git", "clean", "-fd"))
 
         commitInfo.id?.let { setStatusCommit(it, StatusSheduler.PROCESSED) }
 
-        val branches = executor.executeCommand(listOf("git", "branch", "-a"))
-        if (!branches.contains("remotes/origin/$remoteBranch")) {
-            throw IllegalStateException("Develop branch does not exist")
+        val remoteBranches = executor.executeCommand(listOf("git", "branch", "-a"))
+
+        if (!remoteBranches.contains("remotes/origin/$remoteBranch")) {
+            throw IllegalStateException("Default branch does not exist")
         }
 
-        executor.executeCommand(listOf("git", "checkout", remoteBranch))
-        executor.executeCommand(listOf("git", "fetch", "origin", remoteBranch))
-        executor.executeCommand(listOf("git", "checkout", remoteBranch))
+        try {
+            executor.executeCommand(listOf("git", "checkout", remoteBranch))
+            executor.executeCommand(listOf("git", "fetch", "origin", remoteBranch))
+            executor.executeCommand(listOf("git", "checkout", remoteBranch))
 
-        // Создаем новую ветку
-        if (branchExists(repoPath, newBranch)) {
-            executor.executeCommand(listOf("git", "checkout", newBranch))
-        }else {
-            executor.executeCommand(listOf("git", "checkout", "-b", newBranch))
+            // Создаем новую ветку
+            if (branchExists(repoPath, newBranch)) {
+                log.info("create new branch $newBranch")
+                executor.executeCommand(listOf("git", "checkout", newBranch))
+            } else {
+                log.info("checkout branch $newBranch")
+                executor.executeCommand(listOf("git", "checkout", "-b", newBranch))
+            }
+        } catch (e:Exception){
+            log.error("beforeCmdCommit ${e.message}")
+            throw RuntimeException("Error cmd git ${e.message}")
         }
     }
 
@@ -129,17 +161,23 @@ class GitWorker(
             )
         )
 
-        executor.executeCommand(listOf("git", "push", "-u", "origin", newBranch))
-
+        log.info("git push start")
+        executor.executeCommand(listOf("git", "push", "--force", "-u", "origin", newBranch))
+        log.info("git push end")
         commitInfo.hashCommit = executor.executeCommand(listOf("git", "rev-parse", "HEAD"))
 
         log.info("Successfully committed and pushed changes to branch $newBranch")
+
         commitInfo.urlBranch = "${commitInfo.project!!.urlRepo}/tree/$newBranch"
+
+        commitInfo.setStatus(StatusSheduler.COMPLETE)
         dataManager.save(commitInfo)
-        commitInfo.id?.let { setStatusCommit(it, StatusSheduler.COMPLETE) }
+
     }
 
     private fun saveFileCommit(baseDir: String, files: MutableList<FileCommit>, platform: Platform) {
+        val executor = ShellExecutor(workingDir = File(baseDir), timeout = 7)
+        val filesToUnpack = mutableListOf<Pair<String, String>>()
         for (file in files) {
             val content = file.data ?: continue
 
@@ -168,39 +206,69 @@ class GitWorker(
 
                 else -> {""}
             }
-            unpackFile(
-                targetPath.toString(), unpackPath,
-                platform = platform
-            )
+            file.getType()?.let { fileType ->
+                val unpackPath = when (fileType) {
+                    REPORT -> "$baseDir\\DataProcessorsExt\\erf"
+                    DATAPROCESSOR -> "$baseDir\\DataProcessorsExt\\epf"
+                    else -> null
+                }
+                unpackPath?.let {
+                    filesToUnpack.add(targetPath.toString() to unpackPath)
+                }
+            }
+
+        }
+        if (filesToUnpack.isNotEmpty()) {
+            unpackFiles(filesToUnpack, platform, executor, baseDir)
         }
     }
 
-    private fun unpackFile(pathFile:String, unpackPath:String, platform: Platform){
+    private fun unpackFiles(files: List<Pair<String, String>>, platform: Platform, executor : ShellExecutor, baseDir: String){
 
-        if (unpackPath.isEmpty()){
+        if (files.isEmpty()){
             return
         }
 
         val ones = platform.pathInstalled?.toString()
             ?.let { OneRunner(this.dataManager, it, platform.version.toString()) }
 
-        ones?.UploadExtFiles(File(pathFile),unpackPath)
-        val bFiles = findBinaryFiles(unpackPath)
-        if (bFiles.isEmpty()){return}
-        bFiles.forEach { binFile ->
-            ones?.unpackExtFiles(binFile, binFile.parent)
-
+        for ((sourcePath, unpackPath) in files) {
+            ones?.UploadExtFiles(File(sourcePath), unpackPath)
         }
 
+        val bFiles = findBinaryFilesFromGitStatus(baseDir, executor)
+        if (bFiles.isEmpty()) {
+            return
+        }
+        bFiles.forEach { binFile ->
+            ones?.unpackExtFiles(binFile, binFile.parent)
+        }
     }
 
-    private fun findBinaryFiles(rootDir: String):List<File>{
-        return File(rootDir)
-            .walk()  // Рекурсивный обход директорий
-            .filter { file ->
-                file.isFile && file.name.endsWith("Form.bin", ignoreCase = false)
+    private fun findBinaryFilesFromGitStatus(repoDir: String, executor: ShellExecutor): List<File> {
+        // Получаем список изменённых файлов
+        val gitOutput = executor.executeCommand(listOf("git", "-C", repoDir, "status", "--porcelain")).trim()
+        if (gitOutput.isBlank()) return emptyList()
+
+        // Выделяем директории из вывода git status
+        val changedDirs = gitOutput
+            .lines()
+            .mapNotNull { line ->
+                val filePath = line.substringAfter(" ").takeIf { it.isNotBlank() }
+                filePath?.let { File(repoDir, it) }
             }
-            .toList()
+            .filterNotNull()
+            .distinct()
+
+        // Ищем .bin файлы в изменённых директориях
+        val tDir = changedDirs.flatMap { dir ->
+            dir.walk()
+                .filter { file ->
+                    file.isFile && file.name.endsWith("Form.bin", ignoreCase = false)
+                }
+                .toList()
+        }
+        return tDir
     }
 
     private fun correctPath(baseDir: String, type: TypesFiles):File{
@@ -223,8 +291,9 @@ class GitWorker(
 
     private fun branchExists(repoPath: String, branchName: String): Boolean {
        val executor = ShellExecutor(workingDir = File(repoPath))
-        val branches = executor.executeCommand(listOf("git", "branch", "--list", branchName))
-        return branches.isNotBlank()
+       val branches = executor.executeCommand(listOf("git", "branch", "--list", branchName))
+
+       return branches.isNotBlank()
     }
 
     private fun firstNewDataCommit(): Commit? {
