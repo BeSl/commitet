@@ -14,6 +14,7 @@ import com.vaadin.flow.component.messages.MessageInput
 import com.vaadin.flow.component.messages.MessageInput.SubmitEvent
 import com.vaadin.flow.component.messages.MessageList
 import com.vaadin.flow.component.messages.MessageListItem
+import com.vaadin.flow.component.orderedlayout.Scroller
 import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.router.Route
 import io.jmix.core.DataManager
@@ -41,8 +42,6 @@ import java.util.concurrent.TimeUnit
 @ViewController(id = "MainView")
 @ViewDescriptor(path = "main-view.xml")
 open class MainView : StandardMainView() {
-    @ViewComponent
-    private lateinit var AddEvent: JmixButton
 
     @Autowired
     private lateinit var currentAuthentication: CurrentAuthentication
@@ -56,14 +55,17 @@ open class MainView : StandardMainView() {
     @ViewComponent
     private lateinit var boxV: VerticalLayout
 
+    @ViewComponent
+    private lateinit var vbox: VerticalLayout
+
+    @ViewComponent
+    private lateinit var scroll4at:Scroller
+
     @Autowired
     private val buildProperties: BuildProperties? = null
 
     @Autowired
     private lateinit var chatHistory: ChatHistoryService
-
-    @Autowired
-    private lateinit var dataManager: DataManager
 
     private lateinit var messageListItems:List<MessageListItem>
 
@@ -80,7 +82,11 @@ open class MainView : StandardMainView() {
         welcomeMessage.text = "${currentUser.firstName}, привет!!! "
         appVersion.text = "Версия сборки ${buildProperties?.version}"
 
-        addChat(user = currentUser)
+        if (currentUser.isAdmin == true){
+            addChat(user = currentUser)
+            boxV.isVisible = true
+        }
+
     }
 
 @Subscribe("AddEvent")
@@ -108,13 +114,15 @@ fun onCancelButtonClick(event: ClickEvent<JmixButton>) {
         messageListItems = listMessage.map { mapToMessageListItem(it) }
         msList = MessageList()
         msList.setItems(messageListItems)
-        boxV.add(msList)
+        vbox.add(msList)
+//        boxV.add(msList)
 
         val input = MessageInput()
         input.addSubmitListener { submitEvent: SubmitEvent ->
             eventNewQuery(submitEvent, chatSession)
         }
-        boxV.add(input)
+        vbox.add(input)
+//        boxV.add(input)
     }
 
     private fun mapToMessageListItem(chatMessage: ChatMessage): MessageListItem {

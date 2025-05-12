@@ -24,7 +24,7 @@
         <action id="closeAction" type="detail_close"/>
     </actions>
 
-    <layout spacing="true" padding="true"  classNames="view-layout">
+    <layout spacing="false" padding="true" classNames="view-layout" maxWidth="100%">
 
         <h3 text="Информация о коммите" classNames="section-title"/>
 
@@ -59,6 +59,7 @@
                 </tab>
                 <tab id="commit_value" label="Комментарии">
                     <vbox>
+                        <textField property="dateCreated" label="Дата создания"/>
                         <button id="uploadFilesButton" text="Выгрузкить в файлы" visible="false"/>
                         <button id="startAnalyzeButton" text="Анализировать файлы" visible="false"/>
                         <button id="clearStatusCommit" text="Сбросить статус" icon="COFFEE" themeNames="danger" visible="false"/>
@@ -101,8 +102,8 @@
         </dataGrid>
 
         <hbox id="detailActions" spacing="true" justifyContent="END" classNames="footer-buttons">
-            <button id="saveAndCloseButton" action="saveAction"/>
-            <button id="closeButton" action="closeAction"/>
+            <button id="saveAndCloseButton" action="saveAction" text="Сохранить"/>
+            <button id="closeButton" action="closeAction" text="Закрыть"/>
         </hbox>
 
     </layout>

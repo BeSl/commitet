@@ -5,7 +5,6 @@ import io.jmix.core.security.SystemAuthenticator
 import io.jmix.flowui.UiEventPublisher
 import org.quartz.Job
 import org.quartz.JobExecutionContext
-import org.slf4j.LoggerFactory
 import org.springframework.ai.chat.model.ChatModel
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
