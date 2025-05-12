@@ -55,7 +55,7 @@
                     <vbox id="boxV" height="100%" alignSelf="END"  >
                         <h2 id="test" text="aiЧат" alignSelf="START" width="100%"/>
                         <button text="Событие" id="AddEvent" visible="false"/>
-                        <scroller id="scroll4at" alignSelf="STRETCH">
+                        <scroller id="scroll4at" alignSelf="STRETCH" width="100%">
                             <vbox id="vbox" alignSelf="STRETCH">
                             </vbox>
                         </scroller>
