@@ -1,31 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
-    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
 
-    <!-- Путь к папке с логами -->
     <property name="LOG_DIR" value="logs"/>
-
-    <!-- Шаблон для записи логов -->
     <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"/>
 
-    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>${LOG_DIR}/${currentDate}.log</file>
+    <!-- Основной файл логов -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/current.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/log-%d{yyyyMMdd}.zip</fileNamePattern>
+            <maxHistory>7</maxHistory>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
         <encoder>
             <pattern>${LOG_PATTERN}</pattern>
         </encoder>
-        <append>true</append>
     </appender>
 
-    <root level="DEBUG">
-        <appender-ref ref="CONSOLE"/>
-    </root>
+    <!-- Отдельный файл логов только для ошибок -->
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/error-current.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/error-%d{yyyyMMdd}.zip</fileNamePattern>
+            <maxHistory>7</maxHistory>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
 
+    <!-- Общие логи INFO и выше -->
     <root level="INFO">
         <appender-ref ref="FILE"/>
+        <appender-ref ref="ERROR_FILE"/>
     </root>
 
+    <!-- Настройка уровня для web-пакета -->
     <logger name="org.springframework.web" level="WARN"/>
-
-    <timestamp key="currentDate" datePattern="yyyyMMdd"/>
 </configuration>

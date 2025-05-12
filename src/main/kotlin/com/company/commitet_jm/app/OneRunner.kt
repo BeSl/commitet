@@ -13,6 +13,7 @@ class OneRunner(private val dataManager: DataManager,private val pathInstall: St
     companion object {
         private  val log = LoggerFactory.getLogger(GitWorker::class.java)
     }
+
     fun UploadExtFiles(inputFile: File, outDir: String){
         val executor = ShellExecutor()
         val res = executor.executeCommand(listOf(
@@ -22,7 +23,7 @@ class OneRunner(private val dataManager: DataManager,private val pathInstall: St
             "\"$outDir\"",
             "\"${inputFile.path}\""
         ))
-        log.debug(res)
+        log.debug("Строка запуска $res")
     }
 
     fun unpackExtFiles(inputFile: File, outDir: String){
@@ -41,20 +42,21 @@ class OneRunner(private val dataManager: DataManager,private val pathInstall: St
 
         ))
 
+        log.info("start rename files")
+
         filterAndRenameFiles(
             directory = File(outDir),
-            keepFiles = setOf("form.data", "module.data"),
+            keepFiles = setOf("form.data", "module.data", "Form.bin"),
             renameRule = { originalName ->
-                // Пример правила: добавить префикс "backup_" и дату
                 when (originalName){
                     "form.data" -> "form"
-                    "module.data" -> "module.bsl"
+                    "module.data" -> "Module.bsl"
                     else -> {originalName}
                 }
 
             }
         )
-        log.debug(res)
+        log.debug("Unpack command $res")
     }
     /**
      * Оставляет в директории только указанные файлы, переименовывает их и удаляет остальные

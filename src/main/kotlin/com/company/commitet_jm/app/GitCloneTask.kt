@@ -36,9 +36,8 @@ class GitCloneTask(
 
         if (!result.first) {
             log.error("Ошибка клонирования: ${result.second}")
-//            taskLifeCycle.publish("❌ Ошибка: ${result.second}")
         } else {
-//            taskLifeCycle.publish("✅ Репозиторий успешно клонирован в $localPath")
+            log.info("репозиторий склонирован")
         }
 
         return null
