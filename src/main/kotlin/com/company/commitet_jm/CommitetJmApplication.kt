@@ -1,9 +1,12 @@
 package com.company.commitet_jm
 
+import com.company.commitet_jm.app.ChatHistoryService
 import com.vaadin.flow.component.page.AppShellConfigurator
 import com.vaadin.flow.component.page.Push
 import com.vaadin.flow.server.PWA
 import com.vaadin.flow.theme.Theme
+import io.jmix.core.DataManager
+import io.jmix.flowui.UiEventPublisher
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringApplication
@@ -52,6 +55,14 @@ open class CommitetJmApplication : AppShellConfigurator {
                 "Application started at http://localhost:"
                         + (environment?.getProperty("local.server.port") ?: "")
                         + (environment?.getProperty("server.servlet.context-path") ?: ""))
+    }
+
+    @Bean
+    open fun chatHistoryService(
+        dataManager: DataManager,
+        uiEventPublisher: UiEventPublisher
+    ): ChatHistoryService {
+        return ChatHistoryService(dataManager, uiEventPublisher)
     }
 
 }

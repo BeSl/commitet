@@ -1,30 +1,29 @@
-package com.company.commitet_jm.sheduledJob
+package com.company.commitet_jm.app
 
-import com.company.commitet_jm.service.GitWorker
 import io.jmix.core.DataManager
-import io.jmix.core.FileStorageLocator
 import io.jmix.core.security.SystemAuthenticator
+import io.jmix.flowui.UiEventPublisher
 import org.quartz.Job
 import org.quartz.JobExecutionContext
+import org.springframework.ai.chat.model.ChatModel
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-
 @Component
-class Committer(private val dataManager: DataManager): Job {
+class AiComponent(private val dataManager: DataManager,
+                  private val uiEventPublisher: UiEventPublisher,
+                  private val chatModel: ChatModel
+): Job {
     @Autowired
     private val systemAuthenticator: SystemAuthenticator? = null
 
-    @Autowired
-    private lateinit var fileStorageLocator: FileStorageLocator
+
 
     override fun execute(context: JobExecutionContext) {
         systemAuthenticator?.runWithSystem {
-            val gitWorker = GitWorker(
-                dataManager = dataManager,
-                fileStorageLocator = fileStorageLocator,
-            )
-            gitWorker.createCommit()
+            val ai = AiDialogService(dataManager, uiEventPublisher, chatModel)
+            ai.aiAnswerMessage()
         }
     }
+
 }

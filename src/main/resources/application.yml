@@ -3,9 +3,17 @@ app:
   version: 1.0.7
 
 server:
-  port: 8080
+  port: 8090
 
 logging:
   level:
     root: INFO
-    com.besl: TRACE
+    com.besl: INFO
+
+spring:
+  ai:
+    ollama:
+      chat:
+        model: qwen3:14b
+    ollama.base-url: http://localhost:11434
+

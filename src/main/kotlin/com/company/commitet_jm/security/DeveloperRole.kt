@@ -1,9 +1,6 @@
 package com.company.commitet_jm.security
 
-import com.company.commitet_jm.entity.Commit
-import com.company.commitet_jm.entity.FileCommit
-import com.company.commitet_jm.entity.Project
-import com.company.commitet_jm.entity.User
+import com.company.commitet_jm.entity.*
 import io.jmix.security.model.EntityAttributePolicyAction
 import io.jmix.security.model.EntityPolicyAction
 import io.jmix.security.role.annotation.*
@@ -73,5 +70,25 @@ interface DeveloperRole {
 
     @SpecificPolicy(resources = ["*"])
     fun specific()
+
+    @EntityAttributePolicyContainer(
+        EntityAttributePolicy(
+            entityClass = ChatSession::class,
+            attributes = ["*"],
+            action = EntityAttributePolicyAction.VIEW
+        )
+    )
+    @EntityPolicy(entityClass = ChatSession::class, actions = [EntityPolicyAction.READ, EntityPolicyAction.CREATE])
+    fun chatSession()
+
+    @EntityAttributePolicyContainer(
+        EntityAttributePolicy(
+            entityClass = ChatMessage::class,
+            attributes = ["*"],
+            action = EntityAttributePolicyAction.VIEW
+        )
+    )
+    @EntityPolicy(entityClass = ChatMessage::class, actions = [EntityPolicyAction.READ, EntityPolicyAction.UPDATE])
+    fun chatMessage()
 
 }

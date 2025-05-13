@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1" author="commitet_jm">
+        <createTable tableName="CHAT_MESSAGE">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_CHAT_MESSAGE"/>
+            </column>
+            <column name="CONTENT" type="CLOB"/>
+            <column name="ROLE" type="VARCHAR(10)"/>
+            <column name="TIMESTAMP_" type="DATETIME"/>
+            <column name="SESSION_ID" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="2" author="commitet_jm">
+        <createTable tableName="CHAT_SESSION">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_CHAT_SESSION"/>
+            </column>
+            <column name="USER_ID" type="UUID"/>
+            <column name="CREATED" type="DATETIME"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="3" author="commitet_jm">
+        <createIndex indexName="IDX_CHAT_MESSAGE_SESSION" tableName="CHAT_MESSAGE">
+            <column name="SESSION_ID"/>
+        </createIndex>
+
+        <addForeignKeyConstraint baseColumnNames="SESSION_ID" baseTableName="CHAT_MESSAGE"
+                                 constraintName="FK_CHAT_MESSAGE_ON_SESSION" referencedColumnNames="ID"
+                                 referencedTableName="CHAT_SESSION"/>
+    </changeSet>
+    <changeSet id="4" author="commitet_jm">
+        <createIndex indexName="IDX_CHAT_SESSION_USER" tableName="CHAT_SESSION">
+            <column name="USER_ID"/>
+        </createIndex>
+
+        <addForeignKeyConstraint baseColumnNames="USER_ID" baseTableName="CHAT_SESSION"
+                                 constraintName="FK_CHAT_SESSION_ON_USER" referencedColumnNames="ID"
+                                 referencedTableName="USER_"/>
+    </changeSet>
+</databaseChangeLog>

@@ -17,6 +17,7 @@
         </navigationBar>
         <drawerLayout>
             <section id="section" classNames="jmix-main-view-section">
+
                 <h2 id="applicationTitle"
                     classNames="jmix-main-view-application-title">
                     <anchor id="baseLink"
@@ -49,29 +50,32 @@
             <vbox expand="welcomeBox" alignItems="STRETCH" height="100%">
                 <vbox spacing="true" id="welcomeBox" alignSelf="CENTER">
                     <h2 id="welcomeMessage" alignSelf="CENTER"/>
-                    <image resource="cat.jpg" classNames="login-image" maxWidth="25%" alignSelf="CENTER"/>
-                </vbox>
+                    <hbox height="100%" width="100%">
+                    <image resource="cat.jpg" classNames="login-image" maxWidth="25%" alignSelf="START"/>
+                    <vbox id="boxV" height="100%" alignSelf="END"  visible="false">
+                        <h2 id="test" text="aiЧат" alignSelf="START" width="100%"/>
+                        <button text="Событие" id="AddEvent" visible="false"/>
+                        <scroller id="scroll4at" alignSelf="STRETCH" width="100%">
+                            <vbox id="vbox" alignSelf="STRETCH">
+                            </vbox>
+                        </scroller>
+                    </vbox>
 
-                <anchor href="https://github.com/BeSl/commitet"
-                        target="BLANK"
-                        themeNames="tertiary"
-                        alignSelf="END">
-                    <hbox alignItems="CENTER" themeNames="spacing-s">
-                        <icon icon="INFO_CIRCLE_O"/>
+                    <anchor href="https://github.com/BeSl/commitet"
+                            target="BLANK"
+                            themeNames="tertiary"
+                            alignSelf="END">
+                        <hbox alignItems="CENTER" themeNames="spacing-s">
+                            <icon icon="INFO_CIRCLE_O"/>
 
-                        <span id="appVersion" text="Загрузка приложения..."/>
+                            <span id="appVersion" text="Загрузка приложения..."/>
+                        </hbox>
+                    </anchor>
                     </hbox>
-                </anchor>
+                </vbox>
             </vbox>
+
+
         </initialLayout>
-<!--        <initialLayout>-->
-<!--            <vbox alignItems="CENTER" height="100%" width="100%" alignSelf="CENTER">-->
-<!--                <h3 id="versionInfo">Добро пожаловать!</h3>-->
-<!--                <image resource="icon.svg" classNames="login-image" maxWidth="50%"/>-->
-<!--                <div classNames="welcome-message" >-->
-<!--                    <p>Загрузка приложения...</p>-->
-<!--                </div>-->
-<!--            </vbox>-->
-<!--        </initialLayout>-->
     </appLayout>
 </mainView>
