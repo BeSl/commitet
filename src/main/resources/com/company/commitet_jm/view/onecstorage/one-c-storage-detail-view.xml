@@ -5,7 +5,9 @@
     <data>
         <instance id="oneCStorageDc"
                   class="com.company.commitet_jm.entity.OneCStorage">
-            <fetchPlan extends="_base"/>
+            <fetchPlan extends="_base">
+                <property name="project" fetchPlan="_base"/>
+            </fetchPlan>
             <loader id="oneCStorageDl"/>
         </instance>
     </data>
@@ -17,32 +19,31 @@
         <action id="closeAction" type="detail_close"/>
     </actions>
     <layout>
+
         <formLayout id="form" dataContainer="oneCStorageDc">
             <responsiveSteps>
-                <responsiveStep minWidth="0" columns="1" labelsPosition="ASIDE"/>
-                <responsiveStep minWidth="40em" columns="2" labelsPosition="ASIDE"/>
+                <responsiveStep minWidth="50%" columns="1" labelsPosition="ASIDE"/>
+                <responsiveStep minWidth="50%" columns="2" labelsPosition="ASIDE"/>
             </responsiveSteps>
-            <formItem>
-                <textField id="nameField" property="name"/>
-            </formItem>
-            <formItem>
-                <textField id="userField" property="user"/>
-            </formItem>
-            <formItem>
-                <textField id="passwordField" property="password"/>
-            </formItem>
-            <formItem>
-                <textField id="pathField" property="path"/>
-            </formItem>
-            <formItem>
-                <textField id="branchField" property="branch"/>
-            </formItem>
-            <formItem>
-                <select id="typeField" property="type"/>
-            </formItem>
-            <formItem>
-                <select id="projectField" property="type"/>
-            </formItem>
+            <vbox alignItems="STRETCH">
+                <entityPicker id="projectField"  width="100%" property="project" label="Проект" required="true">
+                    <actions>
+                        <action id="entityLookupAction" type="entity_lookup">
+                            <properties>
+                                <property name="viewClass" value="com.company.commitet_jm.view.project.ProjectListSelect"/>
+                            </properties>
+                        </action>
+                        <action id="entityClearAction" type="entity_clear"/>
+                    </actions>
+                </entityPicker>
+                    <textField id="nameField" property="name" label="Наименование"/>
+                    <textField id="userField" property="user" label="Пользователь"/>
+                    <passwordField id="passwordField" property="password" label="Пароль"/>
+                    <textField id="pathField" property="path" label="Путь"/>
+                    <textField id="branchField" property="branch" label="Ветка"/>
+                    <select id="typeField" property="type" label="Тип хранилища"/>
+            </vbox>
+
         </formLayout>
         <hbox id="detailActions">
             <button id="saveAndCloseButton" action="saveAction"/>

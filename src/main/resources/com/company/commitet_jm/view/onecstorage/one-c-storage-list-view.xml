@@ -48,10 +48,6 @@
             </actions>
             <columns resizable="true">
                 <column property="name"/>
-                <column property="user"/>
-                <column property="password"/>
-                <column property="path"/>
-                <column property="branch"/>
                 <column property="type"/>
             </columns>
         </dataGrid>
