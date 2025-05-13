@@ -121,12 +121,11 @@
                                 <button id="removeStorageButton" action="OneSStorageDataGrid.removeAction"/>
                             </hbox>
                             <dataGrid id="OneSStorageDataGrid"
-                                      
+
                                       dataContainer="storagesDc" themeNames="column-borders">
                                 <actions>
                                     <action id="createAction" type="list_create">
                                         <properties>
-                                            <property name="openMode" value="DIALOG"/>
                                             <property name="viewId" value="OneCStorage.detail"/>
                                         </properties>
                                     </action>

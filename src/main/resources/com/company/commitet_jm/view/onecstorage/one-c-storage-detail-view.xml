@@ -22,28 +22,35 @@
 
         <formLayout id="form" dataContainer="oneCStorageDc">
             <responsiveSteps>
-                <responsiveStep minWidth="50%" columns="1" labelsPosition="ASIDE"/>
-                <responsiveStep minWidth="50%" columns="2" labelsPosition="ASIDE"/>
+                <responsiveStep minWidth="100%" columns="1" labelsPosition="ASIDE"/>
             </responsiveSteps>
             <vbox alignItems="STRETCH">
-                <entityPicker id="projectField"  width="100%" property="project" label="Проект" required="true">
-                    <actions>
-                        <action id="entityLookupAction" type="entity_lookup">
-                            <properties>
-                                <property name="viewClass" value="com.company.commitet_jm.view.project.ProjectListSelect"/>
-                            </properties>
-                        </action>
-                        <action id="entityClearAction" type="entity_clear"/>
-                    </actions>
-                </entityPicker>
-                    <textField id="nameField" property="name" label="Наименование"/>
-                    <textField id="userField" property="user" label="Пользователь"/>
-                    <passwordField id="passwordField" property="password" label="Пароль"/>
-                    <textField id="pathField" property="path" label="Путь"/>
-                    <textField id="branchField" property="branch" label="Ветка"/>
+                <textField id="nameField" property="name" label="Наименование"/>
+                <hbox>
+                    <entityPicker id="projectField"  width="100%" property="project" label="Проект" required="true">
+                        <actions>
+                            <action id="entityLookupAction" type="entity_lookup">
+                                <properties>
+                                    <property name="viewClass" value="com.company.commitet_jm.view.project.ProjectListSelect"/>
+                                </properties>
+                            </action>
+                            <action id="entityClearAction" type="entity_clear"/>
+                        </actions>
+                    </entityPicker>
                     <select id="typeField" property="type" label="Тип хранилища"/>
-            </vbox>
+                </hbox>
 
+                <h3 text="Авторизация"/>
+                <textField id="userField" property="user" label="Пользователь"/>
+                <passwordField id="passwordField" property="password" label="Пароль"/>
+                <h3 text="Работы в GIT"/>
+                <textField id="pathField" property="path" label="Путь"/>
+                <textField id="branchField" property="branch" label="Ветка"/>
+                <h3 text="Команды:"/>
+                <button text="Создать хранилище"/>
+                <button text="Добавить пользователя"/>
+                <button text="Что-то еще"/>
+            </vbox>
         </formLayout>
         <hbox id="detailActions">
             <button id="saveAndCloseButton" action="saveAction"/>
