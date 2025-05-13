@@ -40,6 +40,9 @@
             <formItem>
                 <select id="typeField" property="type"/>
             </formItem>
+            <formItem>
+                <select id="projectField" property="type"/>
+            </formItem>
         </formLayout>
         <hbox id="detailActions">
             <button id="saveAndCloseButton" action="saveAction"/>
