@@ -1,4 +1,4 @@
-package com.company.commitet_jm.app
+package com.company.commitet_jm.component
 
 import com.company.commitet_jm.service.GitWorker
 import org.slf4j.LoggerFactory

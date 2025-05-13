@@ -9,16 +9,19 @@
                     class="com.company.commitet_jm.entity.Project">
             <fetchPlan extends="_base">
                 <property name="platform" fetchPlan="_base"/>
+                <property name="storages" fetchPlan="_base"/>
             </fetchPlan>
             <loader id="projectsDl" readOnly="true">
                 <query><![CDATA[select e from Project e]]></query>
             </loader>
         </collection>
-
         <instance id="projectDc"
                   class="com.company.commitet_jm.entity.Project">
-            <fetchPlan extends="_base"/>
+            <fetchPlan extends="_base">
+                <property name="storages" fetchPlan="_base"/>
+            </fetchPlan>
             <loader id="projectDl"/>
+            <collection id="storagesDc" property="storages"/>
         </instance>
     </data>
 
@@ -121,6 +124,25 @@
                                     <passwordField id="adminGitPasswordField" property="adminGitPassword" label="Пароль администратора" width="100%"/>
                                 </formLayout>
                             </tab>
+
+                            <tab id="tabStorage" label="Хранилища конфигураций">
+                                <dataGrid id="OneSStorageDataGrid"
+                                          width="100%"
+                                          minHeight="20em"
+                                          dataContainer="storagesDc"
+                                          columnReorderingAllowed="true">
+                                    <actions>
+                                        <action id="createAction" type="list_create"/>
+                                        <action id="editAction" type="list_edit"/>
+                                        <action id="removeAction" type="list_remove"/>
+                                    </actions>
+                                    <columns resizable="true">
+                                        <column property="name"/>
+                                        <column property="urlRepo"/>
+                                    </columns>
+                                </dataGrid>
+                            </tab>
+
                         </tabSheet>
                     </scroller >
                     </vbox>

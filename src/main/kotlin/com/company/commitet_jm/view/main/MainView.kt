@@ -1,13 +1,12 @@
 package com.company.commitet_jm.view.main
 
-import com.company.commitet_jm.app.ChatHistoryService
+import com.company.commitet_jm.service.ChatHistoryService
 import com.company.commitet_jm.entity.ChatMessage
 import com.company.commitet_jm.entity.ChatSession
 import com.company.commitet_jm.entity.MessageRole
 import com.company.commitet_jm.entity.User
 import com.company.commitet_jm.sheduledJob.AiCompanion
 import com.vaadin.flow.component.ClickEvent
-import com.vaadin.flow.component.UI
 import com.vaadin.flow.component.html.H2
 import com.vaadin.flow.component.html.Span
 import com.vaadin.flow.component.messages.MessageInput
@@ -17,7 +16,6 @@ import com.vaadin.flow.component.messages.MessageListItem
 import com.vaadin.flow.component.orderedlayout.Scroller
 import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.router.Route
-import io.jmix.core.DataManager
 import io.jmix.core.security.CurrentAuthentication
 import io.jmix.flowui.UiEventPublisher
 import io.jmix.flowui.app.main.StandardMainView
@@ -34,9 +32,6 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.*
-import java.util.concurrent.Executors
-import java.util.concurrent.ScheduledFuture
-import java.util.concurrent.TimeUnit
 
 @Route("")
 @ViewController(id = "MainView")

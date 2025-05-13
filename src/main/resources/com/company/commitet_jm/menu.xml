@@ -7,7 +7,7 @@
 
         <item view="Commit_.list" title="msg://com.company.commitet_jm.view.commit/commitListView.title"
               icon="vaadin:abacus" description="Список коммитов"/>
-
+        <item view="Project.list2" title="msg://com.company.commitet_jm.view.project/projectListView2.title"/>
 
 
     </menu>
@@ -17,6 +17,7 @@
               icon="vaadin:coffee" description="Параметры установки платформ"/>
         <item view="Project.list" title="msg://com.company.commitet_jm.view.project/projectListView.title"
               icon="vaadin:database" description="Проекты"/>
+        <item view="OneCStorage.list" title="msg://com.company.commitet_jm.view.onecstorage/oneCStorageListView.title"/>
     </menu>
     <separator>  - - - </separator>
     <menu id="settingSystem" title="Системные настройки">

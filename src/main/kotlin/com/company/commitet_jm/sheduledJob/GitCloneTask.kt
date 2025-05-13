@@ -1,4 +1,4 @@
-package com.company.commitet_jm.app
+package com.company.commitet_jm.sheduledJob
 
 import com.company.commitet_jm.service.GitWorker
 import io.jmix.core.DataManager
@@ -6,9 +6,6 @@ import io.jmix.core.FileStorageLocator
 import io.jmix.flowui.backgroundtask.BackgroundTask
 import io.jmix.flowui.backgroundtask.TaskLifeCycle
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
-import org.springframework.stereotype.Service
 import java.util.concurrent.TimeUnit
 
 

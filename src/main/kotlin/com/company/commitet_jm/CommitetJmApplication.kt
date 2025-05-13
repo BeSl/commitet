@@ -1,6 +1,7 @@
 package com.company.commitet_jm
 
-import com.company.commitet_jm.app.ChatHistoryService
+import com.company.commitet_jm.service.ChatHistoryService
+import com.company.commitet_jm.service.ones.OneRunner
 import com.vaadin.flow.component.page.AppShellConfigurator
 import com.vaadin.flow.component.page.Push
 import com.vaadin.flow.server.PWA
@@ -11,9 +12,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties
 import org.springframework.boot.context.event.ApplicationStartedEvent
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.context.event.EventListener
@@ -21,12 +22,13 @@ import org.springframework.core.env.Environment
 import org.springframework.scheduling.annotation.EnableScheduling
 import javax.sql.DataSource
 
+
 @Push
 @Theme(value = "commitet_jm")
 @PWA(name = "Commitet_jm", shortName = "Commitet_jm")
 @SpringBootApplication
 @EnableScheduling
-open class CommitetJmApplication : AppShellConfigurator {
+open class CommitetJmApplication() : AppShellConfigurator {
 
     companion object {
         @JvmStatic
@@ -65,4 +67,8 @@ open class CommitetJmApplication : AppShellConfigurator {
         return ChatHistoryService(dataManager, uiEventPublisher)
     }
 
+//    @Bean
+//    fun oneRunner(dataManager: DataManager): OneRunner {
+//        return OneRunner(dataManager, "", "" )
+//    }
 }

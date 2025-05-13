@@ -17,3 +17,5 @@ spring:
         model: qwen3:14b
     ollama.base-url: http://localhost:11434
 
+
+

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://oneCStorageDetailView.title"
+      focusComponent="form">
+    <data>
+        <instance id="oneCStorageDc"
+                  class="com.company.commitet_jm.entity.OneCStorage">
+            <fetchPlan extends="_base"/>
+            <loader id="oneCStorageDl"/>
+        </instance>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+    <actions>
+        <action id="saveAction" type="detail_saveClose"/>
+        <action id="closeAction" type="detail_close"/>
+    </actions>
+    <layout>
+        <formLayout id="form" dataContainer="oneCStorageDc">
+            <responsiveSteps>
+                <responsiveStep minWidth="0" columns="1" labelsPosition="ASIDE"/>
+                <responsiveStep minWidth="40em" columns="2" labelsPosition="ASIDE"/>
+            </responsiveSteps>
+            <formItem>
+                <textField id="nameField" property="name"/>
+            </formItem>
+            <formItem>
+                <textField id="userField" property="user"/>
+            </formItem>
+            <formItem>
+                <textField id="passwordField" property="password"/>
+            </formItem>
+            <formItem>
+                <textField id="pathField" property="path"/>
+            </formItem>
+            <formItem>
+                <textField id="branchField" property="branch"/>
+            </formItem>
+            <formItem>
+                <select id="typeField" property="type"/>
+            </formItem>
+        </formLayout>
+        <hbox id="detailActions">
+            <button id="saveAndCloseButton" action="saveAction"/>
+            <button id="closeButton" action="closeAction"/>
+        </hbox>
+    </layout>
+</view>

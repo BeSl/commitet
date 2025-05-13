@@ -1,6 +1,5 @@
 package com.company.commitet_jm.view.project
 
-import com.company.commitet_jm.sheduledJob.GitCloneTask
 import com.company.commitet_jm.entity.Project
 import com.company.commitet_jm.view.main.MainView
 import com.vaadin.flow.component.ClickEvent
@@ -9,14 +8,10 @@ import com.vaadin.flow.component.formlayout.FormLayout
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.router.Route
-import io.jmix.core.DataManager
-import io.jmix.core.FileStorageLocator
 import io.jmix.core.validation.group.UiCrossFieldChecks
-import io.jmix.flowui.Dialogs
 import io.jmix.flowui.action.SecuredBaseAction
 import io.jmix.flowui.component.UiComponentUtils
 import io.jmix.flowui.component.grid.DataGrid
-import io.jmix.flowui.component.textfield.TypedTextField
 import io.jmix.flowui.component.validation.ValidationErrors
 import io.jmix.flowui.kit.action.Action
 import io.jmix.flowui.kit.action.ActionPerformedEvent
@@ -27,19 +22,13 @@ import io.jmix.flowui.model.InstanceContainer
 import io.jmix.flowui.model.InstanceLoader
 import io.jmix.flowui.view.*
 import io.jmix.flowui.view.Target
-import org.springframework.beans.factory.annotation.Autowired
 
-@Route(value = "projects", layout = MainView::class)
-@ViewController(id = "Project.list")
-@ViewDescriptor(path = "project-list-view.xml")
+@Route(value = "projects2", layout = MainView::class)
+@ViewController(id = "Project.list2")
+@ViewDescriptor(path = "project-list-view2.xml")
 @LookupComponent("projectsDataGrid")
 @DialogMode(width = "64em")
-class ProjectListView : StandardListView<Project>() {
-    @Autowired
-    private lateinit var fileStorageLocator: FileStorageLocator
-
-    @Autowired
-    private lateinit var dataManager: DataManager
+class ProjectListView2 : StandardListView<Project>() {
 
     @ViewComponent
     private lateinit var dataContext: DataContext
@@ -65,21 +54,9 @@ class ProjectListView : StandardListView<Project>() {
     @ViewComponent
     private lateinit var detailActions: HorizontalLayout
 
-    @ViewComponent
-    private lateinit var urlRepoField: TypedTextField<Any>
-
-    @ViewComponent
-    private lateinit var localPathField: TypedTextField<String>
-
-    @ViewComponent
-    private lateinit var defaultBranchField: TypedTextField<String>
-
-    @Autowired
-    private lateinit var dialogs: Dialogs
-
     @Subscribe
     fun onInit(event: InitEvent) {
-        projectsDataGrid.actions.forEach { action ->
+        projectsDataGrid.getActions().forEach { action ->
             if (action is SecuredBaseAction) {
                 action.addEnabledRule { listLayout.isEnabled }
             }
@@ -117,25 +94,6 @@ class ProjectListView : StandardListView<Project>() {
         dataContext.save()
         projectsDc.replaceItem(item)
         updateControls(false)
-    }
-
-    @Subscribe("cloneGitButton")
-    fun cloneGitButtonClick(event: ClickEvent<JmixButton>) {
-
-        val task = GitCloneTask(
-            dataManager = dataManager,
-            fileStorageLocator = fileStorageLocator
-        ).apply {
-            urlRepo = urlRepoField.value
-            localPath = localPathField.value
-            defaultBranch = defaultBranchField.value
-
-        }
-
-        dialogs.createBackgroundTaskDialog(task)
-            .withHeader("Клонирование репозитория")
-            .withText("Подождите, идет клонирование...")
-            .open()
     }
 
     @Subscribe("cancelButton")

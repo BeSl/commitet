@@ -1,4 +1,4 @@
-package com.company.commitet_jm.app
+package com.company.commitet_jm.service.ai
 
 import io.jmix.core.DataManager
 import io.jmix.core.security.SystemAuthenticator

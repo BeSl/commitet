@@ -1,6 +1,6 @@
 package com.company.commitet_jm.config
 
-import com.company.commitet_jm.app.AiComponent
+import com.company.commitet_jm.service.ai.AiComponent
 import com.company.commitet_jm.sheduledJob.Committer
 import org.quartz.*
 import org.springframework.context.annotation.Bean

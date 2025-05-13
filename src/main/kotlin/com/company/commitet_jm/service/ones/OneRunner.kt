@@ -1,20 +1,28 @@
-package com.company.commitet_jm.app
+package com.company.commitet_jm.service.ones
 
+import com.company.commitet_jm.component.ShellExecutor
 import com.company.commitet_jm.entity.AppSettings
 import com.company.commitet_jm.service.GitWorker
 import io.jmix.core.DataManager
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 
 import java.io.File
 
-
-class OneRunner(private val dataManager: DataManager,private val pathInstall: String, private val version:String) {
+class OneRunner(private val dataManager: DataManager,
+                private val pathInstall: String,
+                private val version: String
+) {
 
     companion object {
         private  val log = LoggerFactory.getLogger(GitWorker::class.java)
     }
 
-    fun UploadExtFiles(inputFile: File, outDir: String){
+     var v8unpackPath : String = ""
+
+    fun uploadExtFiles(inputFile: File, outDir: String){
         val executor = ShellExecutor()
         val res = executor.executeCommand(listOf(
             "$pathInstall\\$version\\bin\\1cv8.exe",
@@ -28,14 +36,18 @@ class OneRunner(private val dataManager: DataManager,private val pathInstall: St
 
     fun unpackExtFiles(inputFile: File, outDir: String){
         val executor = ShellExecutor()
+        if (v8unpackPath.isEmpty()){
+            val unpackPath = dataManager.load(AppSettings::class.java)
+                .query("select apps from AppSettings apps where apps.name = :pName")
+                .parameter("pName", "v8unpack")
+                .optional().get()
 
-        val unpackPath = dataManager.load(AppSettings::class.java)
-            .query("select apps from AppSettings apps where apps.name = :pName")
-            .parameter("pName", "v8unpack")
-            .optional().get()
+
+            v8unpackPath = unpackPath.value.toString()
+        }
 
         val res = executor.executeCommand(listOf(
-            unpackPath.value,
+            v8unpackPath,
             "-U",
             inputFile.path,
             outDir
