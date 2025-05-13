@@ -88,7 +88,10 @@ interface DeveloperRole {
             action = EntityAttributePolicyAction.VIEW
         )
     )
-    @EntityPolicy(entityClass = ChatMessage::class, actions = [EntityPolicyAction.READ, EntityPolicyAction.UPDATE])
+    @EntityPolicy(
+        entityClass = ChatMessage::class,
+        actions = [EntityPolicyAction.READ, EntityPolicyAction.UPDATE, EntityPolicyAction.CREATE]
+    )
     fun chatMessage()
 
 }
