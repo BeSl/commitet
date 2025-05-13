@@ -62,6 +62,9 @@ open class User : JmixUserDetails, HasTimeZone {
     @get:JvmName("getTimeZoneId_")
     var timeZoneId: String? = null
 
+    @Column(name = "LLM_AVAILABLE")
+    var llmAvailable: Boolean? = null
+
     @Transient
     private var userAuthorities: Collection<GrantedAuthority?>? = null
 

@@ -39,11 +39,9 @@
                               visible="false"
                               />
 
-
-
-
             <checkbox id="activeField" property="active" label="Активный"/>
             <checkbox id="isAdminField" property="isAdmin" label="Администратор"/>
+            <checkbox id="llmAvailableField" property="llmAvailable" label="Доступна LLM"/>
            </vbox>
             </vbox>
         </formLayout>

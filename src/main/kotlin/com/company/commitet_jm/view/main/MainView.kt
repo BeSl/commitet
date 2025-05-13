@@ -82,7 +82,7 @@ open class MainView : StandardMainView() {
         welcomeMessage.text = "${currentUser.firstName}, привет!!! "
         appVersion.text = "Версия сборки ${buildProperties?.version}"
 
-        if (currentUser.isAdmin == true){
+        if (currentUser.llmAvailable == true){
             addChat(user = currentUser)
             boxV.isVisible = true
         }
