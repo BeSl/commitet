@@ -5,7 +5,7 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**
 !**/src/test/**
-
+logs/
 # Remove this line if you want to follow recommendations in src/main/bundles/README.md
 src/main/bundles/
 
