@@ -29,7 +29,7 @@ class ShellExecutor(var workingDir: File = File("."), var timeout:Long = 1) {
 
             if (process.exitValue() != 0) {
                 log.error("Command failed: ${command.joinToString(" ")}\nError: $error")
-                throw RuntimeException("Git command failed: $error")
+                throw RuntimeException("exec command failed: $error")
             }
 
             log.info("Command executed: ${command.joinToString(" ")}\nOutput: $output")
