@@ -41,11 +41,11 @@ open class LoginView : StandardView(), LocaleChangeObserver {
     @ViewComponent
     private lateinit var messageBundle: MessageBundle
 
-    @Value("\${ui.login.defaultUsername:}")
-    private lateinit var defaultUsername: String
+//    @Value("\${ui.login.defaultUsername:}")
+    private var defaultUsername: String =""
 
-    @Value("\${ui.login.defaultPassword:}")
-    private lateinit var defaultPassword: String
+//    @Value("\${ui.login.defaultPassword:}")
+    private var defaultPassword: String=""
 
     private val log = LoggerFactory.getLogger(LoginView::class.java)
 
