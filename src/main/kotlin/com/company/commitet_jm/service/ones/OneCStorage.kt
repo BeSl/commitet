@@ -52,15 +52,17 @@ class OneCStorageService() {
         log.debug("Вывод системы $res")
         log.debug("пустая база создана ${storageParam.name}")
 
+        //ПРИМЕР ПУТИ после имени диска 2 СЛЭША
+//        val pathSource = """"C:\\develop\test\repo\src\""""
+        val pathSource = "\"${storageParam.project!!.localPath}\\src\""
         command = listOf(
             pathPlatform(storageParam!!.project!!.platform),
             "DESIGNER",
             "/F",
-            pathBase
-//            " /LoadConfigFromFiles",
-//            " \"${storageParam.project!!.localPath}\\src\\\""
-//            , //TODO сделать определение пути для расширений
-//            " /UpdateDBCfg",
+            pathBase,
+            "/LoadConfigFromFiles",
+            pathSource,
+            " /UpdateDBCfg",
 //            " /DisableStartupMessages"
         )
 
