@@ -47,7 +47,7 @@
                 <textField id="pathField" property="path" label="Путь"/>
                 <textField id="branchField" property="branch" label="Ветка"/>
                 <h3 text="Команды:"/>
-                <button text="Создать хранилище"/>
+                <button id="createStorageButtonClick" text="Создать хранилище"/>
                 <button text="Добавить пользователя"/>
                 <button text="Что-то еще"/>
             </vbox>
