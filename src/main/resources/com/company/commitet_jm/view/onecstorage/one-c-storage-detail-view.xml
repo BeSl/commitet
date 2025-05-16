@@ -19,6 +19,9 @@
         <action id="closeAction" type="detail_close"/>
     </actions>
     <layout>
+        <hbox>
+        <vbox>
+        <h3 text="настройки хранилища"/>
 
         <formLayout id="form" dataContainer="oneCStorageDc">
             <responsiveSteps>
@@ -46,15 +49,44 @@
                 <h3 text="Работы в GIT"/>
                 <textField id="pathField" property="path" label="Путь"/>
                 <textField id="branchField" property="branch" label="Ветка"/>
-                <h3 text="Команды:"/>
-                <button id="createStorageButtonClick" text="Создать хранилище"/>
-                <button text="Добавить пользователя"/>
-                <button text="Что-то еще"/>
             </vbox>
         </formLayout>
         <hbox id="detailActions">
             <button id="saveAndCloseButton" action="saveAction"/>
             <button id="closeButton" action="closeAction"/>
+        </hbox>
+        </vbox>
+            <vbox>
+                <h3 text="Операции с хранилищем:"/>
+                <hbox>
+                    <button id="createStorageButtonClick" text="Создать хранилище"/>
+                    <button id="historyStorageButton" text="История хранилища"/>
+                    <button id="addStorageUseButton" text="Добавить пользователя"/>
+                    <button id="copyUsersStorageButton" text="Копировать пользователей"/>
+                </hbox>
+                <vbox id="cmd_param">
+                <vbox id="notCommandBox" visible="true">
+                    <h3 text="Выберите команду"/>
+                </vbox>
+                <vbox id="createStorageBox" visible="false">
+                    <h3 text="Создание нового хранилища"/>
+                    <h4 text="Дополнительных параметров не требуется"/>
+                </vbox>
+
+                <vbox id="copyUserStorageBox" visible="false">
+                    <h4 text="Исходное хранилище"/>
+                </vbox>
+                <vbox id="historyStorageBox" visible="false">
+                    <h4 text="Номер версии хранилища"/>
+                </vbox>
+                <vbox id="addUserStorageBox" visible="false">
+                    <h4 text="Новый пользователь хранилища"/>
+
+                    <checkbox label="Администратор"/>
+                </vbox>
+                    <button id="executeCommandButton" text="Выполнить" visible="false"/>
+                </vbox>
+            </vbox>
         </hbox>
     </layout>
 </view>

@@ -1,46 +1,38 @@
 package com.company.commitet_jm.service.ones
 
+//ПРИМЕР ПУТИ после имени диска 2 СЛЭША
+//        val pathSource = """"C:\\develop\test\repo\src\""""
+
 import com.company.commitet_jm.component.ShellExecutor
 import com.company.commitet_jm.entity.OneCStorage
 import com.company.commitet_jm.entity.Platform
 import com.company.commitet_jm.service.GitWorker
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 import java.nio.file.Files
 import java.nio.file.Paths
 
-
+@Component
 class OneCStorageService() {
 
-    //runner:OneRunner, executor: ShellExecutor
-//    1.Создаём хранилище конфигураций:
-//    /ConfigurationRepositoryCreate
-
-//    1cv8.exe designer  /F "D:\1cBase\morpho" /N "Admin" /P "abc" /ConfigurationRepositoryF "D:\Storage\morpho" /ConfigurationRepositoryN "AdminStorage" /ConfigurationRepositoryP "qwerty" /ConfigurationRepositoryCreate
-
-//    2.Добавление ещё одного пользователя
-//    /ConfigurationRepositoryAddUser
-
-//    1cv8.exe designer  /F "D:\1cBase\morpho" /N "Admin" /P "abc" /ConfigurationRepositoryF "D:\Storage\morpho" /ConfigurationRepositoryN "AdminStorage" /ConfigurationRepositoryP "qwerty" /ConfigurationRepositoryAddUser -User "DirectorStorage" -Pwd "qwerty" -Rights Administration
     companion object{
-        private  val log = LoggerFactory.getLogger(GitWorker::class.java)
-        private val oneCRunner = OneRunner
+        private val log = LoggerFactory.getLogger(GitWorker::class.java)
+        private val executor = ShellExecutor
     }
+//    @Autowired
+//    private val executor: ShellExecutor
     val executor = ShellExecutor()
 
     fun createOneCStorage(storageParam: OneCStorage){
-        //создать файловую базу,
-        //создать хранилище
+        val pathBase = "\"${storageParam!!.project!!.tempBasePath}\\\\${storageParam.name}\\\""
 
-        //создание макет команды
-
-//        1cv8.exe designer  /F "D:\1cBase\morpho" /N "Admin" /P "abc" /ConfigurationRepositoryF "D:\Storage\morpho" /ConfigurationRepositoryN "AdminStorage" /ConfigurationRepositoryP "qwerty" /ConfigurationRepositoryCreate
-//
         log.debug("Начал создавать хранилище ${storageParam.name}")
         log.debug("Создаю временную базу ${storageParam.name}")
-        val pathBase = "\"${storageParam!!.project!!.tempBasePath}\\\\${storageParam.name}\\\""
         if (!clearDirectoryNio("${storageParam!!.project!!.tempBasePath}\\${storageParam.name}")){
             throw RuntimeException("Не смог очистить директорию $pathBase")
         }
+
         var command = listOf(
             pathPlatform(storageParam!!.project!!.platform),
             "CREATEINFOBASE",
@@ -52,8 +44,7 @@ class OneCStorageService() {
         log.debug("Вывод системы $res")
         log.debug("пустая база создана ${storageParam.name}")
 
-        //ПРИМЕР ПУТИ после имени диска 2 СЛЭША
-//        val pathSource = """"C:\\develop\test\repo\src\""""
+
         val pathSource = "\"${storageParam.project!!.localPath}\\src\""
         command = listOf(
             pathPlatform(storageParam!!.project!!.platform),
@@ -62,20 +53,37 @@ class OneCStorageService() {
             pathBase,
             "/LoadConfigFromFiles",
             pathSource,
-            " /UpdateDBCfg",
-//            " /DisableStartupMessages"
+            " /UpdateDBCfg"
         )
 
         log.debug("Строка запуска $command")
         res = executor.executeCommand(command)
         log.debug("Результат запуска 2 $res")
-//        LoadConfigFromFiles <каталог загрузки> [­Extension <Имя расширения>] [­AllExtensions] –files “<файлы>” –listFile <файлСписка> ­ Format <режим> [1](https://master1c8.ru/wp-content/uploads/2017/10/%D0%9F%D0%B0%D1%80%D0%B0%D0%BC%D0%B5%D1%82%D1%80%D1%8B%D0%97%D0%B0%D0%BF%D1%83%D1%81%D0%BA%D0%B0.pdf)
+//        LoadConfigFromFiles <каталог загрузки> [­Extension <Имя расширения>] [­AllExtensions] –files “<файлы>” –listFile <файлСписка> ­ Format
+    //        <режим> [1](https://master1c8.ru/wp-content/uploads/2017/10/%D0%9F%D0%B0%D1%80%D0%B0%D0%BC%D0%B5%D1%82%D1%80%D1%8B%D0%97%D0%B0%D0%BF%D1%83%D1%81%D0%BA%D0%B0.pdf)
+        command = listOf(
+            pathPlatform(storageParam!!.project!!.platform),
+            "DESIGNER",
+            "/F",
+            pathBase,
+            "/ConfigurationRepositoryF",
+            storageParam!!.path.toString(),
+            "/ConfigurationRepositoryN", storageParam!!.user.toString(),
+            "/ConfigurationRepositoryP", storageParam!!.password.toString(),
+            "/ConfigurationRepositoryCreate"
+        )
+
+        log.debug("Строка запуска $command")
+        res = executor.executeCommand(command)
+        log.debug("Результат запуска 2 $res")
 
     }
 
     fun pathPlatform(platform: Platform?): String {
         return "${platform!!.pathInstalled}\\${platform!!.version}\\bin\\1cv8.exe"
     }
+// создать нового пользователя
+//    /ConfigurationRepositoryAddUser
 
     fun clearDirectoryNio(directoryPath: String): Boolean {
         val path = Paths.get(directoryPath)
