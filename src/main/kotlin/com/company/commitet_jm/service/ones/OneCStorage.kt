@@ -7,6 +7,7 @@ import com.company.commitet_jm.component.ShellExecutor
 import com.company.commitet_jm.entity.OneCStorage
 import com.company.commitet_jm.entity.Platform
 import com.company.commitet_jm.service.GitWorker
+import com.company.commitet_jm.view.onecstorage.HistoryOptions
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.io.IOException
@@ -126,6 +127,27 @@ class OneCStorageService(
         }
     }
 
+    fun generateHistoryReport(storage: OneCStorage, options: HistoryOptions) {
+        // Реализация генерации отчета
+    }
+
+    fun addUserToStorage(
+        storage: OneCStorage,
+        username: String,
+        password: String,
+        rights: UserRights,
+        restoreDeleted: Boolean
+    ) {
+        // Реализация добавления пользователя
+    }
+
+    fun copyUsersBetweenStorages(
+        source: OneCStorage,
+        target: OneCStorage,
+        restoreDeleted: Boolean
+    ) {
+        // Реализация копирования пользователей
+    }
 
 fun historyStorage(
     storage: OneCStorage,

@@ -74,31 +74,43 @@
                 </vbox>
 
                 <vbox id="copyUserStorageBox" visible="false">
-                    <h4 text="Исходное хранилище"/>
-<!--                    <entityPicker id="donorStorageField" width="100%" dataContainer="oneCStorageDc" property="" label="Хранилище источник" required="true">-->
-<!--                        <actions>-->
-<!--                            <action id="entityLookupAction" type="entity_lookup">-->
-<!--                                <properties>-->
-<!--                                    <property name="viewClass" value="com.company.commitet_jm.view.onecstorage.OneCStorageListView"/>-->
-<!--                                </properties>-->
-<!--                            </action>-->
-<!--                            <action id="entityClearAction" type="entity_clear"/>-->
-<!--                        </actions>-->
-<!--                    </entityPicker>-->
+                    <entityPicker id="oneCStorageSourceDc"
+                                  label="Хранилище-источник"
+                                  metaClass="OneCStorage">
+                        <actions>
+                            <action id="lookup" type="entity_lookup"/>
+                            <action id="clear" type="entity_clear"/>
+                        </actions>
+                    </entityPicker>
+                    <checkbox id="restoreDeletedUsersCheckbox" label="Восстановить удаленных пользователей"/>
                 </vbox>
                 <vbox id="historyStorageBox" visible="false">
                     <h4 text="Номер версии хранилища"/>
-                    <textField label="от" />
-                    <textField label="до" />
-                    <h5 text="Отбор по дате"/>
-                    <datePicker label="От"/>
-                    <datePicker label="До"/>
+                    <integerField id="startVersionField" label="Версия с"/>
+                    <integerField id="endVersionField" label="Версия по"/>
+                    <datePicker id="startDateField" label="Дата с"/>
+                    <datePicker id="endDateField" label="Дата по"/>
+                    <comboBox id="reportFormatField" label="Формат отчета">
+<!--                        <option value="TXT">TXT</option>-->
+<!--                        <option value="MXL">MXL</option>-->
+                    </comboBox>
                 </vbox>
                 <vbox id="addUserStorageBox" visible="false">
                     <h4 text="Новый пользователь хранилища"/>
-                    <checkbox label="Администратор"/>
-                    <textField label="Пользователь"/>
-                    <textField label="Пароль"/>
+                    <entityPicker id="userStorage"
+                                  label="Пользователь"
+                                  metaClass="User">
+                        <actions>
+                            <action id="lookup" type="entity_lookup"/>
+                            <action id="clear" type="entity_clear"/>
+                        </actions>
+                    </entityPicker>
+                    <comboBox id="userRightsField" label="Права">
+<!--                        <option value="READ_ONLY">Только чтение</option>-->
+<!--                        <option value="FULL_ACCESS">Полный доступ</option>-->
+<!--                        <option value="VERSION_MANAGEMENT">Управление версиями</option>-->
+                    </comboBox>
+                    <checkbox id="restoreUserCheckbox" label="Восстановить удаленного пользователя"/>
                 </vbox>
                     <button id="executeCommandButton" text="Выполнить" visible="false"/>
                 </vbox>
