@@ -24,10 +24,10 @@ class GitWorker(
 
     companion object {
         private  val log = LoggerFactory.getLogger(GitWorker::class.java)
-        private var ones = OneRunner
-
     }
 
+    @Autowired
+    private lateinit var ones: OneRunner
 
     fun cloneRepo(repoUrl:String, directoryPath: String, branch: String):Pair<Boolean, String> {
         val executor = ShellExecutor(timeout = 7)
@@ -232,9 +232,9 @@ class GitWorker(
         if (files.isEmpty()){
             return
         }
-        val ones = OneRunner(dataManager, platform.pathInstalled.toString(), platform.version.toString())
+
         for ((sourcePath, unpackPath) in files) {
-            ones?.uploadExtFiles(File(sourcePath), unpackPath)
+            ones.uploadExtFiles(File(sourcePath), unpackPath, platform.pathInstalled.toString(), platform.version.toString())
         }
 
         val bFiles = findBinaryFilesFromGitStatus(baseDir, executor)

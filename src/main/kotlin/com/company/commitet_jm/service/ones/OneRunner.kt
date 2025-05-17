@@ -5,27 +5,25 @@ import com.company.commitet_jm.entity.AppSettings
 import com.company.commitet_jm.service.GitWorker
 import io.jmix.core.DataManager
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Component
-import org.springframework.stereotype.Service
+import org.springframework.beans.factory.annotation.Autowired
 
 import java.io.File
 
-class OneRunner(private val dataManager: DataManager,
-                private val pathInstall: String,
-                private val version: String
+class OneRunner(private val dataManager: DataManager
 ) {
 
     companion object {
         private  val log = LoggerFactory.getLogger(GitWorker::class.java)
     }
+    @Autowired
+    private lateinit var shellExecutor: ShellExecutor
 
      var v8unpackPath : String = ""
 
-    fun uploadExtFiles(inputFile: File, outDir: String){
-        val executor = ShellExecutor()
-        val res = executor.executeCommand(listOf(
-            "$pathInstall\\$version\\bin\\1cv8.exe",
+    fun uploadExtFiles(inputFile: File, outDir: String,pathInstall: String, version: String ) {
+
+        val res = shellExecutor.executeCommand(listOf(
+            pathPlatform(pathInstall, version),
             "DESIGNER",
             "/DumpExternalDataProcessorOrReportToFiles",
             "\"$outDir\"",
@@ -35,7 +33,7 @@ class OneRunner(private val dataManager: DataManager,
     }
 
     fun unpackExtFiles(inputFile: File, outDir: String){
-        val executor = ShellExecutor()
+
         if (v8unpackPath.isEmpty()){
             val unpackPath = dataManager.load(AppSettings::class.java)
                 .query("select apps from AppSettings apps where apps.name = :pName")
@@ -46,7 +44,7 @@ class OneRunner(private val dataManager: DataManager,
             v8unpackPath = unpackPath.value.toString()
         }
 
-        val res = executor.executeCommand(listOf(
+        val res = shellExecutor.executeCommand(listOf(
             v8unpackPath,
             "-U",
             inputFile.path,
@@ -54,7 +52,7 @@ class OneRunner(private val dataManager: DataManager,
 
         ))
 
-        log.info("start rename files")
+        log.info("unpack rename files")
 
         filterAndRenameFiles(
             directory = File(outDir),
@@ -70,13 +68,17 @@ class OneRunner(private val dataManager: DataManager,
         )
         log.debug("Unpack command $res")
     }
+
+    fun pathPlatform(basePath: String?, version: String?):String{
+        return "$basePath\\$version\\bin\\1cv8.exe"
+    }
     /**
      * Оставляет в директории только указанные файлы, переименовывает их и удаляет остальные
      * @param directory Целевая директория
      * @param keepFiles Список имён файлов для сохранения (регистрозависимый)
      * @param renameRule Функция для генерации нового имени файла на основе старого
      */
-    fun filterAndRenameFiles(
+    private fun filterAndRenameFiles(
         directory: File,
         keepFiles: Set<String>,
         renameRule: (String) -> String
@@ -85,25 +87,16 @@ class OneRunner(private val dataManager: DataManager,
 
         directory.listFiles()?.forEach { file ->
             when {
-                // Для файлов из списка сохранения
                 file.isFile && file.name in keepFiles -> {
                     val newName = renameRule(file.name)
                     val newFile = File(directory, newName)
-
-                    // Убедимся, что новое имя не совпадает с текущим
                     if (newName != file.name) {
-                        // Удаляем существующий файл с новым именем (если есть)
                         if (newFile.exists()) newFile.delete()
                         file.renameTo(newFile)
                     }
                 }
-
-                // Для всех остальных файлов и директорий
                 else -> {
-                    if (file.isDirectory) {
-                        // Для директорий: удалить рекурсивно (раскомментировать при необходимости)
-                        // file.deleteRecursively()
-                    } else {
+                    if (!file.isDirectory) {
                         file.delete()
                     }
                 }

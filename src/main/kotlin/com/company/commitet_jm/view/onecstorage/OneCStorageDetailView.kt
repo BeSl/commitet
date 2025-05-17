@@ -1,5 +1,6 @@
 package com.company.commitet_jm.view.onecstorage
 
+import com.company.commitet_jm.component.CommandFunction
 import com.company.commitet_jm.entity.OneCStorage
 import com.company.commitet_jm.service.ones.OneCStorageService
 import com.company.commitet_jm.view.main.MainView
@@ -9,6 +10,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.router.Route
 import io.jmix.flowui.kit.component.button.JmixButton
 import io.jmix.flowui.view.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Route(value = "one-c-storages/:id", layout = MainView::class)
@@ -31,36 +33,45 @@ class OneCStorageDetailView : StandardDetailView<OneCStorage>() {
     lateinit var cmd_param: VerticalLayout
     @ViewComponent
     lateinit var executeCommandButton: Button
-    private var selectedCommand: String=""
+
+    private var selectedCommand: CommandFunction? = null
+
+    @Autowired
+    private lateinit var storage: OneCStorageService
 
     @Subscribe(id = "createStorageButtonClick", subject = "clickListener")
     private fun onCreateStorageButtonClickClick(event: ClickEvent<JmixButton>) {
 
-        changeVisibleLayout(createStorageBox)
-//        selectedCommand =
-//        notCommandBox.isVisible = false
-//        createStorageBox.isVisible
-//        val storage = OneCStorageService()
-//        storage.createOneCStorage(editedEntity)
+        changeVisibleLayout(createStorageBox){
+            storage.createOneCStorage(editedEntity)
+        }
+
     }
 
     @Subscribe(id = "historyStorageButton", subject = "clickListener")
     private fun historyStorageButtonClick(event: ClickEvent<JmixButton>) {
-        changeVisibleLayout(historyStorageBox)
+        changeVisibleLayout(historyStorageBox){
+            historyStorage()
+        }
+
     }
 
     @Subscribe(id = "addStorageUseButton", subject = "clickListener")
     private fun addStorageUseButtonClickClick(event: ClickEvent<JmixButton>) {
-        changeVisibleLayout(addUserStorageBox)
+        changeVisibleLayout(addUserStorageBox){
+            addUserStorage()
+        }
     }
 
     @Subscribe(id = "copyUsersStorageButton", subject = "clickListener")
     private fun copyUsersStorageButtonClick(event: ClickEvent<JmixButton>) {
-        changeVisibleLayout(copyUserStorageBox)
+        changeVisibleLayout(copyUserStorageBox){
+            copyUsersStorage()
+        }
     }
 
 
-    fun changeVisibleLayout(visCompoment: VerticalLayout){
+    fun changeVisibleLayout(visCompoment: VerticalLayout, cmd : CommandFunction){
 
         cmd_param.children.forEach { Component ->
             if (Component!=visCompoment){
@@ -68,9 +79,23 @@ class OneCStorageDetailView : StandardDetailView<OneCStorage>() {
             }
         }
         visCompoment.isVisible = true
-        selectedCommand = visCompoment.id.toString()
+        selectedCommand = cmd
         executeCommandButton.isVisible = true
 
     }
 
+    @Subscribe(id = "executeCommandButton", subject = "clickListener")
+    private fun onExecuteCommandButtonClick(event: ClickEvent<JmixButton>) {
+        selectedCommand?.invoke()
+    }
+
+    fun historyStorage(){
+
+    }
+    fun addUserStorage(){
+
+    }
+    fun copyUsersStorage(){
+
+    }
 }

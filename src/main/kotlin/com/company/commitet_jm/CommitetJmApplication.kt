@@ -1,5 +1,6 @@
 package com.company.commitet_jm
 
+import com.company.commitet_jm.component.ShellExecutor
 import com.company.commitet_jm.service.ChatHistoryService
 import com.company.commitet_jm.service.ones.OneRunner
 import com.vaadin.flow.component.page.AppShellConfigurator
@@ -67,8 +68,13 @@ open class CommitetJmApplication() : AppShellConfigurator {
         return ChatHistoryService(dataManager, uiEventPublisher)
     }
 
-//    @Bean
-//    fun oneRunner(dataManager: DataManager): OneRunner {
-//        return OneRunner(dataManager, "", "" )
-//    }
+    @Bean
+    open fun shellExecutor(): ShellExecutor {
+        return ShellExecutor()
+    }
+
+    @Bean
+    open fun oneRunner(dataManager: DataManager): OneRunner {
+        return OneRunner(dataManager)
+    }
 }
