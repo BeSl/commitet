@@ -7,8 +7,6 @@
 
         <item view="Commit_.list" title="msg://com.company.commitet_jm.view.commit/commitListView.title"
               icon="vaadin:abacus" description="Список коммитов"/>
-
-
     </menu>
     <separator>  - - - </separator>
     <menu id="catalogSystem" title="Базовые справочники">
@@ -18,6 +16,11 @@
               icon="vaadin:database" description="Проекты"/>
         <item view="OneCStorage.list" title="msg://com.company.commitet_jm.view.onecstorage/oneCStorageListView.title"
               icon="vaadin:asterisk" description="Хранилища конфигураций"/>
+    </menu>
+
+    <menu id="aiMessage" title="LLM функции">
+        <item view="LlmDialog" title="LLM диалог"
+              icon="vaadin:add-dock" description="Эскперименты с ИИ"/>
     </menu>
     <separator>  - - - </separator>
     <menu id="settingSystem" title="Системные настройки">
