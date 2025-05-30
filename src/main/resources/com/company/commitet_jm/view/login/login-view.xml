@@ -3,8 +3,9 @@
       focusComponent="login"
       title="msg://LoginView.title">
 
-    <layout justifyContent="CENTER" alignItems="CENTER">
-
+    <layout justifyContent="CENTER" alignItems="CENTER" >
+        <div classNames="login-header-image" />
+        <div classNames="custom-login">
         <loginForm id="login"
                    forgotPasswordButtonVisible="false">
             <form title="msg://loginForm.headerTitle"
@@ -19,6 +20,6 @@
                           username="msg://loginForm.errorUsername"
                           password="msg://loginForm.errorPassword"/>
         </loginForm>
-
+        </div>
     </layout>
 </view>
