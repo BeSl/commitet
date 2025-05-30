@@ -1,5 +1,6 @@
-package com.company.commitet_jm.app
+package com.company.commitet_jm.service.ai
 
+import com.company.commitet_jm.service.ChatHistoryService
 import io.jmix.core.DataManager
 import io.jmix.flowui.UiEventPublisher
 import org.springframework.ai.chat.client.ChatClient

@@ -1,28 +1,43 @@
-/* Predefined styles for the LoginView */
-
+/* Главный контейнер */
 .jmix-login-main-layout {
-  background-color: var(--lumo-shade-4pct);
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--lumo-base-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  overflow: hidden;
 }
 
+/* Верхняя панель с фоном */
+.login-header-image {
+  width: 50%;
+  height: 40%;
+  background-image: url("images/background.png");
+ /* background-size: cover;*/
+  background-position: center;
+  background-repeat: no-repeat;
+  border-bottom-left-radius: 3rem;
+  border-bottom-right-radius: 3rem;
+}
 
+/* Контейнер логина */
 .custom-login {
-    width: 100%;
-    background-image: url("./background.png");
-    background-position: center;
-    background-size: cover;
-    display: flex;
-    height: 25em;
-
+  margin-top: -5rem; /* Поднимаем вверх к фону */
+  z-index: 1;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 1.5rem;
+  padding: 2.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  max-width: 25em;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.custom-login jmix-login-form {
-    width: 100%;
-    align-items: center;
-    display: flex;
-    max-width: 25em;
-    background-color: var(--lumo-base-color);
-}
-
+/* Убираем фон из стандартного враппера */
 .custom-login vaadin-login-form-wrapper {
-    background-image: none;
+  background-image: none;
 }

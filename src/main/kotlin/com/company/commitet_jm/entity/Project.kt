@@ -1,11 +1,15 @@
 package com.company.commitet_jm.entity
 
 import io.jmix.core.entity.annotation.JmixGeneratedValue
+import io.jmix.core.metamodel.annotation.Composition
 import io.jmix.core.metamodel.annotation.InstanceName
 import io.jmix.core.metamodel.annotation.JmixEntity
+import io.jmix.data.DbView
+import io.jmix.eclipselink.lazyloading.NotInstantiatedList
 import jakarta.persistence.*
 import java.util.*
 
+@DbView
 @JmixEntity
 @Table(name = "PROJECT", indexes = [
     Index(name = "IDX_PROJECT_PLATFORM", columnList = "PLATFORM_ID")
@@ -46,4 +50,9 @@ open class Project {
 
     @Column(name = "TEMP_BASE_PATH")
     var tempBasePath: String? = null
+
+    @Composition
+    @OneToMany(mappedBy = "project")
+    var storages: MutableList<OneCStorage> = NotInstantiatedList()
+
 }

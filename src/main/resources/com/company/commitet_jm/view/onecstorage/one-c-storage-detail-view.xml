@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://oneCStorageDetailView.title"
+      focusComponent="form">
+    <data>
+        <instance id="oneCStorageDc"
+                  class="com.company.commitet_jm.entity.OneCStorage">
+            <fetchPlan extends="_base">
+                <property name="project" fetchPlan="_base"/>
+            </fetchPlan>
+            <loader id="oneCStorageDl"/>
+        </instance>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+    <actions>
+        <action id="saveAction" type="detail_saveClose"/>
+        <action id="closeAction" type="detail_close"/>
+    </actions>
+    <layout>
+        <hbox>
+        <vbox>
+        <h3 text="настройки хранилища"/>
+
+        <formLayout id="form" dataContainer="oneCStorageDc">
+            <responsiveSteps>
+                <responsiveStep minWidth="100%" columns="1" labelsPosition="ASIDE"/>
+            </responsiveSteps>
+            <vbox alignItems="STRETCH">
+                <textField id="nameField" property="name" label="Наименование"/>
+                <hbox>
+                    <entityPicker id="projectField"  width="100%" property="project" label="Проект" required="true">
+                        <actions>
+                            <action id="entityLookupAction" type="entity_lookup">
+                                <properties>
+                                    <property name="viewClass" value="com.company.commitet_jm.view.project.ProjectListSelect"/>
+                                </properties>
+                            </action>
+                            <action id="entityClearAction" type="entity_clear"/>
+                        </actions>
+                    </entityPicker>
+                    <select id="typeField" property="type" label="Тип хранилища"/>
+                </hbox>
+
+                <h3 text="Авторизация"/>
+                <textField id="userField" property="user" label="Пользователь"/>
+                <passwordField id="passwordField" property="password" label="Пароль"/>
+                <h3 text="Работы в GIT"/>
+                <textField id="pathField" property="path" label="Путь"/>
+                <textField id="branchField" property="branch" label="Ветка"/>
+            </vbox>
+        </formLayout>
+        <hbox id="detailActions">
+            <button id="saveAndCloseButton" action="saveAction"/>
+            <button id="closeButton" action="closeAction"/>
+        </hbox>
+        </vbox>
+            <vbox>
+                <h3 text="Операции с хранилищем:"/>
+                <hbox>
+                    <button id="createStorageButtonClick" text="Создать хранилище"/>
+                    <button id="historyStorageButton" text="История хранилища"/>
+                    <button id="addStorageUseButton" text="Добавить пользователя"/>
+                    <button id="copyUsersStorageButton" text="Копировать пользователей"/>
+                </hbox>
+                <vbox id="cmd_param">
+                <vbox id="notCommandBox" visible="true">
+                    <h3 text="Выберите команду"/>
+                </vbox>
+                <vbox id="createStorageBox" visible="false">
+                    <h3 text="Создание нового хранилища"/>
+                    <h4 text="Дополнительных параметров не требуется"/>
+                </vbox>
+
+                <vbox id="copyUserStorageBox" visible="false">
+                    <entityPicker id="oneCStorageSourceDc"
+                                  label="Хранилище-источник"
+                                  metaClass="OneCStorage">
+                        <actions>
+                            <action id="lookup" type="entity_lookup"/>
+                            <action id="clear" type="entity_clear"/>
+                        </actions>
+                    </entityPicker>
+                    <checkbox id="restoreDeletedUsersCheckbox" label="Восстановить удаленных пользователей"/>
+                </vbox>
+                <vbox id="historyStorageBox" visible="false">
+                    <h4 text="Номер версии хранилища"/>
+                    <integerField id="startVersionField" label="Версия с"/>
+                    <integerField id="endVersionField" label="Версия по"/>
+                    <datePicker id="startDateField" label="Дата с"/>
+                    <datePicker id="endDateField" label="Дата по"/>
+                    <comboBox id="reportFormatField" label="Формат отчета">
+<!--                        <option value="TXT">TXT</option>-->
+<!--                        <option value="MXL">MXL</option>-->
+                    </comboBox>
+                </vbox>
+                <vbox id="addUserStorageBox" visible="false">
+                    <h4 text="Новый пользователь хранилища"/>
+                    <entityPicker id="userStorage"
+                                  label="Пользователь"
+                                  metaClass="User">
+                        <actions>
+                            <action id="lookup" type="entity_lookup"/>
+                            <action id="clear" type="entity_clear"/>
+                        </actions>
+                    </entityPicker>
+                    <comboBox id="userRightsField" label="Права">
+<!--                        <option value="READ_ONLY">Только чтение</option>-->
+<!--                        <option value="FULL_ACCESS">Полный доступ</option>-->
+<!--                        <option value="VERSION_MANAGEMENT">Управление версиями</option>-->
+                    </comboBox>
+                    <checkbox id="restoreUserCheckbox" label="Восстановить удаленного пользователя"/>
+                </vbox>
+                    <button id="executeCommandButton" text="Выполнить" visible="false"/>
+                </vbox>
+            </vbox>
+        </hbox>
+    </layout>
+</view>

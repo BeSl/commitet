@@ -1,13 +1,14 @@
 package com.company.commitet_jm.service
 
-import com.company.commitet_jm.app.OneRunner
-import com.company.commitet_jm.app.ShellExecutor
+import com.company.commitet_jm.component.ShellExecutor
 import com.company.commitet_jm.entity.*
 import com.company.commitet_jm.entity.TypesFiles.*
+import com.company.commitet_jm.service.ones.OneRunner
 import io.jmix.core.DataManager
 import io.jmix.core.FileStorage
 import io.jmix.core.FileStorageLocator
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.File
 import java.io.IOException
@@ -24,6 +25,9 @@ class GitWorker(
     companion object {
         private  val log = LoggerFactory.getLogger(GitWorker::class.java)
     }
+
+    @Autowired
+    private lateinit var ones: OneRunner
 
     fun cloneRepo(repoUrl:String, directoryPath: String, branch: String):Pair<Boolean, String> {
         val executor = ShellExecutor(timeout = 7)
@@ -229,11 +233,8 @@ class GitWorker(
             return
         }
 
-        val ones = platform.pathInstalled?.toString()
-            ?.let { OneRunner(this.dataManager, it, platform.version.toString()) }
-
         for ((sourcePath, unpackPath) in files) {
-            ones?.UploadExtFiles(File(sourcePath), unpackPath)
+            ones.uploadExtFiles(File(sourcePath), unpackPath, platform.pathInstalled.toString(), platform.version.toString())
         }
 
         val bFiles = findBinaryFilesFromGitStatus(baseDir, executor)
@@ -241,7 +242,7 @@ class GitWorker(
             return
         }
         bFiles.forEach { binFile ->
-            ones?.unpackExtFiles(binFile, binFile.parent)
+            ones.unpackExtFiles(binFile, binFile.parent)
         }
     }
 

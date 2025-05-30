@@ -1,15 +1,12 @@
-package com.company.commitet_jm.app
+package com.company.commitet_jm.service
 
 import com.company.commitet_jm.entity.*
 import com.company.commitet_jm.sheduledJob.AiCompanion
 import io.jmix.core.DataManager
 import io.jmix.flowui.UiEventPublisher
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.jvm.optionals.getOrNull
 
 @Component
 class ChatHistoryService(

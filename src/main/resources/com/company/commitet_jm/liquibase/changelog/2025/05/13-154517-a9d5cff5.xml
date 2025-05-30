@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1" author="commitet_jm">
+        <createTable tableName="ONE_C_STORAGE">
+            <column name="ID" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_ONE_C_STORAGE"/>
+            </column>
+            <column name="NAME" type="VARCHAR(350)"/>
+            <column name="USER_" type="VARCHAR(255)"/>
+            <column name="PASSWORD" type="VARCHAR(255)"/>
+            <column name="PATH" type="VARCHAR(350)"/>
+            <column name="BRANCH" type="VARCHAR(255)"/>
+            <column name="TYPE_" type="INT"/>
+            <column name="PROJECT_ID" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="2" author="commitet_jm">
+        <createIndex indexName="IDX_ONE_C_STORAGE_PROJECT" tableName="ONE_C_STORAGE">
+            <column name="PROJECT_ID"/>
+        </createIndex>
+
+        <addForeignKeyConstraint baseColumnNames="PROJECT_ID" baseTableName="ONE_C_STORAGE"
+                                 constraintName="FK_ONE_C_STORAGE_ON_PROJECT" onDelete="CASCADE"
+                                 referencedColumnNames="ID" referencedTableName="PROJECT"/>
+    </changeSet>
+</databaseChangeLog>

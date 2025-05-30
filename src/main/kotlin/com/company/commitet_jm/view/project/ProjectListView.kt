@@ -1,6 +1,6 @@
 package com.company.commitet_jm.view.project
 
-import com.company.commitet_jm.app.GitCloneTask
+import com.company.commitet_jm.sheduledJob.GitCloneTask
 import com.company.commitet_jm.entity.Project
 import com.company.commitet_jm.view.main.MainView
 import com.vaadin.flow.component.ClickEvent
