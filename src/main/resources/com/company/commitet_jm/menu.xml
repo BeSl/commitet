@@ -16,7 +16,8 @@
               icon="vaadin:coffee" description="Параметры установки платформ"/>
         <item view="Project.list" title="msg://com.company.commitet_jm.view.project/projectListView.title"
               icon="vaadin:database" description="Проекты"/>
-        <item view="OneCStorage.list" title="msg://com.company.commitet_jm.view.onecstorage/oneCStorageListView.title"/>
+        <item view="OneCStorage.list" title="msg://com.company.commitet_jm.view.onecstorage/oneCStorageListView.title"
+              icon="vaadin:asterisk" description="Хранилища конфигураций"/>
     </menu>
     <separator>  - - - </separator>
     <menu id="settingSystem" title="Системные настройки">
