@@ -228,13 +228,16 @@ class GitWorker(
     }
 
     private fun unpackFiles(files: List<Pair<String, String>>, platform: Platform, executor : ShellExecutor, baseDir: String){
-
+        var onePlat = OneRunner(
+            dataManager,
+            executor
+        )
         if (files.isEmpty()){
             return
         }
 
         for ((sourcePath, unpackPath) in files) {
-            ones.uploadExtFiles(File(sourcePath), unpackPath, platform.pathInstalled.toString(), platform.version.toString())
+            onePlat.uploadExtFiles(File(sourcePath), unpackPath, platform.pathInstalled.toString(), platform.version.toString())
         }
 
         val bFiles = findBinaryFilesFromGitStatus(baseDir, executor)
@@ -242,7 +245,7 @@ class GitWorker(
             return
         }
         bFiles.forEach { binFile ->
-            ones.unpackExtFiles(binFile, binFile.parent)
+            onePlat.unpackExtFiles(binFile, binFile.parent)
         }
     }
 

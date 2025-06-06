@@ -7,15 +7,25 @@ server:
 
 logging:
   level:
-    root: INFO
-    com.besl: INFO
+    root: debug
+    com.besl: debug
 
 spring:
   ai:
     ollama:
       chat:
         model: qwen3:14b
+      init:
+        pull-model-strategy: always
+        embedding:
+          additional-models:
+            - mxbai-embed-large
     ollama.base-url: http://localhost:11434
-
+    vectorstore:
+      qdrant:
+        host: localhost
+        port: 6334
+        collection-name: myTestCollection
+        initialize-schema: true
 
 

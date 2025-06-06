@@ -2,5 +2,11 @@
 <view xmlns="http://jmix.io/schema/flowui/view"
       title="msg://llmDialog.title">
     <layout>
+        <vbox>
+            <h3 text="Выберите файл для загрузки"/>
+            <fileStorageUploadField id="dataField" clearButtonVisible="true" fileNameVisible="true" property="data" maxFileSize="55000000"/>
+            <button id = "insFileDBButton" title="Выгрузить файл в базу" text="Выгрузить файл в базу"/>
+        </vbox>
+
     </layout>
 </view>

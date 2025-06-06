@@ -6,17 +6,20 @@ import com.company.commitet_jm.service.GitWorker
 import io.jmix.core.DataManager
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Service
 
 import java.io.File
 
-class OneRunner(private val dataManager: DataManager
+@Service
+class OneRunner(private val dataManager: DataManager,
+                private val shellExecutor: ShellExecutor
 ) {
 
     companion object {
         private  val log = LoggerFactory.getLogger(GitWorker::class.java)
     }
-    @Autowired
-    private lateinit var shellExecutor: ShellExecutor
+//    @Autowired
+//    private lateinit var shellExecutor: ShellExecutor
 
      var v8unpackPath : String = ""
 

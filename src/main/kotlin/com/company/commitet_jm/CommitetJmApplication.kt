@@ -74,7 +74,7 @@ open class CommitetJmApplication() : AppShellConfigurator {
     }
 
     @Bean
-    open fun oneRunner(dataManager: DataManager): OneRunner {
-        return OneRunner(dataManager)
+    open fun oneRunner(dataManager: DataManager, shellExecutor: ShellExecutor): OneRunner {
+        return OneRunner(dataManager, shellExecutor)
     }
 }

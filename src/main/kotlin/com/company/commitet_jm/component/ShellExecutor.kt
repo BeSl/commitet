@@ -7,7 +7,6 @@ import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-@Component
 class ShellExecutor(var workingDir: File = File("."), var timeout:Long = 1) {
 
     companion object {
