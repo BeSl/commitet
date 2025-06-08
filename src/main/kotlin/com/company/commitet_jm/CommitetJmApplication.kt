@@ -2,6 +2,7 @@ package com.company.commitet_jm
 
 import com.company.commitet_jm.component.ShellExecutor
 import com.company.commitet_jm.service.ChatHistoryService
+import com.company.commitet_jm.service.ai.AiDialogService
 import com.company.commitet_jm.service.ones.OneRunner
 import com.vaadin.flow.component.page.AppShellConfigurator
 import com.vaadin.flow.component.page.Push
@@ -77,4 +78,5 @@ open class CommitetJmApplication() : AppShellConfigurator {
     open fun oneRunner(dataManager: DataManager, shellExecutor: ShellExecutor): OneRunner {
         return OneRunner(dataManager, shellExecutor)
     }
+
 }

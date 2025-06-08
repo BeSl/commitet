@@ -9,7 +9,6 @@ import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor
 import org.springframework.ai.chat.memory.ChatMemory
 import org.springframework.ai.chat.memory.MessageWindowChatMemory
-import org.springframework.ai.chat.memory.repository.jdbc.JdbcChatMemoryRepository
 import org.springframework.ai.chat.messages.UserMessage
 import org.springframework.ai.chat.model.ChatModel
 import org.springframework.ai.chat.prompt.ChatOptions
@@ -19,15 +18,12 @@ import org.springframework.stereotype.Component
 
 @Component
 class AiDialogService(
-    private val dataManager: DataManager,
-    private val uiEventPublisher: UiEventPublisher,
+    private val history : ChatHistoryService,
     private val chatModel: ChatModel
 ) {
 
   fun aiAnswerMessage(){
-        val history = ChatHistoryService(dataManager,uiEventPublisher)
         val req = history.messageToResponse()
-//        val msg = getQueueMessage(history)
         if (req==null){
             return
         }
@@ -36,9 +32,6 @@ class AiDialogService(
         val id_chat = req.session!!.user!!.getUsername()
 
         val chatMemory = loadMemory(req.session, id_chat!!)
-
-
-//        chatMemory.add(id_chat, UserMessage("ddsdsd"))
 
         val chatClient: ChatClient = ChatClient.builder(chatModel)
             .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
@@ -67,7 +60,6 @@ class AiDialogService(
         var chatM: ChatMemory = MessageWindowChatMemory.builder()
             .build()
 
-        val history = ChatHistoryService(dataManager,uiEventPublisher)
         if (ses!=null) {
             val msg = history.getHistory(ses)
             for (ms in msg) {
@@ -77,8 +69,5 @@ class AiDialogService(
 
         return chatM
     }
-
-
-
 
 }
