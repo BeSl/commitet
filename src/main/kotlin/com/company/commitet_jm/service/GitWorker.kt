@@ -155,15 +155,25 @@ class GitWorker(
         executor.executeCommand(listOf("git", "add", "."))
 
         // 4. Создаем коммит от указанного пользователя
-        executor.executeCommand(
-            listOf(
-                "git",
-                "-c", "user.name=${commitInfo.author!!.gitLogin}",
-                "-c", "user.email=${commitInfo.author!!.email}",
-                "commit",
-                "-m", commitInfo.description?.let { escapeShellArgument(it) }
+        // Создаем временный файл с сообщением коммита
+        val commitMessage = commitInfo.description ?: "Default commit message"
+        val tempFile = File.createTempFile("commit-message", ".txt")
+        tempFile.writeText(commitMessage, Charsets.UTF_8)
+        
+        try {
+            executor.executeCommand(
+                listOf(
+                    "git",
+                    "-c", "user.name=${commitInfo.author!!.gitLogin}",
+                    "-c", "user.email=${commitInfo.author!!.email}",
+                    "commit",
+                    "-F", tempFile.absolutePath
+                )
             )
-        )
+        } finally {
+            // Удаляем временный файл
+            tempFile.delete()
+        }
 
         log.info("git push start")
         executor.executeCommand(listOf("git", "push", "--force", "-u", "origin", newBranch))
@@ -203,12 +213,6 @@ class GitWorker(
                     targetPath,
                     StandardCopyOption.REPLACE_EXISTING
                 )
-            }
-            val unpackPath = when (file.getType()){
-                REPORT -> "$baseDir\\DataProcessorsExt\\erf"
-                DATAPROCESSOR -> "$baseDir\\DataProcessorsExt\\epf"
-
-                else -> {""}
             }
             file.getType()?.let { fileType ->
                 val unpackPath = when (fileType) {
