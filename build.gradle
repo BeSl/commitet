@@ -5,6 +5,11 @@ plugins {
     id 'org.jetbrains.gradle.plugin.idea-ext' version '1.1.9'
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
 apply plugin: 'org.springframework.boot'
 apply plugin: 'com.vaadin'
 
@@ -48,7 +53,6 @@ dependencies {
     implementation 'io.jmix.flowui:jmix-flowui-themes'
     implementation 'io.jmix.datatools:jmix-datatools-starter'
     implementation 'io.jmix.datatools:jmix-datatools-flowui-starter'
-    implementation("org.eclipse.jgit:org.eclipse.jgit:6.3.0.202209071007-r")
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
     runtimeOnly 'org.hsqldb:hsqldb'
@@ -57,9 +61,9 @@ dependencies {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
     testImplementation 'io.jmix.flowui:jmix-flowui-test-assist'
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:null"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0"
     implementation 'io.jmix.translations:jmix-translations-ru'
-    implementation 'com.vaadin:vaadin-core:24.1.0' // Основная зависимость Vaadin
+    implementation 'com.vaadin:vaadin-core:24.3.8' // Основная зависимость Vaadin
     implementation platform("org.springframework.ai:spring-ai-bom:1.0.0-SNAPSHOT")
     implementation 'org.springframework.ai:spring-ai-starter-model-ollama'
     implementation 'io.jmix.quartz:jmix-quartz-starter'
@@ -77,12 +81,12 @@ test {
     useJUnitPlatform()
 }
 
+
 idea {
     module {
-        excludeDirs.addAll(files '.jmix', 'node_modules', 'src/main/frontend/generated/', 'src/main/bundles')
+        excludeDirs.addAll(files('.jmix', 'node_modules', 'src/main/frontend/generated/', 'src/main/bundles'))
     }
 }
-
 vaadin {
     optimizeBundle = false
 }

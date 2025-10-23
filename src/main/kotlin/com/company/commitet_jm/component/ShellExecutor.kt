@@ -16,29 +16,36 @@ class ShellExecutor(var workingDir: File = File("."), var timeout:Long = 1) {
 
     fun executeCommand(command: List<String?>): String {
         try {
-            val process = ProcessBuilder(command)
+            val process = ProcessBuilder(command.filterNotNull())
                 .directory(workingDir)
                 .redirectOutput(ProcessBuilder.Redirect.PIPE)
                 .redirectError(ProcessBuilder.Redirect.PIPE)
                 .start()
 
-            val output = process.inputStream.bufferedReader().readText()
-            val error = process.errorStream.bufferedReader().readText()
+            // Используем ограничение по времени для предотвращения блокировки
+            val finished = process.waitFor(timeout, TimeUnit.MINUTES)
+            
+            if (!finished) {
+                process.destroyForcibly()
+                throw RuntimeException("Command timed out after $timeout minutes")
+            }
 
-            process.waitFor(timeout, TimeUnit.MINUTES)
+            val output = process.inputStream.bufferedReader().use { it.readText() }
+            val error = process.errorStream.bufferedReader().use { it.readText() }
 
             if (process.exitValue() != 0) {
-                log.error("Command failed: ${command.joinToString(" ")}\nError: $error")
+                log.error("Command failed: ${command.filterNotNull().joinToString(" ")}\nError: $error")
                 throw RuntimeException("exec command failed: $error")
             }
 
-            log.info("Command executed: ${command.joinToString(" ")}\nOutput: $output")
+            log.info("Command executed: ${command.filterNotNull().joinToString(" ")}\nOutput: $output")
             return output
         } catch (e: IOException) {
             log.error("IO error executing command: ${e.message}")
             throw e
         } catch (e: InterruptedException) {
             log.error("Command interrupted: ${e.message}")
+            Thread.currentThread().interrupt() // Восстанавливаем статус прерывания
             throw RuntimeException("Operation interrupted")
         }
     }

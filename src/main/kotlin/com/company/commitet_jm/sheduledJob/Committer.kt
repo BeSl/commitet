@@ -11,15 +11,18 @@ import org.springframework.stereotype.Component
 
 
 @Component
-class Committer(private val dataManager: DataManager): Job {
+class Committer: Job {
     @Autowired
-    private val systemAuthenticator: SystemAuthenticator? = null
+    private lateinit var dataManager: DataManager
+
+    @Autowired
+    private lateinit var systemAuthenticator: SystemAuthenticator
 
     @Autowired
     private lateinit var fileStorageLocator: FileStorageLocator
 
     override fun execute(context: JobExecutionContext) {
-        systemAuthenticator?.runWithSystem {
+        systemAuthenticator.runWithSystem {
             val gitWorker = GitWorker(
                 dataManager = dataManager,
                 fileStorageLocator = fileStorageLocator,
