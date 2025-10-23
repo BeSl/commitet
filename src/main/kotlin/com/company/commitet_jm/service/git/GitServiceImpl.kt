@@ -1,39 +1,34 @@
-package com.company.commitet_jm.service
+package com.company.commitet_jm.service.git
 
 import com.company.commitet_jm.component.ShellExecutor
 import com.company.commitet_jm.entity.*
 import com.company.commitet_jm.entity.TypesFiles.*
-import com.company.commitet_jm.service.ones.OneRunner
+import com.company.commitet_jm.service.file.FileService
+import com.company.commitet_jm.service.ones.OneCService
 import io.jmix.core.DataManager
-import io.jmix.core.FileStorage
 import io.jmix.core.FileStorageLocator
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.io.File
-import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 import java.util.*
 
 @Service
-class GitWorker(
+class GitServiceImpl(
     private val dataManager: DataManager,
     private val fileStorageLocator: FileStorageLocator,
-) {
+    private val fileService: FileService,
+    private val oneCService: OneCService
+) : GitService {
 
     companion object {
-        private  val log = LoggerFactory.getLogger(GitWorker::class.java)
+        private val log = LoggerFactory.getLogger(GitServiceImpl::class.java)
     }
 
-    @Autowired
-    private lateinit var ones: OneRunner
-
-    fun cloneRepo(repoUrl:String, directoryPath: String, branch: String):Pair<Boolean, String> {
+    override fun cloneRepo(repoUrl: String, directoryPath: String, branch: String): Pair<Boolean, String> {
         val executor = ShellExecutor(timeout = 7)
         log.info("start clone repo $repoUrl")
         validateGitUrl(repoUrl)
-
 
         val dir = File(directoryPath)
 
@@ -52,8 +47,7 @@ class GitWorker(
         return Pair(true, "")
     }
 
-    fun createCommit() {
-
+    override fun createCommit() {
         val commitInfo = firstNewDataCommit() ?: return
 
         log.info("start createCommit ${commitInfo.taskNum}")
@@ -64,14 +58,15 @@ class GitWorker(
         val newBranch = "feature/${commitInfo.taskNum?.let { sanitizeGitBranchName(it) }}"
 
         try {
-
             if (repoDir != null) {
-                beforeCmdCommit(repoDir, remoteBranch!!,newBranch, commitInfo)
-            }else{
+                beforeCmdCommit(repoDir, remoteBranch!!, newBranch, commitInfo)
+            } else {
                 throw RuntimeException("$repoDir not exist!!!")
             }
 
-            commitInfo.project?.platform?.let { saveFileCommit(repoPath, commitInfo.files, it) }
+            commitInfo.project?.platform?.let {
+                fileService.saveFileCommit(repoPath, commitInfo.files, it)
+            }
             afterCmdCommit(commitInfo, repoDir, newBranch)
         } catch (e: Exception) {
             log.error("Error occurred while creating commit ${e.message}")
@@ -79,7 +74,6 @@ class GitWorker(
             commitInfo.setStatus(StatusSheduler.ERROR)
             dataManager.save(commitInfo)
         }
-
     }
 
     private fun validateGitUrl(url: String) {
@@ -88,7 +82,7 @@ class GitWorker(
         }
     }
 
-    private fun beforeCmdCommit(repoDir: File, remoteBranch: String, newBranch:String, commitInfo: Commit){
+    private fun beforeCmdCommit(repoDir: File, remoteBranch: String, newBranch: String, commitInfo: Commit) {
         if (!File(repoDir, ".git").exists()) {
             throw IllegalArgumentException("Not a git repository")
         }
@@ -96,7 +90,7 @@ class GitWorker(
         val executor = ShellExecutor(workingDir = repoDir, timeout = 7)
         try {
             executor.executeCommand(listOf("git", "checkout", remoteBranch))
-        }catch (e: Exception){
+        } catch (e: Exception) {
 
             if (e.message?.contains("index.lock") == true) {
                 log.info("Обнаружена блокировка Git. Удаление index.lock...")
@@ -144,7 +138,7 @@ class GitWorker(
                 log.info("checkout branch $newBranch")
                 executor.executeCommand(listOf("git", "checkout", "-b", newBranch))
             }
-        } catch (e:Exception){
+        } catch (e: Exception) {
             log.error("beforeCmdCommit ${e.message}")
             throw RuntimeException("Error cmd git ${e.message}")
         }
@@ -159,7 +153,7 @@ class GitWorker(
         val commitMessage = commitInfo.description ?: "Default commit message"
         val tempFile = File.createTempFile("commit-message", ".txt")
         tempFile.writeText(commitMessage, Charsets.UTF_8)
-        
+
         try {
             executor.executeCommand(
                 listOf(
@@ -189,116 +183,19 @@ class GitWorker(
 
     }
 
-    private fun saveFileCommit(baseDir: String, files: MutableList<FileCommit>, platform: Platform) {
-        val executor = ShellExecutor(workingDir = File(baseDir), timeout = 7)
-        val filesToUnpack = mutableListOf<Pair<String, String>>()
-        for (file in files) {
-            val content = file.data ?: continue
-
-            // correctPath возвращает File, приводим к Path
-            val path = file.getType()?.let { correctPath(baseDir, it).toPath() } ?: continue
-            val targetPath = path.resolve(file.name.toString()).normalize()
-
-            try {
-                // Создаем директории, если нужно
-                Files.createDirectories(targetPath.parent)
-            } catch (e: IOException) {
-                throw RuntimeException("Не удалось создать директорию: ${targetPath.parent}", e)
-            }
-
-            val fileStorage = fileStorageLocator.getDefault<FileStorage>()
-            fileStorage.openStream(content).use { inputStream ->
-                Files.copy(
-                    inputStream,
-                    targetPath,
-                    StandardCopyOption.REPLACE_EXISTING
-                )
-            }
-            file.getType()?.let { fileType ->
-                val unpackPath = when (fileType) {
-                    REPORT -> "$baseDir\\DataProcessorsExt\\erf"
-                    DATAPROCESSOR -> "$baseDir\\DataProcessorsExt\\epf"
-                    else -> null
-                }
-                unpackPath?.let {
-                    filesToUnpack.add(targetPath.toString() to unpackPath)
-                }
-            }
-
-        }
-        if (filesToUnpack.isNotEmpty()) {
-            unpackFiles(filesToUnpack, platform, executor, baseDir)
-        }
-    }
-
-    private fun unpackFiles(files: List<Pair<String, String>>, platform: Platform, executor : ShellExecutor, baseDir: String){
-
-        if (files.isEmpty()){
-            return
-        }
-
-        for ((sourcePath, unpackPath) in files) {
-            ones.uploadExtFiles(File(sourcePath), unpackPath, platform.pathInstalled.toString(), platform.version.toString())
-        }
-
-        val bFiles = findBinaryFilesFromGitStatus(baseDir, executor)
-        if (bFiles.isEmpty()) {
-            return
-        }
-        bFiles.forEach { binFile ->
-            ones.unpackExtFiles(binFile, binFile.parent)
-        }
-    }
-
-    private fun findBinaryFilesFromGitStatus(repoDir: String, executor: ShellExecutor): List<File> {
-        // Получаем список изменённых файлов
-        val gitOutput = executor.executeCommand(listOf("git", "-C", repoDir, "status", "--porcelain")).trim()
-        if (gitOutput.isBlank()) return emptyList()
-
-        // Выделяем директории из вывода git status
-        val changedDirs = gitOutput
-            .lines()
-            .mapNotNull { line ->
-                val filePath = line.substringAfter(" ").takeIf { it.isNotBlank() }
-                filePath?.let { File(repoDir, it) }
-            }
-            .filterNotNull()
-            .distinct()
-
-        // Ищем .bin файлы в изменённых директориях
-        val tDir = changedDirs.flatMap { dir ->
-            dir.walk()
-                .filter { file ->
-                    file.isFile && file.name.endsWith("Form.bin", ignoreCase = false)
-                }
-                .toList()
-        }
-        return tDir
-    }
-
-    private fun correctPath(baseDir: String, type: TypesFiles):File{
-        return when (type) {
-            REPORT -> File(baseDir, "DataProcessorsExt\\Отчет\\")
-            DATAPROCESSOR -> File(baseDir, "DataProcessorsExt\\Обработка\\")
-            SCHEDULEDJOBS -> File(baseDir, "CodeExt")
-            EXTERNAL_CODE -> File(baseDir, "CodeExt")
-            EXCHANGE_RULES -> File(baseDir, "EXCHANGE_RULES")
-        }
-    }
-
-    private fun setStatusCommit(commitId: UUID, status: StatusSheduler){
+    private fun setStatusCommit(commitId: UUID, status: StatusSheduler) {
         val commit = dataManager.load(Commit::class.java)
-                    .id(commitId)
-                    .one()
+            .id(commitId)
+            .one()
         commit.setStatus(status)
         dataManager.save(commit)
     }
 
     private fun branchExists(repoPath: String, branchName: String): Boolean {
-       val executor = ShellExecutor(workingDir = File(repoPath))
-       val branches = executor.executeCommand(listOf("git", "branch", "--list", branchName))
+        val executor = ShellExecutor(workingDir = File(repoPath))
+        val branches = executor.executeCommand(listOf("git", "branch", "--list", branchName))
 
-       return branches.isNotBlank()
+        return branches.isNotBlank()
     }
 
     private fun firstNewDataCommit(): Commit? {
@@ -341,7 +238,7 @@ class GitWorker(
         //   - символы: ~, ^, :, *, ?, [, ], @, \, /, {, }, ...
         // - Не могут заканчиваться на .lock
         // - Не могут содержать последовательность //
-
+        
         val forbiddenChars = setOf(
             ' ', '~', '^', ':', '*', '?', '[', ']', '@', '\\', '/', '{', '}',
             '<', '>', '|', '"', '\'', '!', '#', '$', '%', '&', '(', ')', ',', ';', '='

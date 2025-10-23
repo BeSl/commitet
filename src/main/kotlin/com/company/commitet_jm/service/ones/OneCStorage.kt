@@ -6,7 +6,6 @@ package com.company.commitet_jm.service.ones
 import com.company.commitet_jm.component.ShellExecutor
 import com.company.commitet_jm.entity.OneCStorage
 import com.company.commitet_jm.entity.Platform
-import com.company.commitet_jm.service.GitWorker
 import com.company.commitet_jm.view.onecstorage.HistoryOptions
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -217,6 +216,7 @@ private fun buildHistoryCommand(
 
 
 
+
 private fun executeConfigurationCommand(storage: OneCStorage, commandParts: List<String>) {
     try {
         val baseCommand = listOf(
@@ -253,8 +253,11 @@ private fun getPlatformPath(storage: OneCStorage): String {
 
 
 
+
+
 // создать нового пользователя
 //    /ConfigurationRepositoryAddUser
+
 
 
 

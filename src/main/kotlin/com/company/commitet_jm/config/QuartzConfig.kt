@@ -1,6 +1,5 @@
 package com.company.commitet_jm.config
 
-import com.company.commitet_jm.service.ai.AiComponent
 import com.company.commitet_jm.sheduledJob.Committer
 import org.quartz.*
 import org.springframework.context.annotation.Bean
@@ -31,25 +30,4 @@ open class QuartzConfig {
             .build()
     }
 
-    @Bean
-    open fun aiJobDetail(): JobDetail {
-        return JobBuilder.newJob(AiComponent::class.java)
-            .withIdentity("AIDialog")
-            .storeDurably()
-            .build()
-    }
-
-    @Bean
-    open fun aiTrigger(aiJobDetail: JobDetail): Trigger {
-        return TriggerBuilder.newTrigger()
-            .forJob(aiJobDetail)
-            .withIdentity("AITrigger")
-            .startNow()
-            .withSchedule(
-                SimpleScheduleBuilder.simpleSchedule()
-                    .withIntervalInSeconds(5)
-                    .repeatForever()
-            )
-            .build()
-    }
 }

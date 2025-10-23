@@ -1,6 +1,5 @@
 package com.company.commitet_jm.component
 
-import com.company.commitet_jm.service.GitWorker
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.io.File
@@ -11,7 +10,7 @@ import java.util.concurrent.TimeUnit
 class ShellExecutor(var workingDir: File = File("."), var timeout:Long = 1) {
 
     companion object {
-        private  val log = LoggerFactory.getLogger(GitWorker::class.java)
+        private  val log = LoggerFactory.getLogger(ShellExecutor::class.java)
     }
 
     fun executeCommand(command: List<String?>): String {

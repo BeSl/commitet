@@ -1,7 +1,7 @@
 package com.company.commitet_jm.view.commit
 
 import com.company.commitet_jm.entity.*
-import com.company.commitet_jm.service.GitWorker
+import com.company.commitet_jm.service.git.GitService
 import com.company.commitet_jm.view.main.MainView
 import com.vaadin.flow.component.ClickEvent
 import com.vaadin.flow.component.button.Button
@@ -36,6 +36,9 @@ class CommitDetailView : StandardDetailView<Commit>() {
 
     @Autowired
     private lateinit var dataManager: DataManager
+
+    @Autowired
+    private lateinit var gitService: GitService
 
     @ViewComponent
     private lateinit var errorInfoField: JmixTextArea
@@ -140,11 +143,7 @@ class CommitDetailView : StandardDetailView<Commit>() {
 
     @Subscribe(id = "uploadFilesButton", subject = "clickListener")
     private fun onUploadFilesButtonCommitClick(event: ClickEvent<JmixButton>) {
-        val gitWorker = GitWorker(
-            dataManager = dataManager,
-            fileStorageLocator = fileStorageLocator,
-        )
-        gitWorker.createCommit()
+        gitService.createCommit()
     }
 
 

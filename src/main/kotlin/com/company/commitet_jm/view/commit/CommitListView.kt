@@ -3,7 +3,7 @@ package com.company.commitet_jm.view.commit
 import com.company.commitet_jm.entity.Commit
 import com.company.commitet_jm.entity.StatusSheduler
 import com.company.commitet_jm.entity.User
-import com.company.commitet_jm.service.GitWorker
+import com.company.commitet_jm.service.git.GitService
 import com.company.commitet_jm.view.main.MainView
 import com.vaadin.flow.component.ClickEvent
 import com.vaadin.flow.component.html.Span
@@ -45,6 +45,9 @@ class CommitListView : StandardListView<Commit>() {
     @Autowired
     private lateinit var dataManager: DataManager
 
+    @Autowired
+    private lateinit var gitService: GitService
+
     @ViewComponent
     private val commitsDl: CollectionLoader<Commit>? = null
 
@@ -55,12 +58,7 @@ class CommitListView : StandardListView<Commit>() {
 
     @Subscribe(id = "CreateCommitButton")
     private fun onCreateCommitButtonClick(event: ClickEvent<JmixButton>) {
-        val gitWorker = GitWorker(
-            dataManager = dataManager,
-            fileStorageLocator = fileStorageLocator,
-        )
-        gitWorker.createCommit()
-
+        gitService.createCommit()
     }
 
     @Subscribe

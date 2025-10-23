@@ -1,6 +1,6 @@
 package com.company.commitet_jm.sheduledJob
 
-import com.company.commitet_jm.service.GitWorker
+import com.company.commitet_jm.service.git.GitService
 import io.jmix.core.DataManager
 import io.jmix.core.FileStorageLocator
 import io.jmix.flowui.backgroundtask.BackgroundTask
@@ -13,13 +13,14 @@ import java.util.concurrent.TimeUnit
 class GitCloneTask(
     private val dataManager: DataManager,
     private val fileStorageLocator: FileStorageLocator,
+    private val gitService: GitService
     ) : BackgroundTask<Int, Void?>(
     10,
     TimeUnit.MINUTES
 ) {
 
     companion object {
-        private  val log = LoggerFactory.getLogger(GitWorker::class.java)
+        private  val log = LoggerFactory.getLogger(GitCloneTask::class.java)
     }
     var urlRepo: String = ""
     var localPath: String = ""
@@ -27,9 +28,7 @@ class GitCloneTask(
 
     @Throws(Exception::class)
     override fun run(taskLifeCycle: TaskLifeCycle<Int>): Void? {
-        val gw = GitWorker(dataManager = dataManager, fileStorageLocator = fileStorageLocator)
-
-        val result = gw.cloneRepo("$urlRepo.git", localPath, defaultBranch)
+        val result = gitService.cloneRepo("$urlRepo.git", localPath, defaultBranch)
 
         if (!result.first) {
             log.error("Ошибка клонирования: ${result.second}")
