@@ -2,6 +2,7 @@ package com.company.commitet_jm.view.project
 
 import com.company.commitet_jm.sheduledJob.GitCloneTask
 import com.company.commitet_jm.entity.Project
+import com.company.commitet_jm.service.git.GitService
 import com.company.commitet_jm.view.main.MainView
 import com.vaadin.flow.component.ClickEvent
 import com.vaadin.flow.component.HasValueAndElement
@@ -40,6 +41,9 @@ class ProjectListView : StandardListView<Project>() {
 
     @Autowired
     private lateinit var dataManager: DataManager
+
+    @Autowired
+    private lateinit var gitService: GitService
 
     @ViewComponent
     private lateinit var dataContext: DataContext
@@ -124,7 +128,8 @@ class ProjectListView : StandardListView<Project>() {
 
         val task = GitCloneTask(
             dataManager = dataManager,
-            fileStorageLocator = fileStorageLocator
+            fileStorageLocator = fileStorageLocator,
+            gitService = gitService
         ).apply {
             urlRepo = urlRepoField.value
             localPath = localPathField.value
