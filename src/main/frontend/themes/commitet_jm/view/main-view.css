@@ -64,3 +64,28 @@
 .jmix-main-view-footer .jmix-user-indicator {
   flex-grow: 1;
 }
+
+/* Styles for statistic tiles */
+.statistic-tile {
+  background: var(--lumo-base-color);
+  border: 1px solid var(--lumo-contrast-20pct);
+  border-radius: var(--lumo-border-radius-l);
+  padding: var(--lumo-space-m);
+  margin: var(--lumo-space-s);
+  box-shadow: var(--lumo-box-shadow-s);
+  min-width: 200px;
+  text-align: center;
+}
+
+.statistic-tile h3 {
+  margin: 0 0 var(--lumo-space-s) 0;
+  color: var(--lumo-secondary-text-color);
+  font-weight: normal;
+  font-size: var(--lumo-font-size-s);
+}
+
+.statistic-tile h2 {
+  margin: 0;
+  font-size: var(--lumo-font-size-xxl);
+  color: var(--lumo-primary-text-color);
+}

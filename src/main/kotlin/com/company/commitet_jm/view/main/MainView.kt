@@ -5,6 +5,7 @@ import com.company.commitet_jm.entity.ChatMessage
 import com.company.commitet_jm.entity.ChatSession
 import com.company.commitet_jm.entity.MessageRole
 import com.company.commitet_jm.entity.User
+import com.company.commitet_jm.entity.Commit
 import com.company.commitet_jm.sheduledJob.AiCompanion
 import com.vaadin.flow.component.ClickEvent
 import com.vaadin.flow.component.html.H2
@@ -16,6 +17,7 @@ import com.vaadin.flow.component.messages.MessageListItem
 import com.vaadin.flow.component.orderedlayout.Scroller
 import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.router.Route
+import io.jmix.core.DataManager
 import io.jmix.core.security.CurrentAuthentication
 import io.jmix.flowui.UiEventPublisher
 import io.jmix.flowui.app.main.StandardMainView
@@ -41,6 +43,9 @@ open class MainView : StandardMainView() {
     @Autowired
     private lateinit var currentAuthentication: CurrentAuthentication
 
+    @Autowired
+    private lateinit var dataManager: DataManager
+
     @ViewComponent
     private lateinit var welcomeMessage: H2
 
@@ -55,6 +60,12 @@ open class MainView : StandardMainView() {
 
     @ViewComponent
     private lateinit var scroll4at:Scroller
+
+    @ViewComponent
+    private lateinit var weekCommitCount: H2
+
+    @ViewComponent
+    private lateinit var monthCommitCount: H2
 
     @Autowired
     private val buildProperties: BuildProperties? = null
@@ -82,6 +93,8 @@ open class MainView : StandardMainView() {
             boxV.isVisible = true
         }
 
+        // Load and display commit statistics
+        loadCommitStatistics()
     }
 
 @Subscribe("AddEvent")
@@ -91,6 +104,32 @@ fun onCancelButtonClick(event: ClickEvent<JmixButton>) {
         Collections.singleton((currentAuthentication.user as User).getUsername())
     )
 }
+
+    private fun loadCommitStatistics() {
+        val weekCount = countCommitsLastWeek()
+        val monthCount = countCommitsCurrentMonth()
+
+        weekCommitCount.text = weekCount.toString()
+        monthCommitCount.text = monthCount.toString()
+    }
+
+    private fun countCommitsLastWeek(): Long {
+        val oneWeekAgo = LocalDateTime.now().minusDays(7)
+        
+        return dataManager.load(Commit::class.java)
+            .query("select count(c) from Commit_ c where c.dateCreated >= :startDate")
+            .parameter("startDate", oneWeekAgo)
+            .one()
+    }
+
+    private fun countCommitsCurrentMonth(): Long {
+        val firstDayOfMonth = LocalDateTime.now().withDayOfMonth(1).toLocalDate().atStartOfDay()
+        
+        return dataManager.load(Commit::class.java)
+            .query("select count(c) from Commit_ c where c.dateCreated >= :startDate")
+            .parameter("startDate", firstDayOfMonth)
+            .one()
+    }
 
     private fun updateMessageList(session: ChatSession) {
         messageListItems = chatHistory

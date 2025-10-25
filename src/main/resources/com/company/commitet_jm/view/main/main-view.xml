@@ -50,6 +50,19 @@
             <vbox expand="welcomeBox" alignItems="STRETCH" height="100%">
                 <vbox spacing="true" id="welcomeBox" alignSelf="CENTER">
                     <h2 id="welcomeMessage" alignSelf="CENTER"/>
+                    
+                    <!-- Statistics tiles -->
+                    <hbox id="statisticsBox" width="100%" spacing="true" alignItems="CENTER" justifyContent="CENTER">
+                        <vbox id="weekStatsTile" classNames="statistic-tile" alignItems="CENTER">
+                            <h3>Коммиты за последнюю неделю</h3>
+                            <h2 id="weekCommitCount">0</h2>
+                        </vbox>
+                        <vbox id="monthStatsTile" classNames="statistic-tile" alignItems="CENTER">
+                            <h3>Коммиты за текущий месяц</h3>
+                            <h2 id="monthCommitCount">0</h2>
+                        </vbox>
+                    </hbox>
+                    
                     <hbox height="100%" width="100%">
                     <image resource="cat.jpg" classNames="login-image" maxWidth="25%" alignSelf="START"/>
                     <vbox id="boxV" height="100%" alignSelf="END"  visible="false">
