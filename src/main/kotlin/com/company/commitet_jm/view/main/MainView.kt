@@ -113,22 +113,32 @@ fun onCancelButtonClick(event: ClickEvent<JmixButton>) {
         monthCommitCount.text = monthCount.toString()
     }
 
-    private fun countCommitsLastWeek(): Long {
+    private fun countCommitsLastWeek(): Long  {
         val oneWeekAgo = LocalDateTime.now().minusDays(7)
-        
-        return dataManager.load(Commit::class.java)
-            .query("select count(c) from Commit_ c where c.dateCreated >= :startDate")
+
+        val result = dataManager.loadValue(
+            "select count(c) from Commit_ c where c.dateCreated >= :startDate and c.author = :author",
+            Long::class.java
+        )
             .parameter("startDate", oneWeekAgo)
+            .parameter("author", currentAuthentication.user)
             .one()
+
+        return result
     }
 
-    private fun countCommitsCurrentMonth(): Long {
+    private fun countCommitsCurrentMonth():  Long {
         val firstDayOfMonth = LocalDateTime.now().withDayOfMonth(1).toLocalDate().atStartOfDay()
         
-        return dataManager.load(Commit::class.java)
-            .query("select count(c) from Commit_ c where c.dateCreated >= :startDate")
+        val result = dataManager.loadValue(
+            "select count(c) from Commit_ c where c.dateCreated >= :startDate and c.author = :author",
+            Long::class.java
+        )
             .parameter("startDate", firstDayOfMonth)
+            .parameter("author", currentAuthentication.user)
             .one()
+
+        return result
     }
 
     private fun updateMessageList(session: ChatSession) {
