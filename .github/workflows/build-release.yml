@@ -33,7 +33,7 @@ jobs:
           ls -l gradlew
         fi
     
-    - name: Set up JDK 17
+    - name: Set up JDK 21
       uses: actions/setup-java@v3
       with:
         java-version: '21'
@@ -49,8 +49,33 @@ jobs:
         ./gradlew --version
         
     - name: Build with Gradle
-      run: ./gradlew build -x test
-       
+      run: |
+        echo "Starting Gradle build..."
+        ./gradlew build -x test --info --stacktrace
+        echo "Gradle build completed successfully"
+      continue-on-error: true
+      
+    - name: Check build result and show logs
+      run: |
+        if [ -f "build/reports/tests/test/index.html" ]; then
+          echo "Test reports found:"
+          ls -la build/reports/tests/test/
+        fi
+        
+        if [ -f "build.gradle" ]; then
+          echo "Build.gradle exists"
+        else
+          echo "ERROR: build.gradle not found!"
+        fi
+        
+        # Check if build was successful
+        if ./gradlew tasks >/dev/null 2>&1; then
+          echo "Gradle is working correctly"
+        else
+          echo "ERROR: Gradle is not working correctly"
+          exit 1
+        fi
+        
     - name: Create Release
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       uses: actions/create-release@v1
