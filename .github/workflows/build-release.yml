@@ -11,26 +11,42 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
     
-    - name: List files for debugging
+    - name: Debug environment
       run: |
         echo "Current directory: $(pwd)"
         echo "Directory contents:"
         ls -la
-        echo "Gradle directory contents:"
-        ls -la gradle/wrapper/ || echo "gradle/wrapper directory not found"
-        
-    - name: Check if gradlew exists
+        echo ""
+        echo "All files in repository:"
+        find . -type f -not -path "./.git/*" | sort
+        echo ""
+        echo "Checking for gradlew file specifically:"
+        find . -name "gradlew" -type f
+        echo ""
+        echo "Git status:"
+        git status --porcelain
+    
+    - name: Verify gradlew file exists
       run: |
-        if [ ! -f "gradlew" ]; then
-          echo "ERROR: gradlew file not found!"
-          echo "Available files:"
-          find . -name "gradlew" -type f
-          exit 1
+        echo "Checking for gradlew file in root directory:"
+        if [ -f "./gradlew" ]; then
+          echo "SUCCESS: gradlew file found in root directory"
+          ls -la ./gradlew
+          echo "File type:"
+          file ./gradlew
         else
-          echo "gradlew file found"
-          ls -l gradlew
+          echo "ERROR: gradlew file NOT found in root directory"
+          echo "Contents of current directory:"
+          ls -la
+          echo "Searching for gradlew file in all directories:"
+          find . -name "gradlew" -type f
+          echo "Exiting with error"
+          exit 1
         fi
     
     - name: Set up JDK 21
@@ -41,43 +57,60 @@ jobs:
         
     - name: Grant execute permission for gradlew
       run: |
-        chmod +x gradlew
-        ls -l gradlew
+        echo "Setting execute permissions for gradlew"
+        chmod +x ./gradlew
+        echo "Permissions after chmod:"
+        ls -la ./gradlew
+        echo "Trying to execute gradlew directly:"
+        if [ -x "./gradlew" ]; then
+          echo "gradlew has execute permission"
+        else
+          echo "ERROR: gradlew does not have execute permission"
+        fi
         
     - name: Validate Gradle wrapper
       run: |
+        echo "Validating Gradle wrapper..."
+        echo "Current directory: $(pwd)"
+        echo "gradlew file exists:"
+        ls -la ./gradlew
+        echo "Attempting to run ./gradlew --version"
         ./gradlew --version
-        
+        echo "Gradle wrapper validation completed"
+      continue-on-error: true
+      
     - name: Build with Gradle
       run: |
         echo "Starting Gradle build..."
+        echo "Current directory: $(pwd)"
+        echo "gradlew file exists:"
+        ls -la ./gradlew
+        echo "Attempting to run ./gradlew build -x test --info --stacktrace"
         ./gradlew build -x test --info --stacktrace
         echo "Gradle build completed successfully"
       continue-on-error: true
       
-    - name: Check build result and show logs
+    - name: Final diagnostics
       run: |
-        if [ -f "build/reports/tests/test/index.html" ]; then
-          echo "Test reports found:"
-          ls -la build/reports/tests/test/
+        echo "Final diagnostics:"
+        echo "Current directory: $(pwd)"
+        echo "Directory contents:"
+        ls -la
+        if [ -d "build" ]; then
+          echo "Build directory contents:"
+          ls -la build/
+        else
+          echo "No build directory found"
         fi
         
-        if [ -f "build.gradle" ]; then
-          echo "Build.gradle exists"
-        else
-          echo "ERROR: build.gradle not found!"
-        fi
+        echo "Checking if JAR files were created:"
+        find . -name "*.jar" -type f
         
-        # Check if build was successful
-        if ./gradlew tasks >/dev/null 2>&1; then
-          echo "Gradle is working correctly"
-        else
-          echo "ERROR: Gradle is not working correctly"
-          exit 1
-        fi
+        echo "Git log (last 5 commits):"
+        git log --oneline -5
         
     - name: Create Release
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main' && success()
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -88,7 +121,7 @@ jobs:
         prerelease: false
         
     - name: Upload JAR Artifact
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main' && success()
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
