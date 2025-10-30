@@ -100,10 +100,12 @@ vaadin {
 
 // Установка версии Java для компиляции
 java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
 
 // Настройка компиляции Kotlin
 kotlin {
-    jvmToolchain(8)
     jvmToolchain(17)
 }
