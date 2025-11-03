@@ -230,21 +230,24 @@ class GitWorker(
     }
 
     private fun unpackFiles(files: List<Pair<String, String>>, platform: Platform, executor : ShellExecutor, baseDir: String){
-
+       
         if (files.isEmpty()){
             return
         }
-
+       
         for ((sourcePath, unpackPath) in files) {
             ones.uploadExtFiles(File(sourcePath), unpackPath, platform.pathInstalled.toString(), platform.version.toString())
         }
-
+       
         val bFiles = findBinaryFilesFromGitStatus(baseDir, executor)
         if (bFiles.isEmpty()) {
             return
         }
         bFiles.forEach { binFile ->
-            ones.unpackExtFiles(binFile, binFile.parent)
+            ones.unpackExtFiles(binFile, binFile.parent,
+//                    platform.pathInstalled.toString(),
+//                    platform.version.toString()
+            )
         }
     }
 

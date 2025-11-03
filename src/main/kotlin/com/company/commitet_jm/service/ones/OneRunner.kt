@@ -2,7 +2,9 @@ package com.company.commitet_jm.service.ones
 
 import com.company.commitet_jm.component.ShellExecutor
 import com.company.commitet_jm.entity.AppSettings
+import com.company.commitet_jm.service.unpack.UnpackService
 import io.jmix.core.DataManager
+import org.apache.commons.compress.java.util.jar.Pack200
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -35,23 +37,25 @@ class OneRunner(private val dataManager: DataManager
 
     fun unpackExtFiles(inputFile: File, outDir: String){
 
-        if (v8unpackPath.isEmpty()){
-            val unpackPath = dataManager.load(AppSettings::class.java)
-                .query("select apps from AppSettings apps where apps.name = :pName")
-                .parameter("pName", "v8unpack")
-                .optional().get()
+//        if (v8unpackPath.isEmpty()){
+//            val unpackPath = dataManager.load(AppSettings::class.java)
+//                .query("select apps from AppSettings apps where apps.name = :pName")
+//                .parameter("pName", "v8unpack")
+//                .optional().get()
+//
+//
+//            v8unpackPath = unpackPath.value.toString()
+//        }
+        val unp = UnpackService()
+        unp.unpackToDirectory(inputFile.path, outDir)
 
-
-            v8unpackPath = unpackPath.value.toString()
-        }
-
-        val res = shellExecutor.executeCommand(listOf(
-            v8unpackPath,
-            "-U",
-            inputFile.path,
-            outDir
-
-        ))
+//        val res = shellExecutor.executeCommand(listOf(
+//            v8unpackPath,
+//            "-U",
+//            inputFile.path,
+//            outDir
+//
+//        ))
 
         log.info("unpack rename files")
 
@@ -67,7 +71,8 @@ class OneRunner(private val dataManager: DataManager
 
             }
         )
-        log.debug("Unpack command $res")
+        log.debug("hand made unpack")
+        //log.debug("Unpack command $res")
     }
 
     fun pathPlatform(basePath: String?, version: String?):String{

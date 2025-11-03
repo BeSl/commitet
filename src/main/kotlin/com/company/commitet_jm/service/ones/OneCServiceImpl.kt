@@ -31,7 +31,16 @@ class OneCServiceImpl(
         log.debug("Строка запуска $res")
     }
 
-    override fun unpackExtFiles(inputFile: File, outDir: String) {
+    override fun unpackExtFiles(
+        inputFile: File,
+        outDir: String,
+        pathInstall: String,
+        version: String
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    fun unpackExtFiles(inputFile: File, outDir: String) {
         if (v8unpackPath.isEmpty()) {
             val unpackPath = dataManager.load(AppSettings::class.java)
                 .query("select apps from AppSettings apps where apps.name = :pName")
