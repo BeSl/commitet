@@ -5,9 +5,11 @@ import com.company.commitet_jm.entity.AppSettings
 import io.jmix.core.DataManager
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Service
 
 import java.io.File
 
+@Service
 class OneRunner(private val dataManager: DataManager
 ) {
 
@@ -69,7 +71,12 @@ class OneRunner(private val dataManager: DataManager
     }
 
     fun pathPlatform(basePath: String?, version: String?):String{
-        return "$basePath\\$version\\bin\\1cv8.exe"
+        val osName = System.getProperty("os.name").lowercase()
+        return if (osName.contains("windows")) {
+            "$basePath\\$version\\bin\\1cv8.exe"
+        } else {
+            "$basePath/$version/1cv8s"
+        }
     }
     /**
      * Оставляет в директории только указанные файлы, переименовывает их и удаляет остальные

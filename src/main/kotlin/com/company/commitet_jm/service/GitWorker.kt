@@ -20,14 +20,12 @@ import java.util.*
 class GitWorker(
     private val dataManager: DataManager,
     private val fileStorageLocator: FileStorageLocator,
+    private val ones: OneRunner,
 ) {
 
     companion object {
         private  val log = LoggerFactory.getLogger(GitWorker::class.java)
     }
-
-    @Autowired
-    private lateinit var ones: OneRunner
 
     fun cloneRepo(repoUrl:String, directoryPath: String, branch: String):Pair<Boolean, String> {
         val executor = ShellExecutor(timeout = 7)
@@ -65,14 +63,14 @@ class GitWorker(
 
         try {
 
-            if (repoDir != null) {
-                beforeCmdCommit(repoDir, remoteBranch!!,newBranch, commitInfo)
-            }else{
-                throw RuntimeException("$repoDir not exist!!!")
-            }
+//            if (repoDir != null) {
+//                beforeCmdCommit(repoDir, remoteBranch!!,newBranch, commitInfo)
+//            }else{
+//                throw RuntimeException("$repoDir not exist!!!")
+//            }
 
             commitInfo.project?.platform?.let { saveFileCommit(repoPath, commitInfo.files, it) }
-            afterCmdCommit(commitInfo, repoDir, newBranch)
+                //   afterCmdCommit(commitInfo, repoDir, newBranch)
         } catch (e: Exception) {
             log.error("Error occurred while creating commit ${e.message}")
             commitInfo.errorInfo = e.message
@@ -216,8 +214,8 @@ class GitWorker(
             }
             file.getType()?.let { fileType ->
                 val unpackPath = when (fileType) {
-                    REPORT -> "$baseDir\\DataProcessorsExt\\erf"
-                    DATAPROCESSOR -> "$baseDir\\DataProcessorsExt\\epf"
+                    REPORT -> "$baseDir${File.separator}DataProcessorsExt${File.separator}erf"
+                    DATAPROCESSOR -> "$baseDir${File.separator}DataProcessorsExt${File.separator}epf"
                     else -> null
                 }
                 unpackPath?.let {
@@ -278,8 +276,8 @@ class GitWorker(
 
     private fun correctPath(baseDir: String, type: TypesFiles):File{
         return when (type) {
-            REPORT -> File(baseDir, "DataProcessorsExt\\Отчет\\")
-            DATAPROCESSOR -> File(baseDir, "DataProcessorsExt\\Обработка\\")
+            REPORT -> File(baseDir, "DataProcessorsExt${File.separator}Отчет${File.separator}")
+            DATAPROCESSOR -> File(baseDir, "DataProcessorsExt${File.separator}Обработка${File.separator}")
             SCHEDULEDJOBS -> File(baseDir, "CodeExt")
             EXTERNAL_CODE -> File(baseDir, "CodeExt")
             EXCHANGE_RULES -> File(baseDir, "EXCHANGE_RULES")
