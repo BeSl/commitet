@@ -8,7 +8,7 @@ buildscript {
     }
 }
 plugins {
-    id 'io.jmix' version '2.5.0'
+    id 'io.jmix' version '2.7.0'
     id 'org.jetbrains.kotlin.jvm' version '2.1.10'
     id 'java'
     id 'org.jetbrains.gradle.plugin.idea-ext' version '1.1.9'
@@ -22,7 +22,7 @@ apply plugin: 'kotlin'
 apply plugin: 'com.vaadin'
 
 jmix {
-    bomVersion = '2.5.0'
+    bomVersion = '2.7.0'
 }
 
 def getVersionTimestamp = {

@@ -17,5 +17,13 @@ spring:
         model: qwen3:14b
     ollama.base-url: http://localhost:11434
 
-
+jmix:
+  ui:
+    view-file-extensions:
+      - htm
+      - html
+      - jpg
+      - png
+      - jpeg
+      - pdf
 

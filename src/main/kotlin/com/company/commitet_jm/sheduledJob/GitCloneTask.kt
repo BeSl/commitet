@@ -13,8 +13,11 @@ import java.util.concurrent.TimeUnit
 class GitCloneTask(
     private val dataManager: DataManager,
     private val fileStorageLocator: FileStorageLocator,
-    private val gitService: GitService
-    ) : BackgroundTask<Int, Void?>(
+    private val gitService: GitService,
+    var urlRepo: String = "",
+    var localPath: String = "",
+    var defaultBranch: String = ""
+    ) : BackgroundTask<Int, Void>(
     10,
     TimeUnit.MINUTES
 ) {
@@ -22,12 +25,8 @@ class GitCloneTask(
     companion object {
         private  val log = LoggerFactory.getLogger(GitCloneTask::class.java)
     }
-    var urlRepo: String = ""
-    var localPath: String = ""
-    var defaultBranch: String = ""
-
     @Throws(Exception::class)
-    override fun run(taskLifeCycle: TaskLifeCycle<Int>): Void? {
+    override fun run(taskLifeCycle: TaskLifeCycle<Int>): Void {
         val result = gitService.cloneRepo("$urlRepo.git", localPath, defaultBranch)
 
         if (!result.first) {
@@ -36,7 +35,14 @@ class GitCloneTask(
             log.info("репозиторий склонирован")
         }
 
-        return null
+        // Проверка на отмену задачи
+        if (taskLifeCycle.isCancelled) {
+            return null!!
+        }
+
+        return null!!
     }
+
+
 
 }

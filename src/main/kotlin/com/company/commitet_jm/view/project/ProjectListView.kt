@@ -97,9 +97,9 @@ class ProjectListView : StandardListView<Project>() {
 
     @Subscribe("projectsDataGrid.createAction")
     fun onProjectsDataGridCreateAction(event: ActionPerformedEvent) {
-        dataContext.clear()
-        val entity: Project = dataContext.create(Project::class.java)
-        projectDc.item = entity
+        dataContext?.clear()
+        val entity: Project = dataContext?.create(Project::class.java) ?: return
+        projectDc.setItem(entity)
         updateControls(true)
     }
 
@@ -129,13 +129,11 @@ class ProjectListView : StandardListView<Project>() {
         val task = GitCloneTask(
             dataManager = dataManager,
             fileStorageLocator = fileStorageLocator,
-            gitService = gitService
-        ).apply {
-            urlRepo = urlRepoField.value
-            localPath = localPathField.value
+            gitService = gitService,
+            urlRepo = urlRepoField.value.toString(),
+            localPath = localPathField.value,
             defaultBranch = defaultBranchField.value
-
-        }
+        )
 
         dialogs.createBackgroundTaskDialog(task)
             .withHeader("Клонирование репозитория")
