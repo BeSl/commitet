@@ -193,26 +193,9 @@ class GitServiceImpl(
                 throw RuntimeException("Ошибка при проверке существования удаленной ветки $newBranch", e)
             }
             
-            // Если ветка существует локально или удаленно, проверяем разницу с develop
+            // Если ветка существует локально или удаленно, просто переходим на нее
             if (localExists || remoteExists) {
                 log.info("Ветка $newBranch уже существует ${if (localExists && remoteExists) "(локально и удаленно)" else if (localExists) "(локально)" else "(удаленно)"}")
-                
-                // Проверяем разницу с develop веткой
-                val hasConflicts = try {
-                    !checkBranchDifference(repoPath, remoteBranch, newBranch)
-                } catch (e: Exception) {
-                    log.error("Ошибка при проверке различий между ветками $remoteBranch и $newBranch: ${e.message}")
-                    throw RuntimeException("Ошибка при проверке различий между ветками $remoteBranch и $newBranch", e)
-                }
-                
-                if (hasConflicts) {
-                    log.warn("При слиянии ветки $newBranch с $remoteBranch возможны конфликты")
-                    // Можно добавить дополнительную логику обработки конфликтов
-                    // Например, создать ветку с уникальным именем
-                    // throw RuntimeException("Невозможно продолжить из-за конфликтов слияния")
-                } else {
-                    log.info("Слияние ветки $newBranch с $remoteBranch не вызовет конфликтов")
-                }
                 
                 // Переходим на существующую ветку
                 when {
@@ -224,7 +207,7 @@ class GitServiceImpl(
                             executor.executeCommand(listOf("git", "pull", "origin", newBranch))
                         } catch (e: Exception) {
                             log.error("Не удалось синхронизировать локальную ветку $newBranch с удаленной: ${e.message}")
-                            throw RuntimeException("Не удалось синхронизировать локальную ветку $newBranch с удаленной", e)
+                            // Продолжаем выполнение даже при ошибке синхронизации
                         }
                     }
                     localExists -> {
@@ -378,10 +361,7 @@ class GitServiceImpl(
             // Также проверяем вывод команды merge на наличие сообщений о конфликтах
             val hasMergeConflicts = mergeResult.contains("CONFLICT")
             
-            // Отменяем слияние
-            executor.executeCommand(listOf("git", "merge", "--abort"))
-            
-            // Возвращаемся на исходную ветку
+            // Возвращаемся на исходную ветку без отмены слияния
             executor.executeCommand(listOf("git", "checkout", currentBranch))
             
             if (hasConflicts || hasMergeConflicts) {
@@ -394,13 +374,11 @@ class GitServiceImpl(
         } catch (e: Exception) {
             log.warn("Ошибка при проверке различий между ветками $branch1 и $branch2: ${e.message}")
             try {
-                // Пытаемся отменить слияние, если оно частично прошло
-                executor.executeCommand(listOf("git", "merge", "--abort"))
-                // Возвращаемся на исходную ветку
+                // Возвращаемся на исходную ветку без отмены слияния
                 val currentBranch = executor.executeCommand(listOf("git", "rev-parse", "--abbrev-ref", "HEAD")).trim()
                 executor.executeCommand(listOf("git", "checkout", currentBranch))
             } catch (abortException: Exception) {
-                log.error("Не удалось отменить слияние: ${abortException.message}")
+                log.error("Не удалось вернуться на исходную ветку: ${abortException.message}")
             }
             return false
         }
