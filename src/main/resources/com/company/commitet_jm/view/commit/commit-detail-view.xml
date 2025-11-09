@@ -30,13 +30,16 @@
 
         <formLayout id="form" dataContainer="commitDc" >
             <vbox width="100%" alignSelf="STRETCH">
-            <hbox>
-            <textField id="taskNumField" property="taskNum" label="Номер задачи" required="true"/>
-            <textField id="statusField" property="status" label="Статус"/>
-            </hbox>
+
             <tabSheet width="100%" alignSelf="STRETCH">
                 <tab id="info" label="Описание">
                     <vbox width="100%">
+                        <hbox>
+                            <textField id="taskNumField" property="taskNum" label="Номер задачи" required="true"/>
+                            <textField id="statusField" property="status" label="Статус"/>
+                            <button id="clearStatusCommit" text="В новый" icon="COFFEE" alignSelf="END" themeNames="danger" visible="false"/>
+                            <textField property="dateCreated" label="Дата создания" readOnly="true"/>
+                        </hbox>
                         <entityPicker id="projectField"  width="100%" property="project" label="Проект" required="true">
                             <actions>
                                 <action id="entityLookupAction" type="entity_lookup">
@@ -59,10 +62,8 @@
                 </tab>
                 <tab id="commit_value" label="Комментарии">
                     <vbox>
-                        <textField property="dateCreated" label="Дата создания"/>
-                        <button id="uploadFilesButton" text="Выгрузкить в файлы" visible="false"/>
-                        <button id="startAnalyzeButton" text="Анализировать файлы" visible="false"/>
-                        <button id="clearStatusCommit" text="Сбросить статус" icon="COFFEE" themeNames="danger" visible="false"/>
+                        <button id="uploadFilesButton" text="Выгрузить в файлы" visible="false"/>
+                        <button id="startAnalyzeButton" text="Анализировать файлы(todo)" visible="false"/>
                     </vbox>
 
                 </tab>

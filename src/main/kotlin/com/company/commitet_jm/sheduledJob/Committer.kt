@@ -29,13 +29,7 @@ class Committer(
 
     override fun execute(context: JobExecutionContext) {
         systemAuthenticator.runWithSystem {
-            val gitWorker = GitWorker(
-                dataManager = dataManager,
-                fileStorageLocator = fileStorageLocator,
-                ones = oneRunner,
-            )
-            gitWorker.createCommit()
-            systemAuthenticator?.runWithSystem {
+            systemAuthenticator.runWithSystem {
                 gitService.createCommit()
             }
         }

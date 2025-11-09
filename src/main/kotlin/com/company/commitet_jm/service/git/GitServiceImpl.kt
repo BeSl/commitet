@@ -109,7 +109,7 @@ class GitServiceImpl(
             if (e.message?.contains("index.lock") == true) {
                 log.info("Обнаружена блокировка Git. Удаление index.lock...")
 
-                val lockFile = File("$repoDir/.git/index.lock")
+                val lockFile = File("$repoDir${File.separator}.git${File.separator}index.lock")
                 if (lockFile.exists()) {
                     lockFile.delete()
                     log.info("Файл index.lock удалён. Повторная попытка...")

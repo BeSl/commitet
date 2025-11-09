@@ -4,10 +4,11 @@ import com.company.commitet_jm.component.ShellExecutor
 import com.company.commitet_jm.entity.AppSettings
 import com.company.commitet_jm.service.unpack.UnpackService
 import io.jmix.core.DataManager
-import org.apache.commons.compress.java.util.jar.Pack200
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.text.SimpleDateFormat
+import java.util.Date
 
 import java.io.File
 
@@ -21,41 +22,59 @@ class OneRunner(private val dataManager: DataManager
     @Autowired
     private lateinit var shellExecutor: ShellExecutor
 
-     var v8unpackPath : String = ""
+    var v8unpackPath : String = ""
 
     fun uploadExtFiles(inputFile: File, outDir: String,pathInstall: String, version: String ) {
+        log.debug("2 Подготовка выгрузка файлов ")
+        // Имя файла без расширения
+        val fileNameWithoutExt = inputFile.nameWithoutExtension
+
+        // Итоговый каталог: outDir/<имя_файла_без_расширения>
+        val targetDir = File(outDir, fileNameWithoutExt)
+
+        // Создаём каталог, если его нет
+        if (!targetDir.exists()) {
+            targetDir.mkdirs()
+        }
+        // Формат времени для имени лог-файла
+        val timeStamp = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(Date())
+        val logFileName = "OneLog${File.separator}out_$timeStamp.log"
 
         val res = shellExecutor.executeCommand(listOf(
             pathPlatform(pathInstall, version),
             "DESIGNER",
+            "/DisableStartupDialogs",
             "/DumpExternalDataProcessorOrReportToFiles",
-            "\"$outDir\"",
-            "\"${inputFile.path}\""
+            "${targetDir.path}${File.separator}",
+            "${inputFile.path}${File.separator}",
+            "/Out",
+            logFileName
         ))
-        log.debug("Строка запуска $res")
+        log.debug("2 Строка запуска $res")
     }
 
     fun unpackExtFiles(inputFile: File, outDir: String){
+        var unpackEnabled = false
+        if (unpackEnabled) {
+            if (v8unpackPath.isEmpty()){
+                val unpackPath = dataManager.load(AppSettings::class.java)
+                    .query("select apps from AppSettings apps where apps.name = :pName")
+                    .parameter("pName", "v8unpack")
+                    .optional().get()
+                v8unpackPath = unpackPath.value.toString()
+            }
 
-//        if (v8unpackPath.isEmpty()){
-//            val unpackPath = dataManager.load(AppSettings::class.java)
-//                .query("select apps from AppSettings apps where apps.name = :pName")
-//                .parameter("pName", "v8unpack")
-//                .optional().get()
-//
-//
-//            v8unpackPath = unpackPath.value.toString()
-//        }
-        val unp = UnpackService()
-        unp.unpackToDirectory(inputFile.path, outDir)
+            val res = shellExecutor.executeCommand(listOf(
+                    v8unpackPath,
+                    "-U",
+                    inputFile.path,
+                    outDir
+                    ))
+        }else{
+            val unp = UnpackService()
+            unp.unpackToDirectory(inputFile.path, outDir)
+        }
 
-//        val res = shellExecutor.executeCommand(listOf(
-//            v8unpackPath,
-//            "-U",
-//            inputFile.path,
-//            outDir
-//
-//        ))
 
         log.info("unpack rename files")
 
@@ -72,7 +91,7 @@ class OneRunner(private val dataManager: DataManager
             }
         )
         log.debug("hand made unpack")
-        //log.debug("Unpack command $res")
+
     }
 
     fun pathPlatform(basePath: String?, version: String?):String{
