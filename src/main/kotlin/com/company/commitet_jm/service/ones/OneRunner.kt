@@ -45,8 +45,8 @@ class OneRunner(private val dataManager: DataManager
             "DESIGNER",
             "/DisableStartupDialogs",
             "/DumpExternalDataProcessorOrReportToFiles",
-            "${targetDir.path}${File.separator}",
-            "${inputFile.path}${File.separator}",
+            "\"${targetDir.path}\"",
+            "\"${inputFile.path}\"",
             "/Out",
             logFileName
         ))
@@ -97,7 +97,7 @@ class OneRunner(private val dataManager: DataManager
     fun pathPlatform(basePath: String?, version: String?):String{
         val osName = System.getProperty("os.name").lowercase()
         return if (osName.contains("windows")) {
-            "$basePath\\$version\\bin\\1cv8.exe"
+            "\"$basePath\\$version\\bin\\1cv8.exe\""
         } else {
             "$basePath/$version/1cv8s"
         }
