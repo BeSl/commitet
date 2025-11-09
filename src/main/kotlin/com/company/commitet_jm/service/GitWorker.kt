@@ -51,7 +51,7 @@ class GitWorker(
     }
 
     fun createCommit() {
-
+        log.info("screateCommit from GitWorker")
         val commitInfo = firstNewDataCommit() ?: return
 
         log.info("start createCommit ${commitInfo.taskNum}")
@@ -63,14 +63,16 @@ class GitWorker(
 
         try {
 
-//            if (repoDir != null) {
-//                beforeCmdCommit(repoDir, remoteBranch!!,newBranch, commitInfo)
-//            }else{
-//                throw RuntimeException("$repoDir not exist!!!")
-//            }
+            if (repoDir != null) {
+                beforeCmdCommit(repoDir, remoteBranch!!,newBranch, commitInfo)
+            }else{
+                throw RuntimeException("$repoDir not exist!!!")
+            }
 
             commitInfo.project?.platform?.let { saveFileCommit(repoPath, commitInfo.files, it) }
-                //   afterCmdCommit(commitInfo, repoDir, newBranch)
+
+           afterCmdCommit(commitInfo, repoDir, newBranch)
+
         } catch (e: Exception) {
             log.error("Error occurred while creating commit ${e.message}")
             commitInfo.errorInfo = e.message

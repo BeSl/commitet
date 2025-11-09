@@ -1,7 +1,9 @@
 package com.company.commitet_jm.view.commit
 
 import com.company.commitet_jm.entity.*
+import com.company.commitet_jm.service.GitWorker
 import com.company.commitet_jm.service.git.GitService
+import com.company.commitet_jm.service.ones.OneRunner
 import com.company.commitet_jm.view.main.MainView
 import com.vaadin.flow.component.ClickEvent
 import com.vaadin.flow.component.button.Button
@@ -27,6 +29,8 @@ import org.springframework.beans.factory.annotation.Autowired
 @ViewDescriptor(path = "commit-detail-view.xml")
 @EditedEntityContainer("commitDc")
 class CommitDetailView : StandardDetailView<Commit>() {
+    @Autowired
+    private lateinit var oneRunner: OneRunner
 
     @Autowired
     private lateinit var timeSource: TimeSource
@@ -143,6 +147,12 @@ class CommitDetailView : StandardDetailView<Commit>() {
 
     @Subscribe(id = "uploadFilesButton", subject = "clickListener")
     private fun onUploadFilesButtonCommitClick(event: ClickEvent<JmixButton>) {
+//        val gitWorker = GitWorker(
+//            dataManager = dataManager,
+//            fileStorageLocator = fileStorageLocator,
+//            ones = oneRunner,
+//        )
+//        gitWorker.createCommit()
         gitService.createCommit()
     }
 

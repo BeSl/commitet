@@ -1,6 +1,7 @@
 package com.company.commitet_jm.sheduledJob
 
 import com.company.commitet_jm.service.GitWorker
+import com.company.commitet_jm.service.git.GitServiceImpl
 import io.jmix.core.DataManager
 import io.jmix.core.FileStorageLocator
 import io.jmix.core.security.SystemAuthenticator
@@ -20,11 +21,16 @@ class Committer(private val dataManager: DataManager): Job {
 
     override fun execute(context: JobExecutionContext) {
         systemAuthenticator?.runWithSystem {
-            val gitWorker = GitWorker(
+            val gitSrv = GitServiceImpl(
                 dataManager = dataManager,
                 fileStorageLocator = fileStorageLocator,
             )
-            gitWorker.createCommit()
+            gitSrv.createCommit()
+//            val gitWorker = GitWorker(
+//                dataManager = dataManager,
+//                fileStorageLocator = fileStorageLocator,
+//            )
+//            gitWorker.createCommit()
         }
 
 

@@ -9,6 +9,7 @@ import com.company.commitet_jm.entity.Platform
 import com.company.commitet_jm.view.onecstorage.HistoryOptions
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import java.io.File
 import java.io.IOException
 import java.nio.file.AccessDeniedException
 import java.nio.file.Files
@@ -36,7 +37,7 @@ class OneCStorageService(
 
         private fun prepareStorageDirectory(storage: OneCStorage): Path {
             val path = Paths.get(
-                storage.project?.tempBasePath ?: "./temp",
+                storage.project?.tempBasePath ?: ".${File.separator}temp",
                 storage.name
             )
 

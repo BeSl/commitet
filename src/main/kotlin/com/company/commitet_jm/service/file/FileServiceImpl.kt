@@ -52,8 +52,8 @@ class FileServiceImpl(
             }
             file.getType()?.let { fileType ->
                 val unpackPath = when (fileType) {
-                    TypesFiles.REPORT -> "$baseDir\\DataProcessorsExt\\erf"
-                    TypesFiles.DATAPROCESSOR -> "$baseDir\\DataProcessorsExt\\epf"
+                    TypesFiles.REPORT -> "$baseDir${File.separator}DataProcessorsExt${File.separator}erf"
+                    TypesFiles.DATAPROCESSOR -> "$baseDir${File.separator}DataProcessorsExt${File.separator}epf"
                     else -> null
                 }
                 unpackPath?.let {
@@ -69,8 +69,8 @@ class FileServiceImpl(
 
     override fun correctPath(baseDir: String, type: TypesFiles): File {
         return when (type) {
-            TypesFiles.REPORT -> File(baseDir, "DataProcessorsExt\\Отчет\\")
-            TypesFiles.DATAPROCESSOR -> File(baseDir, "DataProcessorsExt\\Обработка\\")
+            TypesFiles.REPORT -> File(baseDir, "DataProcessorsExt${File.separator}Отчет${File.separator}")
+            TypesFiles.DATAPROCESSOR -> File(baseDir, "DataProcessorsExt${File.separator}Обработка${File.separator}")
             TypesFiles.SCHEDULEDJOBS -> File(baseDir, "CodeExt")
             TypesFiles.EXTERNAL_CODE -> File(baseDir, "CodeExt")
             TypesFiles.EXCHANGE_RULES -> File(baseDir, "EXCHANGE_RULES")
