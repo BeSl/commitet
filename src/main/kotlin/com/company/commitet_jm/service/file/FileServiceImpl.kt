@@ -9,6 +9,7 @@ import io.jmix.core.FileStorage
 import io.jmix.core.FileStorageLocator
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.io.File
 import java.io.IOException
@@ -20,13 +21,16 @@ class FileServiceImpl(
     private val fileStorageLocator: FileStorageLocator,
     private val ones: OneRunner
 ) : FileService {
+    
+    @Value("\${git.timeout:7}")
+    private var gitTimeout: Long = 7
 
     companion object {
         private val log = LoggerFactory.getLogger(FileServiceImpl::class.java)
     }
 
     override fun saveFileCommit(baseDir: String, files: MutableList<FileCommit>, platform: Platform) {
-        val executor = ShellExecutor(workingDir = File(baseDir), timeout = 7)
+        val executor = ShellExecutor(workingDir = File(baseDir), timeout = gitTimeout)
         val filesToUnpack = mutableListOf<Pair<String, String>>()
         for (file in files) {
             val content = file.data ?: continue

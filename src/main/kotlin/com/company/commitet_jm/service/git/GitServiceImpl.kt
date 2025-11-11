@@ -9,6 +9,7 @@ import io.jmix.core.DataManager
 import io.jmix.core.FileStorageLocator
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.io.File
 import java.util.*
@@ -20,13 +21,16 @@ class GitServiceImpl(
     private val fileService: FileService,
     private val oneCService: OneCService
 ) : GitService {
+    
+    @Value("\${git.timeout:7}")
+    private var gitTimeout: Long = 7
 
     companion object {
         private val log = LoggerFactory.getLogger(GitServiceImpl::class.java)
     }
 
     override fun cloneRepo(repoUrl: String, directoryPath: String, branch: String): Pair<Boolean, String> {
-        val executor = ShellExecutor(timeout = 7)
+        val executor = ShellExecutor(timeout = gitTimeout)
         log.info("start clone repo $repoUrl")
         validateGitUrl(repoUrl)
         
@@ -37,13 +41,18 @@ class GitServiceImpl(
         }
         
         return try {
-            executor.executeCommand(listOf(
+            val result = executor.executeCommandWithResult(listOf(
                 "git", "clone",
                 "--branch", branch,
                 "--single-branch",
+                "--depth", "1",
                 repoUrl,
                 directoryPath
             ))
+            
+            if (result.exitCode != 0) {
+                throw RuntimeException("Failed to clone repository: ${result.error}")
+            }
             log.info("end clone repo $repoUrl")
             Pair(true, "")
         } catch (e: Exception) {
@@ -101,158 +110,114 @@ class GitServiceImpl(
             throw IllegalArgumentException("Not a git repository")
         }
         val repoPath = commitInfo.project!!.localPath!!
-        val executor = ShellExecutor(workingDir = repoDir, timeout = 7)
-        try {
-            executor.executeCommand(listOf("git", "checkout", remoteBranch))
-        } catch (e: Exception) {
-
-            if (e.message?.contains("index.lock") == true) {
-                log.info("Обнаружена блокировка Git. Удаление index.lock...")
-
-                val lockFile = File("$repoDir${File.separator}.git${File.separator}index.lock")
-                if (lockFile.exists()) {
-                    lockFile.delete()
-                    log.info("Файл index.lock удалён. Повторная попытка...")
-
-                    executor.executeCommand(listOf("git", "checkout", remoteBranch))
-                } else {
-                    throw IllegalStateException("Файл блокировки не найден, но ошибка возникла: ${e.message}")
-                }
-            } else if (e.message?.contains("would be overwritten by checkout") == true) {
-
-                executor.executeCommand(listOf("git", "reset", "--hard"))
-                executor.executeCommand(listOf("git", "clean", "-fd"))
-
-            } else {
-                throw e
-            }
-        }
-
-        try {
-            executor.executeCommand(listOf("git", "reset", "--hard", "origin/$remoteBranch"))
-        } catch (e: Exception) {
-            log.error("Не удалось сбросить репозиторий к состоянию удаленной ветки $remoteBranch: ${e.message}")
-            throw RuntimeException("Не удалось сбросить репозиторий к состоянию удаленной ветки $remoteBranch", e)
-        }
+        val executor = ShellExecutor(workingDir = repoDir, timeout = gitTimeout)
         
-        try {
-            executor.executeCommand(listOf("git", "clean", "-fd"))
-        } catch (e: Exception) {
-            log.error("Не удалось очистить неотслеживаемые файлы: ${e.message}")
-            throw RuntimeException("Не удалось очистить неотслеживаемые файлы", e)
-        }
-
+        // Устанавливаем статус PROCESS как можно раньше
         commitInfo.id?.let { setStatusCommit(it, StatusSheduler.PROCESSED) }
 
-        val remoteBranches: String
         try {
-            remoteBranches = executor.executeCommand(listOf("git", "branch", "-a"))
+            // Сбрасываем репозиторий к состоянию удаленной ветки
+            val fetchResult = executor.executeCommandWithResult(listOf("git", "fetch", "origin", remoteBranch))
+            if (fetchResult.exitCode != 0) {
+                log.warn("Не удалось выполнить fetch: ${fetchResult.error}")
+            }
+            
+            val resetResult = executor.executeCommandWithResult(listOf("git", "reset", "--hard", "origin/$remoteBranch"))
+            if (resetResult.exitCode != 0) {
+                log.warn("Не удалось выполнить reset: ${resetResult.error}")
+            }
+            
+            val cleanResult = executor.executeCommandWithResult(listOf("git", "clean", "-fd"))
+            if (cleanResult.exitCode != 0) {
+                log.warn("Не удалось выполнить clean: ${cleanResult.error}")
+            }
         } catch (e: Exception) {
-            log.error("Не удалось получить список веток: ${e.message}")
-            throw RuntimeException("Не удалось получить список веток", e)
+            log.error("Не удалось подготовить репозиторий: ${e.message}")
+            throw RuntimeException("Не удалось подготовить репозиторий", e)
         }
 
-        if (!remoteBranches.contains("remotes/origin/$remoteBranch")) {
-            throw IllegalStateException("Default branch does not exist")
-        }
-
+        // Работаем с веткой
         try {
-            try {
-                executor.executeCommand(listOf("git", "checkout", remoteBranch))
-            } catch (e: Exception) {
-                log.error("Не удалось переключиться на ветку $remoteBranch: ${e.message}")
-                throw RuntimeException("Не удалось переключиться на ветку $remoteBranch", e)
-            }
-            
-            try {
-                executor.executeCommand(listOf("git", "fetch", "origin", remoteBranch))
-            } catch (e: Exception) {
-                log.error("Не удалось получить обновления для ветки $remoteBranch: ${e.message}")
-                throw RuntimeException("Не удалось получить обновления для ветки $remoteBranch", e)
-            }
-            
-            try {
-                executor.executeCommand(listOf("git", "checkout", remoteBranch))
-            } catch (e: Exception) {
-                log.error("Не удалось переключиться на ветку $remoteBranch после получения обновлений: ${e.message}")
-                throw RuntimeException("Не удалось переключиться на ветку $remoteBranch после получения обновлений", e)
-            }
-
             // Проверяем существование ветки локально и удаленно
-            val localExists = try {
-                branchExists(repoPath, newBranch)
-            } catch (e: Exception) {
-                log.error("Ошибка при проверке существования локальной ветки $newBranch: ${e.message}")
-                throw RuntimeException("Ошибка при проверке существования локальной ветки $newBranch", e)
-            }
-            
-            val remoteExists = try {
-                remoteBranchExists(repoPath, newBranch)
-            } catch (e: Exception) {
-                log.error("Ошибка при проверке существования удаленной ветки $newBranch: ${e.message}")
-                throw RuntimeException("Ошибка при проверке существования удаленной ветки $newBranch", e)
-            }
+            val localExists = branchExists(repoPath, newBranch)
+            val remoteExists = remoteBranchExists(repoPath, newBranch)
             
             // Если ветка существует локально или удаленно, просто переходим на нее
-            if (localExists || remoteExists) {
-                log.info("Ветка $newBranch уже существует ${if (localExists && remoteExists) "(локально и удаленно)" else if (localExists) "(локально)" else "(удаленно)"}")
-                
-                // Переходим на существующую ветку
-                when {
-                    localExists && remoteExists -> {
-                        log.info("Переключаемся на локальную ветку $newBranch, которая также существует удаленно")
-                        executor.executeCommand(listOf("git", "checkout", newBranch))
+            when {
+                localExists && remoteExists -> {
+                    log.info("Переключаемся на локальную ветку $newBranch, которая также существует удаленно")
+                    val checkoutResult = executor.executeCommandWithResult(listOf("git", "checkout", newBranch))
+                    if (checkoutResult.exitCode != 0) {
+                        log.warn("Не удалось переключиться на ветку $newBranch: ${checkoutResult.error}")
+                    }
+                    
+                    // Проверяем наличие конфликтов перед синхронизацией
+                    val hasConflicts = checkBranchDifference(repoPath, newBranch, "origin/$newBranch")
+                    if (!hasConflicts) {
                         // Синхронизируем с удаленной веткой
-                        try {
-                            executor.executeCommand(listOf("git", "pull", "origin", newBranch))
-                        } catch (e: Exception) {
-                            log.error("Не удалось синхронизировать локальную ветку $newBranch с удаленной: ${e.message}")
+                        val pullResult = executor.executeCommandWithResult(listOf("git", "pull", "origin", newBranch))
+                        if (pullResult.exitCode != 0) {
+                            log.error("Не удалось синхронизировать локальную ветку $newBranch с удаленной: ${pullResult.error}")
                             // Продолжаем выполнение даже при ошибке синхронизации
                         }
-                    }
-                    localExists -> {
-                        log.info("Переключаемся на локальную ветку $newBranch")
-                        try {
-                            executor.executeCommand(listOf("git", "checkout", newBranch))
-                        } catch (e: Exception) {
-                            log.error("Не удалось переключиться на локальную ветку $newBranch: ${e.message}")
-                            throw RuntimeException("Не удалось переключиться на локальную ветку $newBranch", e)
-                        }
-                    }
-                    remoteExists -> {
-                        log.info("Создаем локальную ветку $newBranch из удаленной")
-                        try {
-                            executor.executeCommand(listOf("git", "checkout", "-b", newBranch, "origin/$newBranch"))
-                        } catch (e: Exception) {
-                            log.error("Не удалось создать локальную ветку $newBranch из удаленной: ${e.message}")
-                            throw RuntimeException("Не удалось создать локальную ветку $newBranch из удаленной", e)
-                        }
+                    } else {
+                        log.warn("Обнаружены конфликты при слиянии веток. Пропускаем автоматическую синхронизацию.")
                     }
                 }
-            } else {
-                // Создаем новую ветку
-                log.info("Создаем новую ветку $newBranch")
-                try {
-                    executor.executeCommand(listOf("git", "checkout", "-b", newBranch))
-                } catch (e: Exception) {
-                    log.error("Не удалось создать ветку $newBranch: ${e.message}")
-                    throw RuntimeException("Не удалось создать ветку $newBranch", e)
+                localExists -> {
+                    log.info("Переключаемся на локальную ветку $newBranch")
+                    val checkoutResult = executor.executeCommandWithResult(listOf("git", "checkout", newBranch, "--force"))
+                    if (checkoutResult.exitCode != 0) {
+                        log.warn("Не удалось переключиться на ветку $newBranch: ${checkoutResult.error}")
+                    }
+                }
+                remoteExists -> {
+                    log.info("Создаем локальную ветку $newBranch из удаленной")
+                    val checkoutResult = executor.executeCommandWithResult(listOf("git", "checkout", "-b", newBranch, "origin/$newBranch", "--force"))
+                    if (checkoutResult.exitCode != 0) {
+                        log.warn("Не удалось создать локальную ветку $newBranch из удаленной: ${checkoutResult.error}")
+                    }
+                }
+                else -> {
+                    // Создаем новую ветку
+                    log.info("Создаем новую ветку $newBranch")
+                    val checkoutResult = executor.executeCommandWithResult(listOf("git", "checkout", "-b", newBranch,"--force"))
+                    if (checkoutResult.exitCode != 0) {
+                        log.warn("Не удалось создать новую ветку $newBranch: ${checkoutResult.error}")
+                    }
                 }
             }
         } catch (e: Exception) {
-            log.error("beforeCmdCommit ${e.message}")
-            throw RuntimeException("Error cmd git ${e.message}")
+            log.error("Ошибка при работе с ветками: ${e.message}")
+            throw RuntimeException("Ошибка при работе с ветками", e)
         }
     }
 
     private fun afterCmdCommit(commitInfo: Commit, repoDir: File, newBranch: String) {
-        val executor = ShellExecutor(workingDir = repoDir, timeout = 7)
+        val executor = ShellExecutor(workingDir = repoDir, timeout = gitTimeout)
         
+        // Проверяем, есть ли изменения в репозитории перед добавлением файлов в индекс
         try {
-            executor.executeCommand(listOf("git", "add", "."))
+            val statusOutput = executor.executeCommandWithResult(listOf("git", "status", "--porcelain"))
+            if (statusOutput.exitCode != 0) {
+                log.warn("Не удалось получить статус репозитория: ${statusOutput.error}")
+            } else if (statusOutput.output.isBlank()) {
+                log.info("Нет изменений для коммита в ветке $newBranch")
+                // Обновляем статус коммита как завершенного, даже если нет изменений
+                commitInfo.urlBranch = "${commitInfo.project!!.urlRepo}/tree/$newBranch"
+                commitInfo.setStatus(StatusSheduler.COMPLETE)
+                dataManager.save(commitInfo)
+                return
+            }
         } catch (e: Exception) {
-            log.error("Не удалось добавить файлы в индекс: ${e.message}")
-            throw RuntimeException("Не удалось добавить файлы в индекс", e)
+            log.error("Ошибка при проверке статуса репозитория: ${e.message}")
+            // Продолжаем выполнение, даже если не удалось проверить статус
+        }
+        
+        val addResult = executor.executeCommandWithResult(listOf("git", "add", "."))
+        if (addResult.exitCode != 0) {
+            log.error("Не удалось добавить файлы в индекс: ${addResult.error}")
+            throw RuntimeException("Не удалось добавить файлы в индекс: ${addResult.error}")
         }
         
         // 4. Создаем коммит от указанного пользователя
@@ -262,7 +227,7 @@ class GitServiceImpl(
         tempFile.writeText(commitMessage, Charsets.UTF_8)
         
         try {
-            executor.executeCommand(
+            val commitResult = executor.executeCommandWithResult(
                 listOf(
                     "git",
                     "-c", "user.name=${commitInfo.author!!.gitLogin}",
@@ -271,6 +236,11 @@ class GitServiceImpl(
                     "-F", tempFile.absolutePath
                 )
             )
+            
+            if (commitResult.exitCode != 0) {
+                log.error("Не удалось создать коммит: ${commitResult.error}")
+                throw RuntimeException("Не удалось создать коммит: ${commitResult.error}")
+            }
         } catch (e: Exception) {
             log.error("Не удалось создать коммит: ${e.message}")
             throw RuntimeException("Не удалось создать коммит", e)
@@ -284,19 +254,19 @@ class GitServiceImpl(
         }
         
         log.info("git push start")
-        try {
-            executor.executeCommand(listOf("git", "push", "--force", "-u", "origin", newBranch))
-        } catch (e: Exception) {
-            log.error("Не удалось отправить изменения в удаленный репозиторий: ${e.message}")
-            throw RuntimeException("Не удалось отправить изменения в удаленный репозиторий", e)
+        val pushResult = executor.executeCommandWithResult(listOf("git", "push", "--force", "-u", "origin", newBranch))
+        if (pushResult.exitCode != 0) {
+            log.error("Не удалось отправить изменения в удаленный репозиторий: ${pushResult.error}")
+            throw RuntimeException("Не удалось отправить изменения в удаленный репозиторий: ${pushResult.error}")
         }
         log.info("git push end")
         
-        try {
-            commitInfo.hashCommit = executor.executeCommand(listOf("git", "rev-parse", "HEAD"))
-        } catch (e: Exception) {
-            log.error("Не удалось получить хэш коммита: ${e.message}")
-            throw RuntimeException("Не удалось получить хэш коммита", e)
+        val hashResult = executor.executeCommandWithResult(listOf("git", "rev-parse", "HEAD"))
+        if (hashResult.exitCode != 0) {
+            log.error("Не удалось получить хэш коммита: ${hashResult.error}")
+            throw RuntimeException("Не удалось получить хэш коммита: ${hashResult.error}")
+        } else {
+            commitInfo.hashCommit = hashResult.output.trim()
         }
         
         log.info("Successfully committed and pushed changes to branch $newBranch")
@@ -321,10 +291,15 @@ class GitServiceImpl(
     }
 
     private fun branchExists(repoPath: String, branchName: String): Boolean {
-        val executor = ShellExecutor(workingDir = File(repoPath))
+        val executor = ShellExecutor(workingDir = File(repoPath), timeout = gitTimeout)
         return try {
-            val branches = executor.executeCommand(listOf("git", "branch", "--list", branchName))
-            branches.isNotBlank()
+            val result = executor.executeCommandWithResult(listOf("git", "branch", "--list", branchName))
+            if (result.exitCode != 0) {
+                log.error("Ошибка при проверке существования локальной ветки $branchName: ${result.error}")
+                false
+            } else {
+                result.output.isNotBlank()
+            }
         } catch (e: Exception) {
             log.error("Ошибка при проверке существования локальной ветки $branchName: ${e.message}")
             false
@@ -332,10 +307,15 @@ class GitServiceImpl(
     }
     
     private fun remoteBranchExists(repoPath: String, branchName: String): Boolean {
-        val executor = ShellExecutor(workingDir = File(repoPath))
+        val executor = ShellExecutor(workingDir = File(repoPath), timeout = gitTimeout)
         return try {
-            val remoteBranches = executor.executeCommand(listOf("git", "branch", "-r"))
-            remoteBranches.lines().any { it.trim().startsWith("origin/$branchName") }
+            val result = executor.executeCommandWithResult(listOf("git", "branch", "-r"))
+            if (result.exitCode != 0) {
+                log.error("Ошибка при проверке существования удаленной ветки $branchName: ${result.error}")
+                false
+            } else {
+                result.output.lines().any { it.trim().startsWith("origin/$branchName") }
+            }
         } catch (e: Exception) {
             log.error("Ошибка при проверке существования удаленной ветки $branchName: ${e.message}")
             false
@@ -343,26 +323,43 @@ class GitServiceImpl(
     }
     
     private fun checkBranchDifference(repoPath: String, branch1: String, branch2: String): Boolean {
-        val executor = ShellExecutor(workingDir = File(repoPath))
+        val executor = ShellExecutor(workingDir = File(repoPath), timeout = gitTimeout)
         try {
             // Сохраняем текущую ветку, чтобы потом вернуться
-            val currentBranch = executor.executeCommand(listOf("git", "rev-parse", "--abbrev-ref", "HEAD")).trim()
+            val currentBranchResult = executor.executeCommandWithResult(listOf("git", "rev-parse", "--abbrev-ref", "HEAD"))
+            if (currentBranchResult.exitCode != 0) {
+                log.error("Не удалось получить текущую ветку: ${currentBranchResult.error}")
+                return false
+            }
+            val currentBranch = currentBranchResult.output.trim()
             
             // Проверяем, можно ли выполнить слияние без конфликтов
-            executor.executeCommand(listOf("git", "checkout", branch1))
+            val checkoutResult = executor.executeCommandWithResult(listOf("git", "checkout", branch1))
+            if (checkoutResult.exitCode != 0) {
+                log.error("Не удалось переключиться на ветку $branch1: ${checkoutResult.error}")
+                return false
+            }
             
             // Выполняем слияние в режиме "только проверка" (без коммита)
-            val mergeResult = executor.executeCommand(listOf("git", "merge", "--no-commit", "--no-ff", branch2))
+            val mergeResult = executor.executeCommandWithResult(listOf("git", "merge", "--no-commit", "--no-ff", branch2))
             
             // Проверяем, есть ли конфликты
-            val statusResult = executor.executeCommand(listOf("git", "status", "--porcelain"))
-            val hasConflicts = statusResult.lines().any { it.startsWith("UU ") }
+            val statusResult = executor.executeCommandWithResult(listOf("git", "status", "--porcelain"))
+            val hasConflicts = if (statusResult.exitCode == 0) {
+                statusResult.output.lines().any { it.startsWith("UU ") }
+            } else {
+                log.warn("Не удалось получить статус репозитория: ${statusResult.error}")
+                false
+            }
             
             // Также проверяем вывод команды merge на наличие сообщений о конфликтах
-            val hasMergeConflicts = mergeResult.contains("CONFLICT")
+            val hasMergeConflicts = mergeResult.exitCode != 0 || mergeResult.output.contains("CONFLICT")
             
             // Возвращаемся на исходную ветку без отмены слияния
-            executor.executeCommand(listOf("git", "checkout", currentBranch))
+            val returnCheckoutResult = executor.executeCommandWithResult(listOf("git", "checkout", currentBranch))
+            if (returnCheckoutResult.exitCode != 0) {
+                log.error("Не удалось вернуться на исходную ветку $currentBranch: ${returnCheckoutResult.error}")
+            }
             
             if (hasConflicts || hasMergeConflicts) {
                 log.warn("Обнаружены конфликты при слиянии веток $branch1 и $branch2")
@@ -375,8 +372,16 @@ class GitServiceImpl(
             log.warn("Ошибка при проверке различий между ветками $branch1 и $branch2: ${e.message}")
             try {
                 // Возвращаемся на исходную ветку без отмены слияния
-                val currentBranch = executor.executeCommand(listOf("git", "rev-parse", "--abbrev-ref", "HEAD")).trim()
-                executor.executeCommand(listOf("git", "checkout", currentBranch))
+                val currentBranchResult = executor.executeCommandWithResult(listOf("git", "rev-parse", "--abbrev-ref", "HEAD"))
+                if (currentBranchResult.exitCode == 0) {
+                    val currentBranch = currentBranchResult.output.trim()
+                    val returnCheckoutResult = executor.executeCommandWithResult(listOf("git", "checkout", currentBranch))
+                    if (returnCheckoutResult.exitCode != 0) {
+                        log.error("Не удалось вернуться на исходную ветку: ${returnCheckoutResult.error}")
+                    }
+                } else {
+                    log.error("Не удалось получить текущую ветку: ${currentBranchResult.error}")
+                }
             } catch (abortException: Exception) {
                 log.error("Не удалось вернуться на исходную ветку: ${abortException.message}")
             }
