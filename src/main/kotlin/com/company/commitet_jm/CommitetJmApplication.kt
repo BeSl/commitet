@@ -11,6 +11,7 @@ import io.jmix.core.DataManager
 import io.jmix.flowui.UiEventPublisher
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties
@@ -54,10 +55,12 @@ open class CommitetJmApplication() : AppShellConfigurator {
 
     @EventListener
     open fun printApplicationUrl(event: ApplicationStartedEvent?) {
+        val version = environment?.getProperty("app.version") ?: "unknown"
         LoggerFactory.getLogger(CommitetJmApplication::class.java).info(
                 "Application started at http://localhost:"
                         + (environment?.getProperty("local.server.port") ?: "")
-                        + (environment?.getProperty("server.servlet.context-path") ?: ""))
+                        + (environment?.getProperty("server.servlet.context-path") ?: "")
+                        + " Version: " + version)
     }
 
     @Bean
@@ -69,8 +72,8 @@ open class CommitetJmApplication() : AppShellConfigurator {
     }
 
     @Bean
-    open fun shellExecutor(): ShellExecutor {
-        return ShellExecutor()
+    open fun shellExecutor(@Value("\${git.timeout:7}") timeout: Long): ShellExecutor {
+        return ShellExecutor(timeout = timeout)
     }
 
     @Bean
