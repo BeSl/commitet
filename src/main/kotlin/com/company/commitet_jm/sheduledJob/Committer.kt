@@ -1,6 +1,5 @@
 package com.company.commitet_jm.sheduledJob
 
-import com.company.commitet_jm.service.GitWorker
 import com.company.commitet_jm.service.git.GitService
 import com.company.commitet_jm.service.ones.OneRunner
 import io.jmix.core.DataManager

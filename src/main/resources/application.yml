@@ -27,3 +27,7 @@ jmix:
       - jpeg
       - pdf
 
+# Git configuration
+git:
+  timeout: 7
+
