@@ -81,7 +81,7 @@ class GitServiceImpl(
         val newBranch = "feature/${commitInfo.taskNum?.let { sanitizeGitBranchName(it) }}"
         val uri = commitInfo.project!!.urlRepo!!
 
-        setAuthRepo(uri, gitUserName, gitUserToken)
+        setAuthRepo(uri, gitUserName, gitUserToken, repoPath)
 
         try {
             if (repoDir != null) {
@@ -291,7 +291,7 @@ class GitServiceImpl(
         dataManager.save(commitInfo)
     }
 
-    private fun setAuthRepo(urlRepo:String, userName:String, token:String){
+    private fun setAuthRepo(urlRepo:String, userName:String, token:String, repoPath: String){
         var pref=""
         if (urlRepo.contains("http")){
             pref = "http://"
@@ -302,6 +302,7 @@ class GitServiceImpl(
         }
 
         val authUrlRepo = "${pref}$userName:$token@${urlRepo.removePrefix(pref)}"
+        executor.workingDir = File(repoPath)
         executor.executeCommand(listOf("git", "remote", "set-url", "origin", authUrlRepo))
 
     }
