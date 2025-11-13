@@ -218,7 +218,7 @@ class GitServiceImpl(
             } else if (statusOutput.output.isBlank()) {
                 log.info("Нет изменений для коммита в ветке $newBranch")
                 // Обновляем статус коммита как завершенного, даже если нет изменений
-                commitInfo.urlBranch = "${commitInfo.project!!.urlRepo}/tree/$newBranch"
+                commitInfo.urlBranch = "${commitInfo.project!!.urlRepo}/src/branch/$newBranch"
                 commitInfo.setStatus(StatusSheduler.COMPLETE)
                 dataManager.save(commitInfo)
                 return
