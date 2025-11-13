@@ -30,7 +30,7 @@ class OneRunner(private val dataManager: DataManager
         val fileNameWithoutExt = inputFile.nameWithoutExtension
 
         // Итоговый каталог: outDir/<имя_файла_без_расширения>
-        val targetDir = File(outDir, fileNameWithoutExt)
+        val targetDir = File(outDir)
 
         // Создаём каталог, если его нет
         if (!targetDir.exists()) {
