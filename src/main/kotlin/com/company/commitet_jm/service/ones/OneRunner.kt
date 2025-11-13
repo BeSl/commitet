@@ -38,14 +38,14 @@ class OneRunner(private val dataManager: DataManager
         }
         // Формат времени для имени лог-файла
         val timeStamp = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(Date())
-        val logFileName = "OneLog${File.separator}out_$timeStamp.log"
+        val logFileName = ".${File.separator}OneLog${File.separator}out_$timeStamp.log"
 
         val res = shellExecutor.executeCommand(listOf(
             pathPlatform(pathInstall, version),
             "DESIGNER",
             "/DisableStartupDialogs",
             "/DumpExternalDataProcessorOrReportToFiles",
-            "\"${targetDir.path}\"",
+            "\"${targetDir.path}${File.separator}\"",
             "\"${inputFile.path}\"",
             "/Out",
             logFileName
