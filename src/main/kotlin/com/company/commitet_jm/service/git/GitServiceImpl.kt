@@ -25,12 +25,21 @@ class GitServiceImpl(
     @Value("\${git.timeout:7}")
     private var gitTimeout: Long = 7
 
+    @Value("\${git.user:}")
+    private var gitUserName: String = ""
+
+    @Value("\${git.token:}")
+    private var gitUserToken: String = ""
+
     companion object {
         private val log = LoggerFactory.getLogger(GitServiceImpl::class.java)
     }
 
+    @Autowired
+    lateinit var executor: ShellExecutor
+
     override fun cloneRepo(repoUrl: String, directoryPath: String, branch: String): Pair<Boolean, String> {
-        val executor = ShellExecutor(timeout = gitTimeout)
+        executor.timeout = gitTimeout
         log.info("start clone repo $repoUrl")
         validateGitUrl(repoUrl)
         
@@ -70,7 +79,10 @@ class GitServiceImpl(
         val repoDir = commitInfo.project!!.localPath?.let { File(it) }
         val remoteBranch = commitInfo.project!!.defaultBranch
         val newBranch = "feature/${commitInfo.taskNum?.let { sanitizeGitBranchName(it) }}"
-        
+        val uri = commitInfo.project!!.urlRepo!!
+
+        setAuthRepo(uri, gitUserName, gitUserToken)
+
         try {
             if (repoDir != null) {
                 beforeCmdCommit(repoDir, remoteBranch!!, newBranch, commitInfo)
@@ -110,7 +122,8 @@ class GitServiceImpl(
             throw IllegalArgumentException("Not a git repository")
         }
         val repoPath = commitInfo.project!!.localPath!!
-        val executor = ShellExecutor(workingDir = repoDir, timeout = gitTimeout)
+        executor.timeout = gitTimeout
+        executor.workingDir = repoDir
         
         // Устанавливаем статус PROCESS как можно раньше
         commitInfo.id?.let { setStatusCommit(it, StatusSheduler.PROCESSED) }
@@ -194,8 +207,9 @@ class GitServiceImpl(
     }
 
     private fun afterCmdCommit(commitInfo: Commit, repoDir: File, newBranch: String) {
-        val executor = ShellExecutor(workingDir = repoDir, timeout = gitTimeout)
-        
+        executor.timeout = gitTimeout
+        executor.workingDir = repoDir
+
         // Проверяем, есть ли изменения в репозитории перед добавлением файлов в индекс
         try {
             val statusOutput = executor.executeCommandWithResult(listOf("git", "status", "--porcelain"))
@@ -277,6 +291,21 @@ class GitServiceImpl(
         dataManager.save(commitInfo)
     }
 
+    private fun setAuthRepo(urlRepo:String, userName:String, token:String){
+        var pref=""
+        if (urlRepo.contains("http")){
+            pref = "http://"
+        }
+
+        if (urlRepo.contains("https")){
+            pref = "https://"
+        }
+
+        val authUrlRepo = "${pref}$userName:$token@${urlRepo.removePrefix(pref)}"
+        executor.executeCommand(listOf("git", "remote", "set-url", "origin", authUrlRepo))
+
+    }
+
     private fun setStatusCommit(commitId: UUID, status: StatusSheduler) {
         try {
             val commit = dataManager.load(Commit::class.java)
@@ -291,7 +320,8 @@ class GitServiceImpl(
     }
 
     private fun branchExists(repoPath: String, branchName: String): Boolean {
-        val executor = ShellExecutor(workingDir = File(repoPath), timeout = gitTimeout)
+        executor.timeout = gitTimeout
+        executor.workingDir = File(repoPath)
         return try {
             val result = executor.executeCommandWithResult(listOf("git", "branch", "--list", branchName))
             if (result.exitCode != 0) {
@@ -307,7 +337,8 @@ class GitServiceImpl(
     }
     
     private fun remoteBranchExists(repoPath: String, branchName: String): Boolean {
-        val executor = ShellExecutor(workingDir = File(repoPath), timeout = gitTimeout)
+        executor.timeout = gitTimeout
+        executor.workingDir = File(repoPath)
         return try {
             val result = executor.executeCommandWithResult(listOf("git", "branch", "-r"))
             if (result.exitCode != 0) {
@@ -323,7 +354,8 @@ class GitServiceImpl(
     }
     
     private fun checkBranchDifference(repoPath: String, branch1: String, branch2: String): Boolean {
-        val executor = ShellExecutor(workingDir = File(repoPath), timeout = gitTimeout)
+        executor.timeout = gitTimeout
+        executor.workingDir = File(repoPath)
         try {
             // Сохраняем текущую ветку, чтобы потом вернуться
             val currentBranchResult = executor.executeCommandWithResult(listOf("git", "rev-parse", "--abbrev-ref", "HEAD"))

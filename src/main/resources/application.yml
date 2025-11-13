@@ -30,4 +30,6 @@ jmix:
 # Git configuration
 git:
   timeout: 7
+  user: test
+  token: test
 
