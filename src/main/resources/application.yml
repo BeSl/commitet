@@ -1,6 +1,8 @@
 # application.yml
 app:
   version: 1.0.7
+  onelogpath: ../test
+  v8unpack: v8unpack.exe
 
 server:
   port: 8090
@@ -26,7 +28,8 @@ jmix:
       - png
       - jpeg
       - pdf
-
+  resource-server:
+    anonymous-url-patterns: /rest/docs/*
 # Git configuration
 git:
   timeout: 7

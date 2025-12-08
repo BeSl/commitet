@@ -23,7 +23,5 @@
     <menu id="settingSystem" title="Системные настройки">
         <item title="Фоновые" view="quartz_JobModel.list"
                 icon="vaadin:shield"/>
-        <item view="AppSettings.list" title="msg://com.company.commitet_jm.view.appsettings/appSettingsListView.title"
-              icon="vaadin:database" description="Глобальные настройки приложения"/>
     </menu>
 </menu-config>

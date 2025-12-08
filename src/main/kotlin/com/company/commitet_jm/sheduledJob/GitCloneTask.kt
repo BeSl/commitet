@@ -27,7 +27,7 @@ class GitCloneTask(
     }
     @Throws(Exception::class)
     override fun run(taskLifeCycle: TaskLifeCycle<Int>): Void {
-        val result = gitService.cloneRepo("$urlRepo.git", localPath, defaultBranch)
+        val result = gitService.cloneRepo(urlRepo, localPath, defaultBranch)
 
         if (!result.first) {
             log.error("Ошибка клонирования: ${result.second}")

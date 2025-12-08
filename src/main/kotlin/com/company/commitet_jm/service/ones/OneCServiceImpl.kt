@@ -1,11 +1,13 @@
 package com.company.commitet_jm.service.ones
 
 import com.company.commitet_jm.component.ShellExecutor
-import com.company.commitet_jm.entity.AppSettings
 import io.jmix.core.DataManager
+import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+
 import java.io.File
 
 @Service
@@ -18,7 +20,17 @@ class OneCServiceImpl(
         private val log = LoggerFactory.getLogger(OneCServiceImpl::class.java)
     }
 
+    @Value("\${app.v8unpack}")
     private var v8unpackPath: String = ""
+
+    @Value("\${app.onelogpath}")
+    private var oneLogPath: String = ""
+
+    @PostConstruct
+    fun init() {
+        log.info("Initialized OneCServiceImpl with v8unpackPath: $v8unpackPath")
+        log.info("Initialized OneCServiceImpl with oneLogPath: $oneLogPath")
+    }
 
     override fun uploadExtFiles(inputFile: File, outDir: String, pathInstall: String, version: String) {
         val res = shellExecutor.executeCommand(listOf(
@@ -42,12 +54,7 @@ class OneCServiceImpl(
 
     fun unpackExtFiles(inputFile: File, outDir: String) {
         if (v8unpackPath.isEmpty()) {
-            val unpackPath = dataManager.load(AppSettings::class.java)
-                .query("select apps from AppSettings apps where apps.name = :pName")
-                .parameter("pName", "v8unpack")
-                .optional().get()
-
-            v8unpackPath = unpackPath.value.toString()
+            throw RuntimeException("Path b8Unpack is Empty!!!")
         }
 
         val res = shellExecutor.executeCommand(listOf(

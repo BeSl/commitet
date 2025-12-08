@@ -1,11 +1,11 @@
 package com.company.commitet_jm.service.ones
 
 import com.company.commitet_jm.component.ShellExecutor
-import com.company.commitet_jm.entity.AppSettings
 import com.company.commitet_jm.service.unpack.UnpackService
 import io.jmix.core.DataManager
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -13,14 +13,16 @@ import java.util.Date
 import java.io.File
 
 @Service
-class OneRunner(private val dataManager: DataManager
-) {
+class OneRunner(private val dataManager: DataManager) {
 
     companion object {
         private  val log = LoggerFactory.getLogger(OneRunner::class.java)
     }
     @Autowired
     private lateinit var shellExecutor: ShellExecutor
+
+    @Value("app.onelogpath")
+    val oneCLogPath = "../"
 
     var v8unpackPath : String = ""
 
@@ -38,7 +40,7 @@ class OneRunner(private val dataManager: DataManager
         }
         // Формат времени для имени лог-файла
         val timeStamp = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(Date())
-        val logFileName = ".${File.separator}OneLog${File.separator}out_$timeStamp.log"
+        val logFileName = "$oneCLogPath${File.separator}out_$timeStamp.log"
 
         val res = shellExecutor.executeCommand(listOf(
             pathPlatform(pathInstall, version),
@@ -54,14 +56,11 @@ class OneRunner(private val dataManager: DataManager
     }
 
     fun unpackExtFiles(inputFile: File, outDir: String){
-        var unpackEnabled = false
+        var unpackEnabled = true
         if (unpackEnabled) {
             if (v8unpackPath.isEmpty()){
-                val unpackPath = dataManager.load(AppSettings::class.java)
-                    .query("select apps from AppSettings apps where apps.name = :pName")
-                    .parameter("pName", "v8unpack")
-                    .optional().get()
-                v8unpackPath = unpackPath.value.toString()
+
+               throw RuntimeException("Path b8Unpack is Empty!!!")
             }
 
             val res = shellExecutor.executeCommand(listOf(
