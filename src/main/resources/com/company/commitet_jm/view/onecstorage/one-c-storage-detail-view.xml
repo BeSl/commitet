@@ -19,16 +19,17 @@
         <action id="closeAction" type="detail_close"/>
     </actions>
     <layout>
-        <hbox>
         <vbox>
-        <h3 text="настройки хранилища"/>
+        <vbox>
+        <h3 text="Настройки хранилища"/>
 
         <formLayout id="form" dataContainer="oneCStorageDc">
             <responsiveSteps>
-                <responsiveStep minWidth="100%" columns="1" labelsPosition="ASIDE"/>
+                <responsiveStep minWidth="100%" columns="4" labelsPosition="ASIDE"/>
             </responsiveSteps>
             <vbox alignItems="STRETCH">
-                <textField id="nameField" property="name" label="Наименование"/>
+            <hbox alignItems="STRETCH">
+                <textField id="nameField" property="name" width="100%" label="Наименование"/>
                 <hbox>
                     <entityPicker id="projectField"  width="100%" property="project" label="Проект" required="true">
                         <actions>
@@ -42,79 +43,85 @@
                     </entityPicker>
                     <select id="typeField" property="type" label="Тип хранилища"/>
                 </hbox>
-
-                <h3 text="Авторизация"/>
+        </hbox>
+               <hbox >
                 <textField id="userField" property="user" label="Пользователь"/>
                 <passwordField id="passwordField" property="password" label="Пароль"/>
-                <h3 text="Работы в GIT"/>
-                <textField id="pathField" property="path" label="Путь"/>
-                <textField id="branchField" property="branch" label="Ветка"/>
-            </vbox>
+               </hbox>
+            <hbox width="100%">
+                <textField id="pathField" property="path" label="Путь к хранилищу"/>
+                <textField id="branchField"  property="branch" label="Ветка git"/>
+            </hbox>
+        </vbox>
         </formLayout>
         <hbox id="detailActions">
             <button id="saveAndCloseButton" action="saveAction"/>
             <button id="closeButton" action="closeAction"/>
         </hbox>
         </vbox>
-            <vbox>
+            <hbox>
+                <vbox>
                 <h3 text="Операции с хранилищем:"/>
-                <hbox>
+
                     <button id="createStorageButtonClick" text="Создать хранилище"/>
                     <button id="historyStorageButton" text="История хранилища"/>
-                    <button id="addStorageUseButton" text="Добавить пользователя"/>
-                    <button id="copyUsersStorageButton" text="Копировать пользователей"/>
-                </hbox>
+                    <button id="addStorageUseButton" text="Новый пользователь"/>
+                    <button id="copyUsersStorageButton" text="Перенос пользователей"/>
+                </vbox>
+            <vbox>
                 <vbox id="cmd_param">
-                <vbox id="notCommandBox" visible="true">
-                    <h3 text="Выберите команду"/>
-                </vbox>
-                <vbox id="createStorageBox" visible="false">
-                    <h3 text="Создание нового хранилища"/>
-                    <h4 text="Дополнительных параметров не требуется"/>
-                </vbox>
+                    <vbox id="notCommandBox" visible="true">
+                        <h3 text="Выберите команду"/>
+                    </vbox>
+                    <vbox id="createStorageBox" visible="true">
+                        <h3 text="Создание нового хранилища"/>
+                        <h4 text="Дополнительных параметров не требуется"/>
+                    </vbox>
 
-                <vbox id="copyUserStorageBox" visible="false">
-                    <entityPicker id="oneCStorageSourceDc"
-                                  label="Хранилище-источник"
-                                  metaClass="OneCStorage">
-                        <actions>
-                            <action id="lookup" type="entity_lookup"/>
-                            <action id="clear" type="entity_clear"/>
-                        </actions>
-                    </entityPicker>
-                    <checkbox id="restoreDeletedUsersCheckbox" label="Восстановить удаленных пользователей"/>
-                </vbox>
-                <vbox id="historyStorageBox" visible="false">
-                    <h4 text="Номер версии хранилища"/>
-                    <integerField id="startVersionField" label="Версия с"/>
-                    <integerField id="endVersionField" label="Версия по"/>
-                    <datePicker id="startDateField" label="Дата с"/>
-                    <datePicker id="endDateField" label="Дата по"/>
-                    <comboBox id="reportFormatField" label="Формат отчета">
-<!--                        <option value="TXT">TXT</option>-->
-<!--                        <option value="MXL">MXL</option>-->
-                    </comboBox>
-                </vbox>
-                <vbox id="addUserStorageBox" visible="false">
-                    <h4 text="Новый пользователь хранилища"/>
-                    <entityPicker id="userStorage"
-                                  label="Пользователь"
-                                  metaClass="User">
-                        <actions>
-                            <action id="lookup" type="entity_lookup"/>
-                            <action id="clear" type="entity_clear"/>
-                        </actions>
-                    </entityPicker>
-                    <comboBox id="userRightsField" label="Права">
-<!--                        <option value="READ_ONLY">Только чтение</option>-->
-<!--                        <option value="FULL_ACCESS">Полный доступ</option>-->
-<!--                        <option value="VERSION_MANAGEMENT">Управление версиями</option>-->
-                    </comboBox>
-                    <checkbox id="restoreUserCheckbox" label="Восстановить удаленного пользователя"/>
-                </vbox>
+                    <vbox id="copyUserStorageBox" visible="false">
+                        <entityPicker id="oneCStorageSourceDc"
+                                      label="Хранилище-источник"
+                                      metaClass="OneCStorage">
+                            <actions>
+                                <action id="lookup" type="entity_lookup"/>
+                                <action id="clear" type="entity_clear"/>
+                            </actions>
+                        </entityPicker>
+                        <checkbox id="restoreDeletedUsersCheckbox" label="Восстановить удаленных пользователей"/>
+                    </vbox>
+                    <vbox id="historyStorageBox" visible="false">
+                        <h4 text="Номер версии хранилища"/>
+                        <integerField id="startVersionField" label="Версия с"/>
+                        <integerField id="endVersionField" label="Версия по"/>
+                        <datePicker id="startDateField" label="Дата с"/>
+                        <datePicker id="endDateField" label="Дата по"/>
+                        <comboBox id="reportFormatField" label="Формат отчета">
+                            <!--                        <option value="TXT">TXT</option>-->
+                            <!--                        <option value="MXL">MXL</option>-->
+                        </comboBox>
+                    </vbox>
+                    <vbox id="addUserStorageBox" visible="false">
+                        <h4 text="Новый пользователь хранилища"/>
+                        <entityPicker id="userStorage"
+                                      label="Пользователь"
+                                      metaClass="User">
+                            <actions>
+                                <action id="lookup" type="entity_lookup"/>
+                                <action id="clear" type="entity_clear"/>
+                            </actions>
+                        </entityPicker>
+                        <comboBox id="userRightsField" label="Права">
+                            <!--                        <option value="READ_ONLY">Только чтение</option>-->
+                            <!--                        <option value="FULL_ACCESS">Полный доступ</option>-->
+                            <!--                        <option value="VERSION_MANAGEMENT">Управление версиями</option>-->
+                        </comboBox>
+                        <checkbox id="restoreUserCheckbox" label="Восстановить удаленного пользователя"/>
+                    </vbox>
                     <button id="executeCommandButton" text="Выполнить" visible="false"/>
                 </vbox>
+
             </vbox>
-        </hbox>
+            </hbox>
+
     </layout>
 </view>

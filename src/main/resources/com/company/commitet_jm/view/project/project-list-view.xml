@@ -41,7 +41,7 @@
 
     <layout spacing="false" padding="false" classNames="split-layout" height="100%">
         <!-- Master List (Left Side) -->
-        <vbox id="listLayout" spacing="false" width="100%" height="100%" classNames="list-panel">
+        <vbox id="listLayout" spacing="false" width="35%" height="100%" classNames="list-panel">
             <genericFilter id="genericFilter"
                            dataLoader="projectsDl">
                 <properties include=".*"/>
@@ -76,7 +76,7 @@
         </vbox>
 
         <!-- Detail Form (Right Side) -->
-        <vbox id="formLayout" spacing="false" width="50%" height="100%" >
+        <vbox id="formLayout" spacing="false" width="65%" height="100%" >
             <formLayout id="form" dataContainer="projectDc" width="100%" height="100%">
                 <vbox  height="100%">
                     <textField id="nameField" property="name" label="Проект" width="100%"/>
@@ -104,13 +104,6 @@
                         </formLayout>
                     </tab>
 
-                    <!-- Git Admin -->
-                    <tab id="tab2" label="Админ">
-                        <formLayout width="100%">
-                            <textField id="adminGitNameField" property="adminGitName" label="Имя администратора" width="100%"/>
-                            <passwordField id="adminGitPasswordField" property="adminGitPassword" label="Пароль администратора" width="100%"/>
-                        </formLayout>
-                    </tab>
 
                     <!-- Хранилища конфигураций -->
                     <tab id="tabStorage" label="Хранилища конфигураций">
@@ -138,7 +131,15 @@
                             </dataGrid>
                         </vbox>
                     </tab>
-                </tabSheet>
+
+                        <!-- Git Admin -->
+                        <tab id="tab2" label="Админ git">
+                            <formLayout width="100%">
+                                <textField id="adminGitNameField" property="adminGitName" label="Имя администратора" width="100%"/>
+                                <passwordField id="adminGitPasswordField" property="adminGitPassword" label="Пароль администратора" width="100%"/>
+                            </formLayout>
+                        </tab>
+                    </tabSheet>
                 </vbox>
             </formLayout>
 
