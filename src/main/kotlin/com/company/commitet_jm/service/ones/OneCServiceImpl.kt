@@ -4,7 +4,6 @@ import com.company.commitet_jm.component.ShellExecutor
 import io.jmix.core.DataManager
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 
@@ -12,7 +11,6 @@ import java.io.File
 
 @Service
 class OneCServiceImpl(
-    private val dataManager: DataManager,
     private val shellExecutor: ShellExecutor
 ) : OneCService {
 
@@ -50,36 +48,6 @@ class OneCServiceImpl(
         version: String
     ) {
         TODO("Not yet implemented")
-    }
-
-    fun unpackExtFiles(inputFile: File, outDir: String) {
-        if (v8unpackPath.isEmpty()) {
-            throw RuntimeException("Path b8Unpack is Empty!!!")
-        }
-
-        val res = shellExecutor.executeCommand(listOf(
-            v8unpackPath,
-            "-U",
-            inputFile.path,
-            outDir
-        ))
-
-        log.info("unpack rename files")
-
-        filterAndRenameFiles(
-            directory = File(outDir),
-            keepFiles = setOf("form.data", "module.data", "Form.bin"),
-            renameRule = { originalName ->
-                when (originalName) {
-                    "form.data" -> "form"
-                    "module.data" -> "Module.bsl"
-                    else -> {
-                        originalName
-                    }
-                }
-            }
-        )
-        log.debug("Unpack command $res")
     }
 
     override fun pathPlatform(basePath: String?, version: String?): String {

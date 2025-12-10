@@ -2,7 +2,6 @@ package com.company.commitet_jm.service.git
 
 import com.company.commitet_jm.component.ShellExecutor
 import com.company.commitet_jm.entity.*
-import com.company.commitet_jm.entity.TypesFiles.*
 import com.company.commitet_jm.service.file.FileService
 import com.company.commitet_jm.service.ones.OneCService
 import io.jmix.core.DataManager
@@ -17,9 +16,7 @@ import java.util.*
 @Service
 class GitServiceImpl(
     private val dataManager: DataManager,
-    private val fileStorageLocator: FileStorageLocator,
     private val fileService: FileService,
-    private val oneCService: OneCService
 ) : GitService {
     
     @Value("\${git.timeout:7}")
@@ -445,39 +442,13 @@ class GitServiceImpl(
         }
     }
 
-    private fun escapeShellArgument(arg: String): String {
-        return try {
-            if (arg.isEmpty()) {
-                return "''"
-            }
-            
-            // Если строка содержит пробелы, кавычки или другие спецсимволы, заключаем её в кавычки
-            if (!arg.matches(Regex("^[a-zA-Z0-9_\\-+=%/:.,@]+$"))) {
-                return "'" + arg.replace("'", "'\"'\"'") + "'"
-            }
-            
-            return arg
-        } catch (e: Exception) {
-            log.error("Ошибка при экранировании аргумента оболочки: ${e.message}")
-            throw RuntimeException("Ошибка при экранировании аргумента оболочки", e)
-        }
-    }
-
     private fun sanitizeGitBranchName(input: String): String {
         return try {
-            // Правила для имён веток Git:
-            // - Не могут начинаться с '-'
-            // - Не могут содержать:
-            //   - пробелы
-            //   - символы: ~, ^, :, *, ?, [, ], @, \, /, {, }, ...
-            // - Не могут заканчиваться на .lock
-            // - Не могут содержать последовательность //
-            
             val forbiddenChars = setOf(
                 ' ', '~', '^', ':', '*', '?', '[', ']', '@', '\\', '/', '{', '}',
                 '<', '>', '|', '"', '\'', '!', '#', '$', '%', '&', '(', ')', ',', ';', '='
             )
-            
+
             return input.map { char ->
                 when {
                     char in forbiddenChars -> '_'
