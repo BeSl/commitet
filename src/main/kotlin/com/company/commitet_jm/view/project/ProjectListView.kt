@@ -2,7 +2,7 @@ package com.company.commitet_jm.view.project
 
 import com.company.commitet_jm.sheduledJob.GitCloneTask
 import com.company.commitet_jm.entity.Project
-import com.company.commitet_jm.service.git.GitService
+import com.company.commitet_jm.service.project.ProjectService
 import com.company.commitet_jm.view.main.MainView
 import com.vaadin.flow.component.ClickEvent
 import com.vaadin.flow.component.HasValueAndElement
@@ -10,10 +10,9 @@ import com.vaadin.flow.component.formlayout.FormLayout
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.router.Route
-import io.jmix.core.DataManager
-import io.jmix.core.FileStorageLocator
 import io.jmix.core.validation.group.UiCrossFieldChecks
 import io.jmix.flowui.Dialogs
+import io.jmix.flowui.Notifications
 import io.jmix.flowui.action.SecuredBaseAction
 import io.jmix.flowui.component.UiComponentUtils
 import io.jmix.flowui.component.grid.DataGrid
@@ -28,6 +27,7 @@ import io.jmix.flowui.model.InstanceContainer
 import io.jmix.flowui.model.InstanceLoader
 import io.jmix.flowui.view.*
 import io.jmix.flowui.view.Target
+import io.jmix.flowui.action.DialogAction
 import org.springframework.beans.factory.annotation.Autowired
 
 @Route(value = "projects", layout = MainView::class)
@@ -36,14 +36,15 @@ import org.springframework.beans.factory.annotation.Autowired
 @LookupComponent("projectsDataGrid")
 @DialogMode(width = "64em")
 class ProjectListView : StandardListView<Project>() {
-    @Autowired
-    private lateinit var fileStorageLocator: FileStorageLocator
 
     @Autowired
-    private lateinit var dataManager: DataManager
+    private lateinit var projectService: ProjectService
 
     @Autowired
-    private lateinit var gitService: GitService
+    private lateinit var dialogs: Dialogs
+
+    @Autowired
+    private lateinit var notifications: Notifications
 
     @ViewComponent
     private lateinit var dataContext: DataContext
@@ -70,16 +71,7 @@ class ProjectListView : StandardListView<Project>() {
     private lateinit var detailActions: HorizontalLayout
 
     @ViewComponent
-    private lateinit var urlRepoField: TypedTextField<Any>
-
-    @ViewComponent
     private lateinit var localPathField: TypedTextField<String>
-
-    @ViewComponent
-    private lateinit var defaultBranchField: TypedTextField<String>
-
-    @Autowired
-    private lateinit var dialogs: Dialogs
 
     @Subscribe
     fun onInit(event: InitEvent) {
@@ -97,8 +89,8 @@ class ProjectListView : StandardListView<Project>() {
 
     @Subscribe("projectsDataGrid.createAction")
     fun onProjectsDataGridCreateAction(event: ActionPerformedEvent) {
-        dataContext?.clear()
-        val entity: Project = dataContext?.create(Project::class.java) ?: return
+        dataContext.clear()
+        val entity: Project = dataContext.create(Project::class.java) ?: return
         projectDc.setItem(entity)
         updateControls(true)
     }
@@ -125,19 +117,63 @@ class ProjectListView : StandardListView<Project>() {
 
     @Subscribe("cloneGitButton")
     fun cloneGitButtonClick(event: ClickEvent<JmixButton>) {
+        val project = projectDc.itemOrNull
+        if (project == null) {
+            notifications.create("Выберите проект").show()
+            return
+        }
 
-        val task = GitCloneTask(
-            dataManager = dataManager,
-            fileStorageLocator = fileStorageLocator,
-            gitService = gitService,
-            urlRepo = urlRepoField.value.toString(),
-            localPath = localPathField.value,
-            defaultBranch = defaultBranchField.value
-        )
+        if (project.urlRepo.isNullOrBlank()) {
+            notifications.create("Укажите URL репозитория").show()
+            return
+        }
+
+        if (project.defaultBranch.isNullOrBlank()) {
+            notifications.create("Укажите ветку по умолчанию").show()
+            return
+        }
+
+        if (project.name.isNullOrBlank()) {
+            notifications.create("Укажите имя проекта").show()
+            return
+        }
+
+        // Сначала сохраняем проект если есть изменения
+        if (dataContext.hasChanges()) {
+            dataContext.save()
+        }
+
+        // Показываем предполагаемый путь
+        val expectedPath = projectService.getProjectRepoPath(project)
+
+        dialogs.createOptionDialog()
+            .withHeader("Клонирование репозитория")
+            .withText("Репозиторий будет склонирован в:\n$expectedPath\n\nПродолжить?")
+            .withActions(
+                DialogAction(DialogAction.Type.YES).withHandler {
+                    startCloning(project)
+                },
+                DialogAction(DialogAction.Type.NO)
+            )
+            .open()
+    }
+
+    private fun startCloning(project: Project) {
+        val task = object : GitCloneTask(projectService, project) {
+            override fun done(result: String) {
+                super.done(result)
+                // Перезагружаем проект чтобы увидеть обновлённый localPath
+                projectDl.load()
+                notifications.create("Репозиторий успешно склонирован")
+                    .withType(Notifications.Type.SUCCESS)
+                    .show()
+            }
+        }
 
         dialogs.createBackgroundTaskDialog(task)
             .withHeader("Клонирование репозитория")
             .withText("Подождите, идет клонирование...")
+            .withCancelAllowed(true)
             .open()
     }
 
@@ -179,9 +215,12 @@ class ProjectListView : StandardListView<Project>() {
                 component.isReadOnly = !editing
             }
         }
+        // localPath всегда readonly - заполняется автоматически при клонировании
+        localPathField.isReadOnly = true
+
         detailActions.isVisible = editing
         listLayout.isEnabled = !editing
-        projectsDataGrid.getActions().forEach(Action::refreshState);
+        projectsDataGrid.getActions().forEach(Action::refreshState)
     }
 
     private fun getViewValidation(): ViewValidation {

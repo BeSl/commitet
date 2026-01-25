@@ -84,7 +84,7 @@
                     <!-- Git Основные -->
                     <tab id="tab1" label="Основные">
                         <formLayout width="100%" height="100%">
-                            <textField id="localPathField" property="localPath" label="Каталог сервера" width="100%"/>
+                            <textField id="localPathField" property="localPath" label="Каталог репозитория" width="100%" readOnly="true" helperText="Заполняется автоматически при клонировании"/>
                             <textField id="urlRepoField" property="urlRepo" label="Адрес репозитория" width="100%"/>
                             <textField id="defaultBranchField" property="defaultBranch" label="Ветка по умолчанию" width="100%"/>
                             <entityPicker id="platformField" width="100%" property="platform" label="Платформа" required="true">

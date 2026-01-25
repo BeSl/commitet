@@ -1,59 +1,49 @@
 package com.company.commitet_jm.sheduledJob
 
-import com.company.commitet_jm.service.git.GitService
-import io.jmix.core.DataManager
-import io.jmix.core.FileStorageLocator
+import com.company.commitet_jm.entity.Project
+import com.company.commitet_jm.service.project.ProjectService
 import io.jmix.flowui.backgroundtask.BackgroundTask
 import io.jmix.flowui.backgroundtask.TaskLifeCycle
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
-
-
-class GitCloneTask(
-    private val dataManager: DataManager,
-    private val fileStorageLocator: FileStorageLocator,
-    private val gitService: GitService,
-    var urlRepo: String = "",
-    var localPath: String = "",
-    var defaultBranch: String = ""
-    ) : BackgroundTask<Int, Void>(
-    10,
-    TimeUnit.MINUTES
-) {
+/**
+ * Фоновая задача для клонирования репозитория проекта
+ */
+open class GitCloneTask(
+    private val projectService: ProjectService,
+    private val project: Project
+) : BackgroundTask<Int, String>(10, TimeUnit.MINUTES) {
 
     companion object {
-        private  val log = LoggerFactory.getLogger(GitCloneTask::class.java)
+        private val log = LoggerFactory.getLogger(GitCloneTask::class.java)
     }
+
+    /**
+     * Результат клонирования
+     */
+    var resultPath: String? = null
+    var errorMessage: String? = null
+
     @Throws(Exception::class)
-    override fun run(taskLifeCycle: TaskLifeCycle<Int>): Void {
-        // Клонирование репозитория
+    override fun run(taskLifeCycle: TaskLifeCycle<Int>): String {
+        log.info("Начало клонирования репозитория для проекта: ${project.name}")
 
-        var fullUrlRepo = urlRepo
-        if (!fullUrlRepo.endsWith(".git")) {
-            fullUrlRepo += ".git"
-        }
+        val result = projectService.cloneProjectRepo(project)
 
-        log.info("Клонирование репозитория $fullUrlRepo в $localPath")
-
-        val result = gitService.cloneRepo(fullUrlRepo, localPath, defaultBranch)
-
-        if (!result.first) {
-            log.error("Ошибка клонирования: ${result.second}")
-
-            throw RuntimeException(result.second)
-        } else {
-            log.info("репозиторий склонирован")
-        }
-
-        // Проверка на отмену задачи
         if (taskLifeCycle.isCancelled) {
-            return null!!
+            log.info("Задача клонирования отменена")
+            return "Отменено"
         }
 
-        return null!!
+        if (result.first) {
+            resultPath = result.second
+            log.info("Репозиторий успешно склонирован: $resultPath")
+            return resultPath!!
+        } else {
+            errorMessage = result.second
+            log.error("Ошибка клонирования: $errorMessage")
+            throw RuntimeException(errorMessage)
+        }
     }
-
-
-
 }

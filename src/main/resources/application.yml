@@ -3,6 +3,8 @@ app:
   version: 1.0.7
   onelogpath: ../test
   v8unpack: v8unpack.exe
+  # Рабочий каталог для клонирования репозиториев проектов
+  workdir: ./repos
 
 server:
   port: 8090
