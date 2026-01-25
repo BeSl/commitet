@@ -246,7 +246,7 @@ class GitServiceImpl(
         val statusResult = gitHelper.execute(repoDir, gitTimeout, "git", "status", "--porcelain")
         if (statusResult.success && statusResult.output.isBlank()) {
             log.info("[COMMIT][$taskNum] Нет изменений для коммита")
-            completeCommit(commitInfo, newBranch, null)
+            completeCommit(commitInfo, newBranch, null, null)
             return
         }
 
@@ -256,6 +256,10 @@ class GitServiceImpl(
         if (!addResult.success) {
             throw GitOperationException.commitFailed("Не удалось добавить файлы: ${addResult.error}")
         }
+
+        // Собираем информацию о diff ДО коммита (пока изменения в staged)
+        log.debug("[COMMIT][$taskNum] Сбор информации об изменениях")
+        val diffInfo = collectDiffInfo(repoDir, taskNum)
 
         // Создаём коммит
         log.info("[COMMIT][$taskNum] Создание коммита")
@@ -291,9 +295,103 @@ class GitServiceImpl(
         val hashResult = gitHelper.execute(repoDir, gitTimeout, "git", "rev-parse", "HEAD")
         val commitHash = if (hashResult.success) hashResult.output.trim() else null
 
-        log.info("[COMMIT][$taskNum] Push завершён успешно, hash=$commitHash")
+        log.info("[COMMIT][$taskNum] Push завершён успешно, hash=$commitHash, files=${diffInfo.totalFiles}")
 
-        completeCommit(commitInfo, newBranch, commitHash)
+        completeCommit(commitInfo, newBranch, commitHash, diffInfo)
+    }
+
+    /**
+     * Собирает информацию об изменениях (diff) для staged файлов
+     */
+    private fun collectDiffInfo(repoDir: File, taskNum: String): CommitDiffInfo {
+        try {
+            // Получаем список изменённых файлов со статистикой
+            val statResult = gitHelper.execute(repoDir, gitTimeout, "git", "diff", "--cached", "--numstat")
+            // Получаем полный diff
+            val diffResult = gitHelper.execute(repoDir, gitTimeout, "git", "diff", "--cached")
+            // Получаем имена файлов с типом изменения
+            val nameStatusResult = gitHelper.execute(repoDir, gitTimeout, "git", "diff", "--cached", "--name-status")
+
+            if (!statResult.success || !nameStatusResult.success) {
+                log.warn("[COMMIT][$taskNum] Не удалось получить diff: ${statResult.error}")
+                return CommitDiffInfo.empty()
+            }
+
+            val entries = mutableListOf<DiffEntry>()
+            var totalAdditions = 0
+            var totalDeletions = 0
+
+            // Парсим --name-status для получения типа изменения
+            val changeTypes = mutableMapOf<String, DiffChangeType>()
+            val renames = mutableMapOf<String, String>() // newPath -> oldPath
+
+            nameStatusResult.output.lines().filter { it.isNotBlank() }.forEach { line ->
+                val parts = line.split("\t")
+                if (parts.size >= 2) {
+                    val status = parts[0]
+                    val path = parts.last()
+
+                    val changeType = when {
+                        status.startsWith("A") -> DiffChangeType.ADDED
+                        status.startsWith("M") -> DiffChangeType.MODIFIED
+                        status.startsWith("D") -> DiffChangeType.DELETED
+                        status.startsWith("R") -> {
+                            if (parts.size >= 3) renames[parts[2]] = parts[1]
+                            DiffChangeType.RENAMED
+                        }
+                        status.startsWith("C") -> DiffChangeType.COPIED
+                        else -> DiffChangeType.MODIFIED
+                    }
+                    changeTypes[path] = changeType
+                }
+            }
+
+            // Парсим --numstat для статистики
+            statResult.output.lines().filter { it.isNotBlank() }.forEach { line ->
+                val parts = line.split("\t")
+                if (parts.size >= 3) {
+                    val additions = parts[0].toIntOrNull() ?: 0
+                    val deletions = parts[1].toIntOrNull() ?: 0
+                    val path = parts[2]
+
+                    totalAdditions += additions
+                    totalDeletions += deletions
+
+                    entries.add(
+                        DiffEntry(
+                            path = path,
+                            changeType = changeTypes[path] ?: DiffChangeType.MODIFIED,
+                            oldPath = renames[path],
+                            additions = additions,
+                            deletions = deletions,
+                            diffContent = extractFileDiff(diffResult.output, path)
+                        )
+                    )
+                }
+            }
+
+            log.debug("[COMMIT][$taskNum] Собран diff: ${entries.size} файлов, +$totalAdditions/-$totalDeletions")
+
+            return CommitDiffInfo(
+                entries = entries,
+                totalAdditions = totalAdditions,
+                totalDeletions = totalDeletions,
+                totalFiles = entries.size,
+                rawDiff = diffResult.output.take(100000) // Ограничиваем размер
+            )
+        } catch (e: Exception) {
+            log.error("[COMMIT][$taskNum] Ошибка при сборе diff: ${e.message}")
+            return CommitDiffInfo.empty()
+        }
+    }
+
+    /**
+     * Извлекает diff для конкретного файла из общего diff
+     */
+    private fun extractFileDiff(fullDiff: String, filePath: String): String? {
+        val escapedPath = Regex.escape(filePath)
+        val pattern = Regex("diff --git a/.*?$escapedPath.*?(?=diff --git|$)", RegexOption.DOT_MATCHES_ALL)
+        return pattern.find(fullDiff)?.value?.take(50000) // Ограничиваем размер одного файла
     }
 
     // ==================== COMMIT STATUS MANAGEMENT ====================
@@ -324,11 +422,12 @@ class GitServiceImpl(
         }
     }
 
-    private fun completeCommit(commitInfo: Commit, branch: String, commitHash: String?) {
+    private fun completeCommit(commitInfo: Commit, branch: String, commitHash: String?, diffInfo: CommitDiffInfo?) {
         commitInfo.hashCommit = commitHash
         commitInfo.urlBranch = "${commitInfo.project!!.urlRepo}/tree/$branch"
         commitInfo.setStatus(StatusSheduler.COMPLETE)
         commitInfo.errorInfo = null
+        commitInfo.diffData = diffInfo?.toJson()
         dataManager.save(commitInfo)
     }
 
