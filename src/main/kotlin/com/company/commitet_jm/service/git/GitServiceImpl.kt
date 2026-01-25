@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.io.File
-import java.util.*
 
 @Service
 class GitServiceImpl(
@@ -31,17 +30,16 @@ class GitServiceImpl(
         private val log = LoggerFactory.getLogger(GitServiceImpl::class.java)
     }
 
+    // ==================== PUBLIC API ====================
+
     override fun cloneRepo(repoUrl: String, directoryPath: String, branch: String): Pair<Boolean, String> {
-        log.info("start clone repo $repoUrl")
-        validateGitUrl(repoUrl)
-
-        val dir = File(directoryPath)
-
-        if (dir.exists() && dir.list()?.isNotEmpty() == true) {
-            throw IllegalArgumentException("Target directory must be empty")
-        }
+        log.info("[CLONE] Начало клонирования: url=$repoUrl, branch=$branch, path=$directoryPath")
 
         return try {
+            validateGitUrl(repoUrl)
+            validateTargetDirectory(directoryPath)
+
+            val dir = File(directoryPath)
             val result = gitHelper.execute(
                 dir.parentFile ?: File("."),
                 gitTimeout,
@@ -54,254 +52,325 @@ class GitServiceImpl(
             )
 
             if (!result.success) {
-                throw RuntimeException("Failed to clone repository: ${result.error}")
+                val errorMessage = parseCloneError(result.error, repoUrl, branch)
+                log.error("[CLONE] Ошибка клонирования: $errorMessage")
+                return Pair(false, errorMessage)
             }
-            log.info("end clone repo $repoUrl")
-            Pair(true, "")
+
+            log.info("[CLONE] Успешно завершено: $repoUrl -> $directoryPath")
+            Pair(true, directoryPath)
+        } catch (e: GitOperationException) {
+            log.error("[CLONE] ${e.logMessage}")
+            Pair(false, e.userFriendlyMessage)
         } catch (e: Exception) {
-            log.error("Ошибка при клонировании репозитория $repoUrl: ${e.message}")
-            Pair(false, e.message ?: "Unknown error")
+            log.error("[CLONE] Неожиданная ошибка: ${e.message}", e)
+            Pair(false, "Ошибка клонирования: ${e.message}")
         }
     }
 
     override fun createCommit() {
-        val commitInfo = firstNewDataCommit() ?: return
-
-        log.info("start createCommit ${commitInfo.taskNum}")
-
-        val repoPath = commitInfo.project!!.localPath!!
-        val repoDir = File(repoPath)
-        val remoteBranch = commitInfo.project!!.defaultBranch
-        val newBranch = "feature/${commitInfo.taskNum?.let { sanitizeGitBranchName(it) }}"
-        val uri = commitInfo.project!!.urlRepo!!
-
-        setAuthRepo(uri, gitUserName, gitUserToken, repoPath)
-
-        try {
-            beforeCmdCommit(repoDir, remoteBranch!!, newBranch, commitInfo)
-
-            commitInfo.project?.platform?.let {
-                fileService.saveFileCommit(repoPath, commitInfo.files, it)
-            }
-            afterCmdCommit(commitInfo, repoDir, newBranch)
-        } catch (e: Exception) {
-            log.error("Error occurred while creating commit ${e.message}", e)
-            commitInfo.errorInfo = e.message
-            commitInfo.setStatus(StatusSheduler.ERROR)
-            try {
-                dataManager.save(commitInfo)
-            } catch (saveException: Exception) {
-                log.error("Не удалось сохранить информацию об ошибке коммита: ${saveException.message}", saveException)
-            }
-        }
-    }
-
-    private fun validateGitUrl(url: String) {
-        if (!url.matches(Regex("^(https?|git|ssh)://.*"))) {
-            throw IllegalArgumentException("Invalid Git URL format")
-        }
-    }
-
-    private fun beforeCmdCommit(repoDir: File, remoteBranch: String, newBranch: String, commitInfo: Commit) {
-        if (!File(repoDir, ".git").exists()) {
-            throw IllegalArgumentException("Not a git repository")
-        }
-
-        // Устанавливаем статус PROCESS как можно раньше
-        commitInfo.id?.let { setStatusCommit(it, StatusSheduler.PROCESSED) }
-
-        try {
-            // Сбрасываем репозиторий к состоянию удаленной ветки
-            gitHelper.executeWithWarning(repoDir, gitTimeout, "fetch", "git", "fetch", "origin", remoteBranch)
-            gitHelper.executeWithWarning(repoDir, gitTimeout, "reset", "git", "reset", "--hard", "origin/$remoteBranch")
-            gitHelper.executeWithWarning(repoDir, gitTimeout, "clean", "git", "clean", "-fd")
-        } catch (e: Exception) {
-            log.error("Не удалось подготовить репозиторий: ${e.message}")
-            throw RuntimeException("Не удалось подготовить репозиторий", e)
-        }
-
-        // Работаем с веткой
-        handleBranchCheckout(repoDir, newBranch)
-    }
-
-    private fun handleBranchCheckout(repoDir: File, newBranch: String) {
-        try {
-            val localExists = branchExists(repoDir, newBranch)
-            val remoteExists = remoteBranchExists(repoDir, newBranch)
-
-            when {
-                localExists && remoteExists -> {
-                    log.info("Переключаемся на локальную ветку $newBranch, которая также существует удаленно")
-                    gitHelper.executeWithWarning(repoDir, gitTimeout, "checkout $newBranch", "git", "checkout", newBranch)
-
-                    val hasConflicts = checkBranchDifference(repoDir, newBranch, "origin/$newBranch")
-                    if (!hasConflicts) {
-                        val pullResult = gitHelper.execute(repoDir, gitTimeout, "git", "pull", "origin", newBranch)
-                        if (!pullResult.success) {
-                            log.error("Не удалось синхронизировать локальную ветку $newBranch с удаленной: ${pullResult.error}")
-                        }
-                    } else {
-                        log.warn("Обнаружены конфликты при слиянии веток. Пропускаем автоматическую синхронизацию.")
-                    }
-                }
-                localExists -> {
-                    log.info("Переключаемся на локальную ветку $newBranch")
-                    gitHelper.executeWithWarning(repoDir, gitTimeout, "checkout $newBranch", "git", "checkout", newBranch, "--force")
-                }
-                remoteExists -> {
-                    log.info("Создаем локальную ветку $newBranch из удаленной")
-                    gitHelper.executeWithWarning(repoDir, gitTimeout, "создание ветки из удаленной", "git", "checkout", "-b", newBranch, "origin/$newBranch", "--force")
-                }
-                else -> {
-                    log.info("Создаем новую ветку $newBranch")
-                    gitHelper.executeWithWarning(repoDir, gitTimeout, "создание новой ветки", "git", "checkout", "-b", newBranch, "--force")
-                }
-            }
-        } catch (e: Exception) {
-            log.error("Ошибка при работе с ветками: ${e.message}")
-            throw RuntimeException("Ошибка при работе с ветками", e)
-        }
-    }
-
-    private fun afterCmdCommit(commitInfo: Commit, repoDir: File, newBranch: String) {
-        // Проверяем, есть ли изменения в репозитории
-        val statusResult = gitHelper.execute(repoDir, gitTimeout, "git", "status", "--porcelain")
-        if (statusResult.success && statusResult.output.isBlank()) {
-            log.info("Нет изменений для коммита в ветке $newBranch")
-            commitInfo.urlBranch = "${commitInfo.project!!.urlRepo}/src/branch/$newBranch"
-            commitInfo.setStatus(StatusSheduler.COMPLETE)
-            dataManager.save(commitInfo)
+        val commitInfo = findNextCommitToProcess() ?: run {
+            log.debug("[COMMIT] Нет новых задач для обработки")
             return
         }
 
-        // Добавляем файлы в индекс
-        gitHelper.executeOrThrow(repoDir, gitTimeout, "добавление файлов в индекс", "git", "add", ".")
+        val taskNum = commitInfo.taskNum ?: "unknown"
+        val projectName = commitInfo.project?.name ?: "unknown"
 
-        // Создаем коммит
-        val commitMessage = commitInfo.description ?: "Default commit message"
-        val tempFile = File.createTempFile("commit-message", ".txt")
-        tempFile.writeText(commitMessage, Charsets.UTF_8)
+        log.info("[COMMIT] ===== Начало обработки задачи ===== taskNum=$taskNum, project=$projectName")
 
         try {
-            gitHelper.executeOrThrow(
-                repoDir, gitTimeout, "создание коммита",
-                "git",
-                "-c", "user.name=${commitInfo.author!!.gitLogin}",
-                "-c", "user.email=${commitInfo.author!!.email}",
-                "commit",
-                "-F", tempFile.absolutePath
-            )
-        } finally {
-            tempFile.delete()
+            validateCommitData(commitInfo)
+
+            val repoPath = commitInfo.project!!.localPath!!
+            val repoDir = File(repoPath)
+            val remoteBranch = commitInfo.project!!.defaultBranch!!
+            val newBranch = "feature/${sanitizeGitBranchName(taskNum)}"
+
+            log.debug("[COMMIT] Параметры: repoPath=$repoPath, remoteBranch=$remoteBranch, newBranch=$newBranch")
+
+            // Устанавливаем статус "В обработке"
+            updateCommitStatus(commitInfo, StatusSheduler.PROCESSED)
+
+            // Настраиваем аутентификацию
+            setupRepoAuthentication(commitInfo.project!!.urlRepo!!, repoPath)
+
+            // Подготавливаем репозиторий
+            prepareRepository(repoDir, remoteBranch, taskNum)
+
+            // Переключаемся на рабочую ветку
+            checkoutWorkingBranch(repoDir, newBranch, taskNum)
+
+            // Сохраняем файлы коммита
+            log.info("[COMMIT][$taskNum] Сохранение файлов коммита")
+            commitInfo.project?.platform?.let {
+                fileService.saveFileCommit(repoPath, commitInfo.files, it)
+            }
+
+            // Выполняем коммит и пуш
+            performCommitAndPush(commitInfo, repoDir, newBranch)
+
+            log.info("[COMMIT] ===== Задача успешно завершена ===== taskNum=$taskNum")
+
+        } catch (e: GitOperationException) {
+            handleCommitError(commitInfo, e.userFriendlyMessage, e)
+        } catch (e: Exception) {
+            handleCommitError(commitInfo, "Внутренняя ошибка: ${e.message}", e)
         }
-
-        // Push изменений
-        log.info("git push start")
-        gitHelper.executeOrThrow(repoDir, gitTimeout, "push в удаленный репозиторий", "git", "push", "--force", "-u", "origin", newBranch)
-        log.info("git push end")
-
-        // Получаем хэш коммита
-        val hashResult = gitHelper.executeOrThrow(repoDir, gitTimeout, "получение хэша коммита", "git", "rev-parse", "HEAD")
-        commitInfo.hashCommit = hashResult.output.trim()
-
-        log.info("Successfully committed and pushed changes to branch $newBranch")
-
-        commitInfo.urlBranch = "${commitInfo.project!!.urlRepo}/tree/$newBranch"
-        commitInfo.setStatus(StatusSheduler.COMPLETE)
-        dataManager.save(commitInfo)
     }
 
-    private fun setAuthRepo(urlRepo: String, userName: String, token: String, repoPath: String) {
+    // ==================== VALIDATION ====================
+
+    private fun validateGitUrl(url: String) {
+        if (!url.matches(Regex("^(https?|git|ssh)://.*"))) {
+            throw GitOperationException.invalidUrl(url)
+        }
+    }
+
+    private fun validateTargetDirectory(path: String) {
+        val dir = File(path)
+        if (dir.exists() && dir.list()?.isNotEmpty() == true) {
+            throw GitOperationException(
+                GitErrorType.CLONE_FAILED,
+                "Целевой каталог не пуст: $path"
+            )
+        }
+    }
+
+    private fun validateCommitData(commitInfo: Commit) {
+        val missing = mutableListOf<String>()
+
+        if (commitInfo.project == null) missing.add("проект")
+        if (commitInfo.project?.localPath.isNullOrBlank()) missing.add("путь к репозиторию")
+        if (commitInfo.project?.defaultBranch.isNullOrBlank()) missing.add("ветка по умолчанию")
+        if (commitInfo.project?.urlRepo.isNullOrBlank()) missing.add("URL репозитория")
+        if (commitInfo.author == null) missing.add("автор")
+        if (commitInfo.author?.gitLogin.isNullOrBlank()) missing.add("git логин автора")
+        if (commitInfo.author?.email.isNullOrBlank()) missing.add("email автора")
+        if (commitInfo.taskNum.isNullOrBlank()) missing.add("номер задачи")
+
+        if (missing.isNotEmpty()) {
+            throw GitOperationException.missingConfig(missing.joinToString(", "))
+        }
+
+        val repoDir = File(commitInfo.project!!.localPath!!)
+        if (!File(repoDir, ".git").exists()) {
+            throw GitOperationException.notARepository(repoDir.absolutePath)
+        }
+    }
+
+    // ==================== REPOSITORY OPERATIONS ====================
+
+    private fun setupRepoAuthentication(urlRepo: String, repoPath: String) {
+        log.debug("[AUTH] Настройка аутентификации для репозитория")
+
         val pref = when {
             urlRepo.contains("https") -> "https://"
             urlRepo.contains("http") -> "http://"
             else -> ""
         }
 
-        val authUrlRepo = "${pref}$userName:$token@${urlRepo.removePrefix(pref)}"
+        val authUrlRepo = "${pref}$gitUserName:$gitUserToken@${urlRepo.removePrefix(pref)}"
         executor.workingDir = File(repoPath)
         executor.executeCommand(listOf("git", "remote", "set-url", "origin", authUrlRepo))
     }
 
-    private fun setStatusCommit(commitId: UUID, status: StatusSheduler) {
+    private fun prepareRepository(repoDir: File, remoteBranch: String, taskNum: String) {
+        log.info("[COMMIT][$taskNum] Подготовка репозитория: fetch, reset, clean")
+
+        val fetchResult = gitHelper.execute(repoDir, gitTimeout, "git", "fetch", "origin", remoteBranch)
+        if (!fetchResult.success) {
+            log.warn("[COMMIT][$taskNum] Fetch завершился с ошибкой: ${fetchResult.error}")
+            // Продолжаем, т.к. fetch может не сработать при отсутствии связи, но локальные данные есть
+        }
+
+        val resetResult = gitHelper.execute(repoDir, gitTimeout, "git", "reset", "--hard", "origin/$remoteBranch")
+        if (!resetResult.success) {
+            throw GitOperationException(
+                GitErrorType.FETCH_FAILED,
+                "Не удалось сбросить репозиторий к origin/$remoteBranch: ${resetResult.error}"
+            )
+        }
+
+        val cleanResult = gitHelper.execute(repoDir, gitTimeout, "git", "clean", "-fd")
+        if (!cleanResult.success) {
+            log.warn("[COMMIT][$taskNum] Clean завершился с ошибкой: ${cleanResult.error}")
+        }
+
+        log.debug("[COMMIT][$taskNum] Репозиторий подготовлен")
+    }
+
+    private fun checkoutWorkingBranch(repoDir: File, newBranch: String, taskNum: String) {
+        log.info("[COMMIT][$taskNum] Переключение на ветку: $newBranch")
+
+        val localExists = branchExists(repoDir, newBranch)
+        val remoteExists = remoteBranchExists(repoDir, newBranch)
+
+        log.debug("[COMMIT][$taskNum] Состояние веток: localExists=$localExists, remoteExists=$remoteExists")
+
+        val checkoutResult = when {
+            localExists && remoteExists -> {
+                log.debug("[COMMIT][$taskNum] Ветка существует локально и удалённо, синхронизируем")
+                val result = gitHelper.execute(repoDir, gitTimeout, "git", "checkout", newBranch)
+                if (result.success) {
+                    // Пытаемся подтянуть изменения
+                    gitHelper.execute(repoDir, gitTimeout, "git", "pull", "origin", newBranch, "--rebase")
+                }
+                result
+            }
+            localExists -> {
+                log.debug("[COMMIT][$taskNum] Ветка существует только локально")
+                gitHelper.execute(repoDir, gitTimeout, "git", "checkout", newBranch, "--force")
+            }
+            remoteExists -> {
+                log.debug("[COMMIT][$taskNum] Ветка существует только удалённо, создаём локальную")
+                gitHelper.execute(repoDir, gitTimeout, "git", "checkout", "-b", newBranch, "origin/$newBranch", "--force")
+            }
+            else -> {
+                log.debug("[COMMIT][$taskNum] Создаём новую ветку")
+                gitHelper.execute(repoDir, gitTimeout, "git", "checkout", "-b", newBranch, "--force")
+            }
+        }
+
+        if (!checkoutResult.success) {
+            throw GitOperationException.checkoutFailed(newBranch, checkoutResult.error)
+        }
+
+        log.debug("[COMMIT][$taskNum] Успешно переключились на ветку $newBranch")
+    }
+
+    private fun performCommitAndPush(commitInfo: Commit, repoDir: File, newBranch: String) {
+        val taskNum = commitInfo.taskNum ?: "unknown"
+
+        // Проверяем наличие изменений
+        val statusResult = gitHelper.execute(repoDir, gitTimeout, "git", "status", "--porcelain")
+        if (statusResult.success && statusResult.output.isBlank()) {
+            log.info("[COMMIT][$taskNum] Нет изменений для коммита")
+            completeCommit(commitInfo, newBranch, null)
+            return
+        }
+
+        // Добавляем файлы в индекс
+        log.debug("[COMMIT][$taskNum] Добавление файлов в индекс")
+        val addResult = gitHelper.execute(repoDir, gitTimeout, "git", "add", ".")
+        if (!addResult.success) {
+            throw GitOperationException.commitFailed("Не удалось добавить файлы: ${addResult.error}")
+        }
+
+        // Создаём коммит
+        log.info("[COMMIT][$taskNum] Создание коммита")
+        val commitMessage = commitInfo.description ?: "Изменения по задаче $taskNum"
+        val tempFile = File.createTempFile("commit-message", ".txt")
         try {
-            val commit = dataManager.load(Commit::class.java)
-                .id(commitId)
-                .one()
-            commit.setStatus(status)
-            dataManager.save(commit)
+            tempFile.writeText(commitMessage, Charsets.UTF_8)
+
+            val commitResult = gitHelper.execute(
+                repoDir, gitTimeout,
+                "git",
+                "-c", "user.name=${commitInfo.author!!.gitLogin}",
+                "-c", "user.email=${commitInfo.author!!.email}",
+                "commit",
+                "-F", tempFile.absolutePath
+            )
+
+            if (!commitResult.success) {
+                throw GitOperationException.commitFailed(commitResult.error)
+            }
+        } finally {
+            tempFile.delete()
+        }
+
+        // Push изменений
+        log.info("[COMMIT][$taskNum] Push в удалённый репозиторий")
+        val pushResult = gitHelper.execute(repoDir, gitTimeout, "git", "push", "--force", "-u", "origin", newBranch)
+        if (!pushResult.success) {
+            throw GitOperationException.pushFailed(newBranch, pushResult.error)
+        }
+
+        // Получаем хэш коммита
+        val hashResult = gitHelper.execute(repoDir, gitTimeout, "git", "rev-parse", "HEAD")
+        val commitHash = if (hashResult.success) hashResult.output.trim() else null
+
+        log.info("[COMMIT][$taskNum] Push завершён успешно, hash=$commitHash")
+
+        completeCommit(commitInfo, newBranch, commitHash)
+    }
+
+    // ==================== COMMIT STATUS MANAGEMENT ====================
+
+    private fun findNextCommitToProcess(): Commit? {
+        return try {
+            dataManager.load(Commit::class.java)
+                .query("select c from Commit_ c where c.status = :status order by c.id asc")
+                .parameter("status", StatusSheduler.NEW)
+                .optional()
+                .orElse(null)
         } catch (e: Exception) {
-            log.error("Не удалось обновить статус коммита $commitId: ${e.message}")
-            throw RuntimeException("Не удалось обновить статус коммита $commitId", e)
+            log.error("[COMMIT] Ошибка при поиске задач для обработки: ${e.message}")
+            null
         }
     }
 
+    private fun updateCommitStatus(commitInfo: Commit, status: StatusSheduler) {
+        try {
+            commitInfo.id?.let { id ->
+                val commit = dataManager.load(Commit::class.java).id(id).one()
+                commit.setStatus(status)
+                dataManager.save(commit)
+                log.debug("[COMMIT][${commitInfo.taskNum}] Статус обновлён: $status")
+            }
+        } catch (e: Exception) {
+            log.error("[COMMIT][${commitInfo.taskNum}] Ошибка обновления статуса: ${e.message}")
+        }
+    }
+
+    private fun completeCommit(commitInfo: Commit, branch: String, commitHash: String?) {
+        commitInfo.hashCommit = commitHash
+        commitInfo.urlBranch = "${commitInfo.project!!.urlRepo}/tree/$branch"
+        commitInfo.setStatus(StatusSheduler.COMPLETE)
+        commitInfo.errorInfo = null
+        dataManager.save(commitInfo)
+    }
+
+    private fun handleCommitError(commitInfo: Commit, errorMessage: String, exception: Exception) {
+        val taskNum = commitInfo.taskNum ?: "unknown"
+        log.error("[COMMIT][$taskNum] ОШИБКА: $errorMessage", exception)
+
+        commitInfo.errorInfo = errorMessage
+        commitInfo.setStatus(StatusSheduler.ERROR)
+
+        try {
+            dataManager.save(commitInfo)
+        } catch (saveException: Exception) {
+            log.error("[COMMIT][$taskNum] Не удалось сохранить информацию об ошибке: ${saveException.message}")
+        }
+    }
+
+    // ==================== HELPER METHODS ====================
+
     private fun branchExists(repoDir: File, branchName: String): Boolean {
-        val result = gitHelper.executeOrNull(repoDir, gitTimeout, "проверка локальной ветки $branchName", "git", "branch", "--list", branchName)
-        return result?.output?.isNotBlank() == true
+        val result = gitHelper.execute(repoDir, gitTimeout, "git", "branch", "--list", branchName)
+        return result.success && result.output.isNotBlank()
     }
 
     private fun remoteBranchExists(repoDir: File, branchName: String): Boolean {
-        val result = gitHelper.executeOrNull(repoDir, gitTimeout, "проверка удаленной ветки $branchName", "git", "branch", "-r")
-        return result?.output?.lines()?.any { it.trim().startsWith("origin/$branchName") } == true
+        val result = gitHelper.execute(repoDir, gitTimeout, "git", "branch", "-r")
+        return result.success && result.output.lines().any { it.trim().startsWith("origin/$branchName") }
     }
 
-    private fun checkBranchDifference(repoDir: File, branch1: String, branch2: String): Boolean {
-        try {
-            // Сохраняем текущую ветку
-            val currentBranchResult = gitHelper.execute(repoDir, gitTimeout, "git", "rev-parse", "--abbrev-ref", "HEAD")
-            if (!currentBranchResult.success) {
-                log.error("Не удалось получить текущую ветку: ${currentBranchResult.error}")
-                return false
-            }
-            val currentBranch = currentBranchResult.output.trim()
-
-            // Переключаемся на первую ветку
-            val checkoutResult = gitHelper.execute(repoDir, gitTimeout, "git", "checkout", branch1)
-            if (!checkoutResult.success) {
-                log.error("Не удалось переключиться на ветку $branch1: ${checkoutResult.error}")
-                return false
-            }
-
-            // Пробуем слияние
-            val mergeResult = gitHelper.execute(repoDir, gitTimeout, "git", "merge", "--no-commit", "--no-ff", branch2)
-
-            // Проверяем конфликты
-            val statusResult = gitHelper.execute(repoDir, gitTimeout, "git", "status", "--porcelain")
-            val hasConflicts = statusResult.success && statusResult.output.lines().any { it.startsWith("UU ") }
-            val hasMergeConflicts = !mergeResult.success || mergeResult.output.contains("CONFLICT")
-
-            // Возвращаемся на исходную ветку
-            gitHelper.executeWithWarning(repoDir, gitTimeout, "возврат на ветку $currentBranch", "git", "checkout", currentBranch)
-
-            if (hasConflicts || hasMergeConflicts) {
-                log.warn("Обнаружены конфликты при слиянии веток $branch1 и $branch2")
-                return false
-            }
-
-            log.info("Слияние веток $branch1 и $branch2 не вызовет конфликтов")
-            return true
-        } catch (e: Exception) {
-            log.warn("Ошибка при проверке различий между ветками $branch1 и $branch2: ${e.message}")
-            return false
-        }
-    }
-
-    private fun firstNewDataCommit(): Commit? {
-        return try {
-            val entity = dataManager.load(Commit::class.java)
-                .query("select cmt from Commit_ cmt where cmt.status = :status1 order by cmt.id asc")
-                .parameter("status1", StatusSheduler.NEW)
-                .optional()
-
-            if (entity.isEmpty) {
-                null
-            } else {
-                entity.get()
-            }
-        } catch (e: Exception) {
-            log.error("Ошибка при получении данных о новом коммите: ${e.message}")
-            throw RuntimeException("Ошибка при получении данных о новом коммите", e)
+    private fun parseCloneError(error: String, url: String, branch: String): String {
+        return when {
+            error.contains("Authentication failed") || error.contains("could not read Username") ->
+                "Ошибка аутентификации. Проверьте учётные данные для доступа к репозиторию"
+            error.contains("not found") || error.contains("does not exist") ->
+                "Репозиторий не найден: $url"
+            error.contains("Remote branch") && error.contains("not found") ->
+                "Ветка '$branch' не найдена в репозитории"
+            error.contains("Connection refused") || error.contains("Could not resolve host") ->
+                "Не удалось подключиться к серверу. Проверьте сетевое соединение"
+            error.contains("Permission denied") ->
+                "Доступ запрещён. Проверьте права доступа к репозиторию"
+            else -> "Ошибка клонирования: $error"
         }
     }
 
@@ -311,9 +380,9 @@ class GitServiceImpl(
             '<', '>', '|', '"', '\'', '!', '#', '$', '%', '&', '(', ')', ',', ';', '='
         )
 
-        return input.map { char ->
-            if (char in forbiddenChars) '_' else char
-        }.joinToString("")
+        return input
+            .map { if (it in forbiddenChars) '_' else it }
+            .joinToString("")
             .removePrefix(".")
             .replace(Regex("[/\\\\]+"), "_")
             .replace(Regex("[._]{2,}"), "_")
