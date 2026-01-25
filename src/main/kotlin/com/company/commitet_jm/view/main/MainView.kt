@@ -1,6 +1,6 @@
 package com.company.commitet_jm.view.main
 
-import com.company.commitet_jm.service.ChatHistoryService
+import com.company.commitet_jm.service.chat.ChatHistoryService
 import com.company.commitet_jm.entity.ChatMessage
 import com.company.commitet_jm.entity.ChatSession
 import com.company.commitet_jm.entity.MessageRole
