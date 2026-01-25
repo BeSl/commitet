@@ -67,13 +67,14 @@
                             </vbox>
                         </vbox>
                     </hbox>
-                    <vbox id="boxV" height="100%" alignSelf="END"  visible="false">
-                        <h2 id="test" text="aiЧат" alignSelf="START" width="100%"/>
+                    <vbox id="boxV" height="100%" width="400px" alignSelf="END" visible="false">
+                        <hbox width="100%" alignItems="CENTER" justifyContent="BETWEEN">
+                            <h3 id="chatHeader" text="Чаты"/>
+                            <button id="newChatBtn" icon="PLUS" text="Новый чат" themeNames="tertiary"/>
+                        </hbox>
                         <button text="Событие" id="AddEvent" visible="false"/>
-                        <scroller id="scroll4at" alignSelf="STRETCH" width="100%">
-                            <vbox id="vbox" alignSelf="STRETCH">
-                            </vbox>
-                        </scroller>
+                        <tabSheet id="chatTabs" width="100%" height="100%">
+                        </tabSheet>
                     </vbox>
 
                     <anchor href="https://github.com/BeSl/commitet"
