@@ -18,6 +18,8 @@
               icon="vaadin:database" description="Проекты"/>
         <item view="OneCStorage.list" title="msg://com.company.commitet_jm.view.onecstorage/oneCStorageListView.title"
               icon="vaadin:asterisk" description="Хранилища конфигураций"/>
+        <item view="ConfigMetadataItem.tree" title="msg://com.company.commitet_jm.view.metadata/configMetadataTreeView.title"
+              icon="vaadin:tree-table" description="Дерево метаданных конфигурации"/>
     </menu>
     <separator>  - - - </separator>
     <menu id="settingSystem" title="Системные настройки">
