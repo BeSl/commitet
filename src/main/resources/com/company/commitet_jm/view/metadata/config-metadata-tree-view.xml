@@ -39,6 +39,7 @@
                                 itemsContainer="projectsDc"
                                 label="msg://projectField.label"
                                 width="20em"/>
+                <button id="importBtn" text="msg://importBtn.text" icon="DOWNLOAD"/>
                 <button id="refreshBtn" text="msg://refreshBtn.text" icon="REFRESH"/>
                 <button id="expandAllBtn" text="msg://expandAllBtn.text" icon="EXPAND"/>
                 <button id="collapseAllBtn" text="msg://collapseAllBtn.text" icon="COMPRESS"/>

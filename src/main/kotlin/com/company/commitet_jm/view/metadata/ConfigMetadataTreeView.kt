@@ -12,11 +12,13 @@ import com.vaadin.flow.component.html.Span
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 import com.vaadin.flow.data.renderer.ComponentRenderer
 import com.vaadin.flow.router.Route
+import io.jmix.flowui.Notifications
 import io.jmix.flowui.component.combobox.EntityComboBox
 import io.jmix.flowui.component.grid.TreeDataGrid
 import io.jmix.flowui.kit.component.button.JmixButton
 import io.jmix.flowui.model.CollectionLoader
 import io.jmix.flowui.view.*
+import org.springframework.beans.factory.annotation.Autowired
 
 @Route(value = "config-metadata", layout = MainView::class)
 @ViewController(id = "ConfigMetadataItem.tree")
@@ -39,6 +41,9 @@ class ConfigMetadataTreeView : StandardView() {
         applicationContext.getBean(ConfigMetadataService::class.java)
     }
 
+    @Autowired
+    private lateinit var notifications: Notifications
+
     @Subscribe
     fun onInit(event: InitEvent) {
         projectsDl.load()
@@ -60,6 +65,35 @@ class ConfigMetadataTreeView : StandardView() {
         if (project != null) {
             metadataDl.setParameter("project", project)
             metadataDl.load()
+        }
+    }
+
+    @Subscribe("importBtn")
+    fun onImportBtnClick(event: ClickEvent<JmixButton>) {
+        val project = projectField.value
+        if (project == null) {
+            notifications.create("Выберите проект")
+                .withType(Notifications.Type.WARNING)
+                .show()
+            return
+        }
+
+        try {
+            val result = configMetadataService.importFromFileSystem(project)
+            if (result.errors.isEmpty()) {
+                notifications.create("Импорт завершён: загружено ${result.total} элементов")
+                    .withType(Notifications.Type.SUCCESS)
+                    .show()
+                metadataDl.load()
+            } else {
+                notifications.create("Ошибка импорта: ${result.errors.joinToString()}")
+                    .withType(Notifications.Type.ERROR)
+                    .show()
+            }
+        } catch (e: Exception) {
+            notifications.create("Ошибка: ${e.message}")
+                .withType(Notifications.Type.ERROR)
+                .show()
         }
     }
 

@@ -16,8 +16,8 @@ import com.vaadin.flow.component.messages.MessageList
 import com.vaadin.flow.component.messages.MessageListItem
 import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.component.tabs.Tab
-import com.vaadin.flow.component.tabs.TabSheet
 import com.vaadin.flow.router.Route
+import io.jmix.flowui.component.tabsheet.JmixTabSheet
 import io.jmix.core.DataManager
 import io.jmix.core.security.CurrentAuthentication
 import io.jmix.flowui.Dialogs
@@ -60,7 +60,7 @@ open class MainView : StandardMainView() {
     private lateinit var boxV: VerticalLayout
 
     @ViewComponent
-    private lateinit var chatTabs: TabSheet
+    private lateinit var chatTabs: JmixTabSheet
 
     @ViewComponent
     private lateinit var weekCommitCount: H2
@@ -122,8 +122,8 @@ open class MainView : StandardMainView() {
         val sessionId = session.id ?: return
 
         // Проверяем, не добавлен ли уже таб для этой сессии
-        if (chatTabsMap.containsKey(sessionId)) {
-            chatTabs.selectedTab = chatTabsMap[sessionId]
+        chatTabsMap[sessionId]?.let { existingTab ->
+            chatTabs.setSelectedTab(existingTab)
             return
         }
 
