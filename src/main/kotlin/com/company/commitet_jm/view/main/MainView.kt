@@ -71,6 +71,12 @@ open class MainView : StandardMainView() {
     @ViewComponent
     private lateinit var newChatBtn: JmixButton
 
+    @ViewComponent
+    private lateinit var refreshChatsBtn: JmixButton
+
+    @ViewComponent
+    private lateinit var deleteChatBtn: JmixButton
+
     @Autowired
     private val buildProperties: BuildProperties? = null
 
@@ -170,6 +176,71 @@ open class MainView : StandardMainView() {
         val messages = chatHistory.getChatHistory(session)
         val items = messages.map { mapToMessageListItem(it, session) }
         messageList.setItems(items)
+    }
+
+    @Subscribe("refreshChatsBtn")
+    private fun onRefreshChatsBtnClick(event: ClickEvent<JmixButton>) {
+        refreshAllChats()
+    }
+
+    private fun refreshAllChats() {
+        messageListsMap.forEach { (sessionId, messageList) ->
+            val session = dataManager.load(ChatSession::class.java)
+                .id(sessionId)
+                .optional()
+            if (session.isPresent) {
+                updateMessageListForSession(session.get(), messageList)
+            }
+        }
+    }
+
+    @Subscribe("deleteChatBtn")
+    private fun onDeleteChatBtnClick(event: ClickEvent<JmixButton>) {
+        val selectedTab = chatTabs.selectedTab ?: return
+
+        // Находим сессию по выбранному табу
+        val sessionId = chatTabsMap.entries.find { it.value == selectedTab }?.key ?: return
+
+        val session = dataManager.load(ChatSession::class.java)
+            .id(sessionId)
+            .optional()
+
+        if (session.isEmpty) return
+
+        dialogs.createOptionDialog()
+            .withHeader("Удаление чата")
+            .withText("Вы уверены, что хотите удалить этот чат? Все сообщения будут удалены.")
+            .withActions(
+                io.jmix.flowui.action.DialogAction(io.jmix.flowui.action.DialogAction.Type.YES)
+                    .withText("Удалить")
+                    .withVariant(io.jmix.flowui.kit.action.ActionVariant.DANGER)
+                    .withHandler {
+                        deleteChat(sessionId, session.get())
+                    },
+                io.jmix.flowui.action.DialogAction(io.jmix.flowui.action.DialogAction.Type.CANCEL)
+                    .withText("Отмена")
+            )
+            .open()
+    }
+
+    private fun deleteChat(sessionId: Long, session: ChatSession) {
+        // Удаляем все сообщения чата
+        val messages = dataManager.load(ChatMessage::class.java)
+            .query("select m from ChatMessage m where m.session = :session")
+            .parameter("session", session)
+            .list()
+
+        messages.forEach { dataManager.remove(it) }
+
+        // Удаляем сессию
+        dataManager.remove(session)
+
+        // Удаляем таб из UI
+        val tab = chatTabsMap.remove(sessionId)
+        messageListsMap.remove(sessionId)
+        if (tab != null) {
+            chatTabs.remove(tab)
+        }
     }
 
     @Subscribe("newChatBtn")

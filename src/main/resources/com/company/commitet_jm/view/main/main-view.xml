@@ -67,10 +67,14 @@
                             </vbox>
                         </vbox>
                     </hbox>
-                    <vbox id="boxV" height="100%" width="400px" alignSelf="END" visible="false">
+                    <vbox id="boxV" height="100%" width="50%" alignSelf="END" visible="false">
                         <hbox width="100%" alignItems="CENTER" justifyContent="BETWEEN">
                             <h3 id="chatHeader" text="Чаты"/>
-                            <button id="newChatBtn" icon="PLUS" text="Новый чат" themeNames="tertiary"/>
+                            <hbox spacing="true">
+                                <button id="refreshChatsBtn" icon="REFRESH" title="Обновить сообщения" themeNames="tertiary-inline"/>
+                                <button id="deleteChatBtn" icon="TRASH" title="Удалить чат" themeNames="tertiary-inline error"/>
+                                <button id="newChatBtn" icon="PLUS" text="Новый чат" themeNames="tertiary"/>
+                            </hbox>
                         </hbox>
                         <button text="Событие" id="AddEvent" visible="false"/>
                         <tabSheet id="chatTabs" width="100%" height="100%">

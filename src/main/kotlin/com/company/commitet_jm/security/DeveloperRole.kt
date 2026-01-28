@@ -75,22 +75,22 @@ interface DeveloperRole {
         EntityAttributePolicy(
             entityClass = ChatSession::class,
             attributes = ["*"],
-            action = EntityAttributePolicyAction.VIEW
+            action = EntityAttributePolicyAction.MODIFY
         )
     )
-    @EntityPolicy(entityClass = ChatSession::class, actions = [EntityPolicyAction.READ, EntityPolicyAction.CREATE])
+    @EntityPolicy(entityClass = ChatSession::class, actions = [EntityPolicyAction.READ, EntityPolicyAction.CREATE, EntityPolicyAction.UPDATE, EntityPolicyAction.DELETE])
     fun chatSession()
 
     @EntityAttributePolicyContainer(
         EntityAttributePolicy(
             entityClass = ChatMessage::class,
             attributes = ["*"],
-            action = EntityAttributePolicyAction.VIEW
+            action = EntityAttributePolicyAction.MODIFY
         )
     )
     @EntityPolicy(
         entityClass = ChatMessage::class,
-        actions = [EntityPolicyAction.READ, EntityPolicyAction.UPDATE, EntityPolicyAction.CREATE]
+        actions = [EntityPolicyAction.READ, EntityPolicyAction.UPDATE, EntityPolicyAction.CREATE, EntityPolicyAction.DELETE]
     )
     fun chatMessage()
 

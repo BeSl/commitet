@@ -11,7 +11,7 @@
             <column name="RECIPIENT_ID" type="UUID">
                 <constraints nullable="true"/>
             </column>
-            <column name="CHAT_TYPE" type="VARCHAR(20)">
+            <column name="CHAT_TYPE" type="VARCHAR(255)">
                 <constraints nullable="true"/>
             </column>
             <column name="TITLE" type="VARCHAR(255)">
