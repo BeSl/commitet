@@ -77,6 +77,9 @@ dependencies {
     implementation 'io.jmix.quartz:jmix-quartz-starter'
     implementation 'io.jmix.quartz:jmix-quartz-flowui-starter'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+
+    // Jackson module for Kotlin data classes
+    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
 }
 
 
