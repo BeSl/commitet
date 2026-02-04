@@ -8,6 +8,11 @@ app:
 
 server:
   port: 8090
+  servlet:
+    session:
+      timeout: 43200s
+      cookie:
+        max-age: 43200
 
 logging:
   level:

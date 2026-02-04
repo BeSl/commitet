@@ -24,9 +24,10 @@ class OneRunner(
     @Autowired
     private lateinit var shellExecutor: ShellExecutor
 
-    @Value("app.onelogpath")
-    val oneCLogPath = "../"
+    @Value("\${app.onelogpath}")
+    val oneCLogPath: String = "../test"
 
+    @Value("\${app.v8unpack}")
     var v8unpackPath : String = ""
 
     fun uploadExtFiles(inputFile: File, outDir: String,pathInstall: String, version: String ) {

@@ -3,4 +3,13 @@
   <component name="AmplicodeJpaPluginProjectSettings">
     <option name="lastSelectedLanguage" value="Kotlin" />
   </component>
+  <component name="AmplicodePersistenceUnitSettings">
+    <persistence-units>
+      <persistence-unit name="Default" defaultSearchScope="Project">
+        <packages>
+          <package value="com.company.commitet_jm" />
+        </packages>
+      </persistence-unit>
+    </persistence-units>
+  </component>
 </project>

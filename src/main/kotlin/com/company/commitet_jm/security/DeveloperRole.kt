@@ -75,7 +75,7 @@ interface DeveloperRole {
         EntityAttributePolicy(
             entityClass = ChatSession::class,
             attributes = ["*"],
-            action = EntityAttributePolicyAction.MODIFY
+            action = EntityAttributePolicyAction.VIEW
         )
     )
     @EntityPolicy(entityClass = ChatSession::class, actions = [EntityPolicyAction.READ, EntityPolicyAction.CREATE, EntityPolicyAction.UPDATE, EntityPolicyAction.DELETE])
@@ -85,7 +85,7 @@ interface DeveloperRole {
         EntityAttributePolicy(
             entityClass = ChatMessage::class,
             attributes = ["*"],
-            action = EntityAttributePolicyAction.MODIFY
+            action = EntityAttributePolicyAction.VIEW
         )
     )
     @EntityPolicy(
