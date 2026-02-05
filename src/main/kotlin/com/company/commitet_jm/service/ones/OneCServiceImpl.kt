@@ -29,6 +29,22 @@ class OneCServiceImpl(
         log.info("Initialized OneCServiceImpl with v8unpackPath: $v8unpackPath")
         log.info("Initialized OneCServiceImpl with oneLogPath: $oneLogPath")
     }
+    
+    /**
+     * Получает абсолютный путь к v8unpack.exe относительно каталога запуска приложения
+     */
+    private fun getAbsoluteV8unpackPath(): String {
+        // Если путь уже абсолютный, возвращаем его как есть
+        val file = File(v8unpackPath)
+        if (file.isAbsolute) {
+            return v8unpackPath
+        }
+        
+        // Если путь относительный, строим абсолютный путь от каталога запуска приложения
+        val currentDir = File("").absoluteFile
+        val absolutePath = File(currentDir, v8unpackPath).absolutePath
+        return absolutePath
+    }
 
     override fun uploadExtFiles(inputFile: File, outDir: String, pathInstall: String, version: String) {
         val res = shellExecutor.executeCommand(listOf(

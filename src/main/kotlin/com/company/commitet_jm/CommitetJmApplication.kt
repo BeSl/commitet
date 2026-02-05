@@ -22,6 +22,7 @@ import org.springframework.context.annotation.Primary
 import org.springframework.context.event.EventListener
 import org.springframework.core.env.Environment
 import org.springframework.scheduling.annotation.EnableScheduling
+import java.io.File
 import javax.sql.DataSource
 
 
@@ -72,8 +73,11 @@ open class CommitetJmApplication() : AppShellConfigurator {
     }
 
     @Bean
-    open fun shellExecutor(@Value("\${git.timeout:7}") timeout: Long): ShellExecutor {
-        return ShellExecutor(timeout = timeout)
+    open fun shellExecutor(
+        @Value("\${git.timeout:7}") timeout: Long,
+        @Value("\${app.shell-workdir:.}") workDir: String
+    ): ShellExecutor {
+        return ShellExecutor(workingDir = File(workDir), timeout = timeout)
     }
 
 }

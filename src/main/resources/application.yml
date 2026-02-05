@@ -5,6 +5,8 @@ app:
   v8unpack: v8unpack.exe
   # Рабочий каталог для клонирования репозиториев проектов
   workdir: ./repos
+  # Рабочий каталог для запуска внешних команд
+  shell-workdir: .
 
 server:
   port: 8090
