@@ -17,6 +17,9 @@ class ShellExecutor(var workingDir: File = File("."), var timeout:Long = 5) {
 
     fun executeCommandWithResult(command: List<String?>, customTimeout: Long = timeout): CommandResult {
         try {
+            log.info("Executing command: ${command.filterNotNull().joinToString(" ")}")
+            log.info("Working directory: ${workingDir.absolutePath}")
+            
             val process = ProcessBuilder(command.filterNotNull())
                 .directory(workingDir)
                 .redirectOutput(ProcessBuilder.Redirect.PIPE)

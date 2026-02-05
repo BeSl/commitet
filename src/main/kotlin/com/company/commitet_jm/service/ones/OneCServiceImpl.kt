@@ -28,6 +28,7 @@ class OneCServiceImpl(
     fun init() {
         log.info("Initialized OneCServiceImpl with v8unpackPath: $v8unpackPath")
         log.info("Initialized OneCServiceImpl with oneLogPath: $oneLogPath")
+        log.info("v8unpackPath isAbsolute: ${File(v8unpackPath).isAbsolute}")
     }
     
     /**

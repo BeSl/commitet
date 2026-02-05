@@ -30,21 +30,6 @@ class OneRunner(
     @Value("\${app.v8unpack}")
     var v8unpackPath : String = ""
     
-    /**
-     * Получает абсолютный путь к v8unpack.exe относительно каталога запуска приложения
-     */
-    private fun getAbsoluteV8unpackPath(): String {
-        // Если путь уже абсолютный, возвращаем его как есть
-        val file = File(v8unpackPath)
-        if (file.isAbsolute) {
-            return v8unpackPath
-        }
-        
-        // Если путь относительный, строим абсолютный путь от каталога запуска приложения
-        val currentDir = File("").absoluteFile
-        val absolutePath = File(currentDir, v8unpackPath).absolutePath
-        return absolutePath
-    }
 
     fun uploadExtFiles(inputFile: File, outDir: String,pathInstall: String, version: String ) {
         log.debug("2 Подготовка выгрузка файлов ")
@@ -82,13 +67,14 @@ class OneRunner(
 
                throw RuntimeException("Path b8Unpack is Empty!!!")
             }
-
-            val res = shellExecutor.executeCommand(listOf(
-                    getAbsoluteV8unpackPath(),
-                    "-U",
-                    inputFile.path,
-                    outDir
-                    ))
+            val se = ShellExecutor(File("."))
+            se.executeCommand(listOf(
+                v8unpackPath,
+                "-U",
+                inputFile.path,
+                outDir
+            ))
+            
         }else{
             val unp = UnpackService()
             unp.unpackToDirectory(inputFile.path, outDir)
