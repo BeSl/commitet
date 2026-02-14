@@ -243,6 +243,7 @@ class CommitRestService(
                     this.name = fileData.name
                     this.data = fileRef
                     this.setType(fileType)
+                    this.code = fileData.code
                     this.commit = commit
                 }
             } catch (e: IllegalArgumentException) {

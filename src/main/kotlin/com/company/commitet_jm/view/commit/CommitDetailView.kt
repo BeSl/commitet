@@ -218,7 +218,8 @@ class CommitDetailView : StandardDetailView<Commit>() {
     }
 
     private fun loadDiffData() {
-        val diffInfo = CommitDiffInfo.fromJson(editedEntity.diffData)
+        // DIFF_DATA был удален из модели, функция больше не используется
+        val diffInfo = CommitDiffInfo.fromJson(null)
 
         if (diffInfo == null || diffInfo.entries.isEmpty()) {
             diffStatsLabel.text = "Нет данных об изменениях"
@@ -266,7 +267,8 @@ class CommitDetailView : StandardDetailView<Commit>() {
 
     @Subscribe(id = "showRawDiffButton", subject = "clickListener")
     private fun onShowRawDiffButtonClick(event: ClickEvent<Button>) {
-        val diffInfo = CommitDiffInfo.fromJson(editedEntity.diffData)
+        // DIFF_DATA был удален из модели
+        val diffInfo = CommitDiffInfo.fromJson(null)
         val rawDiff = diffInfo?.rawDiff ?: "Нет данных"
 
         dialogs.createMessageDialog()

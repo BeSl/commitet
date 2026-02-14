@@ -37,7 +37,10 @@ class FileServiceImpl(
 
             // correctPath возвращает File, приводим к Path
             val path = file.getType()?.let { correctPath(baseDir, it).toPath() } ?: continue
-            val targetPath = path.resolve(file.name.toString()).normalize()
+
+            // Формируем имя файла с кодом (если применимо)
+            val fileName = buildFileName(file)
+            val targetPath = path.resolve(fileName).normalize()
 
             try {
                 // Создаем директории, если нужно
@@ -68,6 +71,22 @@ class FileServiceImpl(
         }
         if (filesToUnpack.isNotEmpty()) {
             unpackFiles(filesToUnpack, platform, executor, baseDir)
+        }
+    }
+
+    /**
+     * Формирует имя файла с учетом кода (для обработок и отчетов)
+     */
+    private fun buildFileName(file: FileCommit): String {
+        val fileType = file.getType()
+        val code = file.code
+        val name = file.name.toString()
+
+        return if (code != null && !code.isBlank() &&
+                  (fileType == TypesFiles.REPORT || fileType == TypesFiles.DATAPROCESSOR)) {
+            "${code}_${name}"
+        } else {
+            name
         }
     }
 

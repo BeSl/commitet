@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <changeSet id="1" author="commitet_jm">
+        <createTable tableName="AVAILABLE_NAMES">
+            <column name="ID" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_AVAILABLE_NAMES"/>
+            </column>
+            <column name="PROJECT_ID" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="TYPE_" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="NAME" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="DESCRIPTION" type="VARCHAR(500)"/>
+            <column name="LAST_UPDATED" type="TIMESTAMP"/>
+            <column name="VERSION" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2" author="commitet_jm">
+        <createIndex indexName="IDX_AVAILABLE_NAMES_PROJECT" tableName="AVAILABLE_NAMES">
+            <column name="PROJECT_ID"/>
+        </createIndex>
+
+        <createIndex indexName="IDX_AVAILABLE_NAMES_TYPE" tableName="AVAILABLE_NAMES">
+            <column name="TYPE_"/>
+        </createIndex>
+
+        <addUniqueConstraint tableName="AVAILABLE_NAMES"
+                            columnNames="PROJECT_ID, TYPE_, NAME"
+                            constraintName="UQ_AVAILABLE_NAMES_PROJECT_TYPE_NAME"/>
+
+        <addForeignKeyConstraint baseColumnNames="PROJECT_ID"
+                                baseTableName="AVAILABLE_NAMES"
+                                constraintName="FK_AVAILABLE_NAMES_ON_PROJECT"
+                                referencedColumnNames="ID"
+                                referencedTableName="PROJECT"/>
+    </changeSet>
+</databaseChangeLog>

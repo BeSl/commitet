@@ -62,10 +62,6 @@ open class Commit {
     @Column(name = "ERROR_INFO")
     var errorInfo: String? = null
 
-    @Lob
-    @Column(name = "DIFF_DATA")
-    var diffData: String? = null
-
     fun getStatus(): StatusSheduler? = status?.let { StatusSheduler.fromId(it) }
 
     fun setStatus(status: StatusSheduler?) {

@@ -35,9 +35,11 @@ data class CommitCreateRequest(
  * @property name Имя файла (обязательное поле).
  * @property data Содержимое файла в формате Base64 (обязательное поле).
  * @property type Тип файла: REPORT, DATAPROCESSOR, SCHEDULEDJOBS, EXTERNAL_CODE, EXCHANGE_RULES.
+ * @property code Код файла (опциональное). Используется для формирования имени файла в формате "Код_Имя".
  */
 data class FileData(
     val name: String,
     val data: String,
-    val type: String
+    val type: String,
+    val code: String? = null
 )

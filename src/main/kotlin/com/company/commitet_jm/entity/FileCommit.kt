@@ -30,6 +30,9 @@ open class FileCommit {
     @Column(name = "TYPE_")
     private var type: String? = null
 
+    @Column(name = "CODE", length = 100)
+    var code: String? = null
+
     @OnDeleteInverse(DeletePolicy.CASCADE)
     @JoinColumn(name = "COMMIT_ID", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
