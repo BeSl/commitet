@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://commitDetailView.title"
+      focusComponent="form">
+
+    <data>
+        <instance id="commitDc"
+                  class="com.company.commitet_jm.entity.Commit">
+            <fetchPlan extends="_base">
+                <property name="project" fetchPlan="_base"/>
+                <property name="files" fetchPlan="_base"/>
+            </fetchPlan>
+            <loader id="commitDl"/>
+            <collection id="filesDc" property="files"/>
+        </instance>
+    </data>
+
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+
+    <actions>
+        <action id="saveAction" type="detail_saveClose"/>
+        <action id="closeAction" type="detail_close"/>
+    </actions>
+
+    <layout spacing="false" padding="true" classNames="view-layout" maxWidth="100%">
+
+        <h3 text="Информация о коммите" classNames="section-title"/>
+
+        <formLayout id="form" dataContainer="commitDc" >
+            <vbox width="100%" alignSelf="STRETCH">
+
+            <tabSheet width="100%" alignSelf="STRETCH">
+                <tab id="info" label="Описание">
+                    <vbox width="100%">
+                        <hbox>
+                            <textField id="taskNumField" property="taskNum" label="Номер задачи" required="true"/>
+                            <textField id="statusField" property="status" label="Статус"/>
+                            <button id="clearStatusCommit" text="В новый" icon="COFFEE" alignSelf="END" themeNames="danger" visible="false"/>
+                            <textField property="dateCreated" label="Дата создания" readOnly="true"/>
+                        </hbox>
+                        <entityPicker id="projectField"  width="100%" property="project" label="Проект" required="true">
+                            <actions>
+                                <action id="entityLookupAction" type="entity_lookup">
+                                    <properties>
+                                        <property name="viewClass" value="com.company.commitet_jm.view.project.ProjectListSelect"/>
+                                    </properties>
+                                </action>
+                            <action id="entityClearAction" type="entity_clear"/>
+                            </actions>
+                        </entityPicker>
+                        <textArea id="descriptionField" property="description" label="Описание изменений" colspan="2" width="100%"/>
+                    </vbox>
+                </tab>
+
+                <tab id="tech_info" label="Свойства">
+                    <vbox width="100%" alignSelf="STRETCH">
+                    <textArea id="errorInfoField" property="errorInfo" label="Ошибка обработки" readOnly="true" colspan="2" width="100%"/>
+                    <textArea property="hashCommit" label="хэш коммита" width="100%"/>
+                    </vbox>
+                </tab>
+                <tab id="commit_value" label="Комментарии">
+                    <vbox>
+                        <button id="uploadFilesButton" text="Выгрузить в файлы" visible="false"/>
+                        <button id="startAnalyzeButton" text="Анализировать файлы(todo)" visible="false"/>
+                    </vbox>
+                </tab>
+
+                <tab id="diffTab" label="Изменения">
+                    <vbox id="diffContainer" width="100%" height="100%" padding="true" spacing="true">
+                        <hbox width="100%" alignItems="CENTER">
+                            <span id="diffStatsLabel" classNames="diff-stats"/>
+                            <button id="showRawDiffButton" text="Показать текст diff" icon="CODE" themeNames="tertiary"/>
+                        </hbox>
+
+                        <!-- Grid создаётся программно, так как DiffEntry не JPA-entity -->
+
+                        <details id="rawDiffDetails" summaryText="Полный diff (текст)" width="100%">
+                            <textArea id="rawDiffArea" width="100%" height="300px" readOnly="true"
+                                      classNames="monospace-text"/>
+                        </details>
+                    </vbox>
+                </tab>
+            </tabSheet>
+
+
+            <hbox id="urlBranchBox"/>
+            </vbox>
+        </formLayout>
+
+        <h3 text="Файлы коммита" classNames="section-title" />
+
+        <hbox id="buttonsPanel" classNames="buttons-panel">
+            <button action="filesDataGrid.createAction"/>
+            <button action="filesDataGrid.editAction"/>
+            <button action="filesDataGrid.removeAction"/>
+        </hbox>
+
+        <dataGrid id="filesDataGrid" dataContainer="filesDc" minHeight="300px" classNames="wide-grid">
+            <actions>
+                <action id="createAction" type="list_create">
+                    <properties>
+                        <property name="openMode" value="DIALOG"/>
+                    </properties>
+                </action>
+                <action id="editAction" type="list_edit">
+                    <properties>
+                        <property name="openMode" value="DIALOG"/>
+                    </properties>
+                </action>
+                <action id="removeAction" type="list_remove"/>
+            </actions>
+            <columns>
+                <column property="name"/>
+                <column property="type"/>
+            </columns>
+        </dataGrid>
+
+        <hbox id="detailActions" spacing="true" justifyContent="END" classNames="footer-buttons">
+            <button id="saveAndCloseButton" action="saveAction" text="Сохранить"/>
+            <button id="closeButton" action="closeAction" text="Закрыть"/>
+        </hbox>
+
+    </layout>
+</view>

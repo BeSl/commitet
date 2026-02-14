@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="Проекты"
+      focusComponent="projectsContainer">
+
+    <data>
+        <collection id="projectsDc" class="com.company.commitet_jm.entity.Project">
+            <fetchPlan extends="_base">
+                <property name="platform" fetchPlan="_base"/>
+            </fetchPlan>
+            <loader id="projectsDl" readOnly="true">
+                <query><![CDATA[select e from Project e]]></query>
+            </loader>
+        </collection>
+    </data>
+
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+
+    <layout>
+        <vbox id="header" spacing="true" padding="true">
+            <hbox width="100%" alignItems="CENTER" justifyContent="BETWEEN">
+                <h2 text="Проекты" style="margin: 0"/>
+                <hbox spacing="true">
+                    <button id="createButton" text="Создать проект" icon="PLUS" themeNames="primary"/>
+                    <button id="refreshButton" text="Обновить" icon="REFRESH"/>
+                </hbox>
+            </hbox>
+        </vbox>
+
+        <vbox id="projectsContainer" width="100%" height="100%" padding="false"/>
+    </layout>
+</view>

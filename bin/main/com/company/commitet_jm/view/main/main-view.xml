@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<mainView xmlns="http://jmix.io/schema/flowui/main-view"
+          title="msg://MainView.title">
+    <actions>
+        <action id="logoutAction" type="logout"/>
+    </actions>
+    <appLayout>
+        <navigationBar>
+            <header id="header" classNames="jmix-main-view-header">
+                <drawerToggle id="drawerToggle"
+                              classNames="jmix-main-view-drawer-toggle"
+                              themeNames="contrast"
+                              ariaLabel="msg://drawerToggle.ariaLabel"/>
+
+                <h1 id="viewTitle" classNames="jmix-main-view-title"/>
+            </header>
+        </navigationBar>
+        <drawerLayout>
+            <section id="section" classNames="jmix-main-view-section">
+
+                <h2 id="applicationTitle"
+                    classNames="jmix-main-view-application-title">
+                    <anchor id="baseLink"
+                            href="."
+                            text="msg://applicationTitle.text"
+                            classNames="jmix-main-view-application-title-base-link"/>
+                </h2>
+
+                <!-- Блок с описанием приложения -->
+                <div classNames="app-description" >
+                    <h4>О приложении</h4>
+                    <p>Это приложение предназначено для управления версиями внешних обработок/отчетов и правил обмена 1с</p>
+                </div>
+
+                <nav id="navigation"
+                     classNames="jmix-main-view-navigation"
+                     ariaLabel="msg://navigation.ariaLabel">
+                    <listMenu id="menu"/>
+                </nav>
+
+                <footer id="footer" classNames="jmix-main-view-footer">
+                    <userIndicator id="userIndicator"/>
+                    <button id="logoutButton"
+                            action="logoutAction"
+                            classNames="jmix-logout-button"/>
+                </footer>
+            </section>
+        </drawerLayout>
+        <initialLayout height="100%" width="100%" alignItems="CENTER">
+            <vbox expand="welcomeBox" alignItems="STRETCH" height="100%">
+                <vbox spacing="true" id="welcomeBox" alignSelf="CENTER">
+                    <h2 id="welcomeMessage" alignSelf="CENTER"/>
+                    
+
+                    <hbox height="100%" width="100%">
+                    <hbox width="100%">
+                        <image resource="cat.jpg" classNames="login-image" maxWidth="25%" alignSelf="START"/>
+                        <!-- Statistics tiles -->
+                        <vbox id="statisticsBox" spacing="true" alignItems="START" justifyContent="START">
+                            <vbox id="weekStatsTile" maxWidth="30%" classNames="statistic-tile" alignItems="CENTER">
+                                <h3 text="Коммитов за неделю"/>
+                                <h2 id="weekCommitCount">0</h2>
+                            </vbox>
+                            <vbox id="monthStatsTile" maxWidth="30%" classNames="statistic-tile" alignItems="CENTER">
+                                <h3 text="Коммиты за этот месяц"/>
+                                <h2 id="monthCommitCount">0</h2>
+                            </vbox>
+                        </vbox>
+                    </hbox>
+                    <vbox id="boxV" height="100%" width="50%" alignSelf="END" visible="false">
+                        <hbox width="100%" alignItems="CENTER" justifyContent="BETWEEN">
+                            <h3 id="chatHeader" text="Чаты"/>
+                            <hbox spacing="true">
+                                <button id="refreshChatsBtn" icon="REFRESH" title="Обновить сообщения" themeNames="tertiary-inline"/>
+                                <button id="deleteChatBtn" icon="TRASH" title="Удалить чат" themeNames="tertiary-inline error"/>
+                                <button id="newChatBtn" icon="PLUS" text="Новый чат" themeNames="tertiary"/>
+                            </hbox>
+                        </hbox>
+                        <button text="Событие" id="AddEvent" visible="false"/>
+                        <tabSheet id="chatTabs" width="100%" height="100%">
+                        </tabSheet>
+                    </vbox>
+
+                    <anchor href="https://github.com/BeSl/commitet"
+                            target="BLANK"
+                            themeNames="tertiary"
+                            alignSelf="END">
+                        <hbox alignItems="CENTER" themeNames="spacing-s">
+                            <icon icon="INFO_CIRCLE_O"/>
+
+                            <span id="appVersion" text="Загрузка приложения..."/>
+                        </hbox>
+                    </anchor>
+                    </hbox>
+                </vbox>
+            </vbox>
+
+
+        </initialLayout>
+    </appLayout>
+</mainView>

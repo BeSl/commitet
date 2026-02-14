@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<menu-config xmlns="http://jmix.io/schema/flowui/menu">
+
+    <menu id="application" title = "msg://com.company.commitet_jm/menu.application.title" opened="true">
+        <item view="User.list" title="msg://com.company.commitet_jm.view.user/UserListView.title"
+              icon="vaadin:user-card" description="Настройки пользователей"/>
+
+        <item view="Commit_.list" title="msg://com.company.commitet_jm.view.commit/commitListView.title"
+              icon="vaadin:abacus" description="Список коммитов"/>
+
+
+    </menu>
+    <separator>  - - - </separator>
+    <menu id="catalogSystem" title="Базовые справочники">
+        <item view="Platform.list" title="msg://com.company.commitet_jm.view.platform/platformListView.title"
+              icon="vaadin:coffee" description="Параметры установки платформ"/>
+        <item view="Project.cards" title="Проекты (карточки)"
+              icon="vaadin:grid" description="Проекты в виде карточек"/>
+        <item view="Project.list" title="msg://com.company.commitet_jm.view.project/projectListView.title"
+              icon="vaadin:database" description="Проекты (таблица)"/>
+        <item view="OneCStorage.list" title="msg://com.company.commitet_jm.view.onecstorage/oneCStorageListView.title"
+              icon="vaadin:asterisk" description="Хранилища конфигураций"/>
+        <item view="ConfigMetadataItem.tree" title="msg://com.company.commitet_jm.view.metadata/configMetadataTreeView.title"
+              icon="vaadin:tree-table" description="Дерево метаданных конфигурации"/>
+    </menu>
+    <separator>  - - - </separator>
+    <menu id="settingSystem" title="Системные настройки">
+        <item title="Фоновые" view="quartz_JobModel.list"
+                icon="vaadin:shield"/>
+    </menu>
+</menu-config>

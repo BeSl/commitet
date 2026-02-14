@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="Внешний идентификатор пользователя"
+      focusComponent="form">
+
+    <data>
+        <instance id="userExternalIdDc" class="com.company.commitet_jm.entity.UserExternalId">
+            <fetchPlan extends="_base">
+                <property name="user" fetchPlan="_base"/>
+            </fetchPlan>
+            <loader/>
+        </instance>
+    </data>
+
+    <actions>
+        <action id="saveAction" type="detail_saveClose"/>
+        <action id="closeAction" type="detail_close"/>
+    </actions>
+
+    <layout>
+        <formLayout id="form" dataContainer="userExternalIdDc">
+            <textField id="externalIdField" property="externalId" label="Внешний ID" required="true"/>
+            <textField id="sourceField" property="source" label="Источник" helperText="Например: 1C, LDAP, External System"/>
+            <textField id="descriptionField" property="description" label="Описание"/>
+        </formLayout>
+
+        <hbox id="detailActions" spacing="true" padding="true">
+            <button id="saveAndCloseButton" action="saveAction" text="Сохранить" icon="CHECK" themeNames="primary"/>
+            <button id="closeButton" action="closeAction" text="Отмена" icon="BAN"/>
+        </hbox>
+    </layout>
+</view>

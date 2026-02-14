@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://UserDetailView.title"
+      focusComponent="form">
+    <data>
+        <instance id="userDc"
+                  class="com.company.commitet_jm.entity.User">
+            <fetchPlan extends="_base">
+                <property name="externalIds" fetchPlan="_base"/>
+            </fetchPlan>
+            <loader/>
+            <collection id="externalIdsDc" property="externalIds"/>
+        </instance>
+    </data>
+    <actions>
+        <action id="saveAction" type="detail_saveClose"/>
+        <action id="closeAction" type="detail_close"/>
+    </actions>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+    <layout>
+        <formLayout id="form" dataContainer="userDc">
+            <vbox>
+            <textField id="usernameField" property="username" readOnly="true" label="Логин"/>
+            <hbox>
+                <textField id="firstNameField" property="firstName" label="Имя"/>
+                <textField id="lastNameField" property="lastName" label="Фамилия"/>
+            </hbox>
+                <textField id="emailField" property="email" label="Email"/>
+                <textField id="gitLoginField" property="gitLogin" label="Git login"/>
+
+           <vbox>
+               <passwordField id="passwordField"
+                              label="msg://com.company.commitet_jm.entity/User.password"
+                              required="true"
+                              visible="false"
+                              />
+               <passwordField id="confirmPasswordField"
+                              label="Подтверждение пароля"
+                              required="true"
+                              visible="false"
+                              />
+
+            <checkbox id="activeField" property="active" label="Активный"/>
+            <checkbox id="isAdminField" property="isAdmin" label="Администратор"/>
+            <checkbox id="llmAvailableField" property="llmAvailable" label="Доступна LLM"/>
+           </vbox>
+            </vbox>
+        </formLayout>
+
+        <vbox id="externalIdsPanel" visible="false" spacing="true" padding="true">
+            <label value="Внешние идентификаторы" themeNames="h4"/>
+            <hbox spacing="true">
+                <button action="externalIdsDataGrid.createAction" text="Добавить ID" icon="PLUS"/>
+                <button action="externalIdsDataGrid.removeAction" text="Удалить" icon="TRASH"/>
+            </hbox>
+            <dataGrid id="externalIdsDataGrid" dataContainer="externalIdsDc" height="200px">
+                <actions>
+                    <action id="createAction" type="list_create">
+                        <properties>
+                            <property name="viewId" value="UserExternalId.detail"/>
+                        </properties>
+                    </action>
+                    <action id="removeAction" type="list_remove"/>
+                </actions>
+                <columns resizable="true">
+                    <column property="externalId" header="ID" flexGrow="1"/>
+                    <column property="source" header="Источник" width="150px"/>
+                    <column property="description" header="Описание" flexGrow="1"/>
+                </columns>
+            </dataGrid>
+        </vbox>
+
+        <hbox id="detailActions">
+            <button id="saveAndCloseButton" action="saveAction"/>
+            <button id="closeButton" action="closeAction"/>
+        </hbox>
+    </layout>
+</view>

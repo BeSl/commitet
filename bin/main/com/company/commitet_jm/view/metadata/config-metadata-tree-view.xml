@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://configMetadataTreeView.title"
+      focusComponent="metadataTree">
+    <data>
+        <collection id="projectsDc"
+                    class="com.company.commitet_jm.entity.Project">
+            <fetchPlan extends="_local"/>
+            <loader id="projectsDl" readOnly="true">
+                <query>
+                    <![CDATA[select e from Project e order by e.name]]>
+                </query>
+            </loader>
+        </collection>
+
+        <collection id="metadataDc"
+                    class="com.company.commitet_jm.entity.ConfigMetadataItem">
+            <fetchPlan extends="_base">
+                <property name="parent" fetchPlan="_local"/>
+                <property name="project" fetchPlan="_local"/>
+            </fetchPlan>
+            <loader id="metadataDl" readOnly="true">
+                <query>
+                    <![CDATA[select e from ConfigMetadataItem e
+                             where e.project = :project
+                             order by e.sortOrder, e.name]]>
+                </query>
+            </loader>
+        </collection>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+    <layout>
+        <vbox width="100%" height="100%" padding="true" spacing="true">
+            <hbox id="toolbar" classNames="buttons-panel" width="100%">
+                <entityComboBox id="projectField"
+                                metaClass="Project"
+                                itemsContainer="projectsDc"
+                                label="msg://projectField.label"
+                                width="20em"/>
+                <button id="importBtn" text="msg://importBtn.text" icon="DOWNLOAD"/>
+                <button id="refreshBtn" text="msg://refreshBtn.text" icon="REFRESH"/>
+                <button id="expandAllBtn" text="msg://expandAllBtn.text" icon="EXPAND"/>
+                <button id="collapseAllBtn" text="msg://collapseAllBtn.text" icon="COMPRESS"/>
+            </hbox>
+
+            <treeDataGrid id="metadataTree"
+                          width="100%"
+                          minHeight="30em"
+                          dataContainer="metadataDc"
+                          hierarchyProperty="parent"
+                          columnReorderingAllowed="true">
+                <columns resizable="true">
+                    <column property="name" header="msg://column.name" flexGrow="2"/>
+                    <column property="metadataType" header="msg://column.type" width="12em"/>
+                    <column property="fullPath" header="msg://column.fullPath" flexGrow="1"/>
+                </columns>
+            </treeDataGrid>
+        </vbox>
+    </layout>
+</view>

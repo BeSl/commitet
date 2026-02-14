@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <!-- Create CONFIG_METADATA_ITEM table -->
+    <changeSet id="1" author="commitet_jm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="CONFIG_METADATA_ITEM"/>
+            </not>
+        </preConditions>
+        <createTable tableName="CONFIG_METADATA_ITEM">
+            <column name="ID" type="UUID">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_CONFIG_METADATA_ITEM"/>
+            </column>
+            <column name="EXTERNAL_ID" type="VARCHAR(255)"/>
+            <column name="NAME" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="METADATA_TYPE" type="VARCHAR(255)"/>
+            <column name="IS_COLLECTION" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="SORT_ORDER" type="INT" defaultValueNumeric="0"/>
+            <column name="FULL_PATH" type="VARCHAR(1000)"/>
+            <column name="PARENT_ID" type="UUID"/>
+            <column name="PROJECT_ID" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="VERSION" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Create indexes for CONFIG_METADATA_ITEM -->
+    <changeSet id="2" author="commitet_jm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="IDX_CMI_PROJECT"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="IDX_CMI_PROJECT" tableName="CONFIG_METADATA_ITEM">
+            <column name="PROJECT_ID"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="3" author="commitet_jm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="IDX_CMI_PARENT"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="IDX_CMI_PARENT" tableName="CONFIG_METADATA_ITEM">
+            <column name="PARENT_ID"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="4" author="commitet_jm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="IDX_CMI_EXTERNAL_ID"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="IDX_CMI_EXTERNAL_ID" tableName="CONFIG_METADATA_ITEM">
+            <column name="EXTERNAL_ID"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="5" author="commitet_jm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="IDX_CMI_FULL_PATH"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="IDX_CMI_FULL_PATH" tableName="CONFIG_METADATA_ITEM">
+            <column name="FULL_PATH"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Add foreign keys for CONFIG_METADATA_ITEM -->
+    <changeSet id="6" author="commitet_jm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_CONFIG_METADATA_ITEM_ON_PARENT"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="PARENT_ID"
+                                 baseTableName="CONFIG_METADATA_ITEM"
+                                 constraintName="FK_CONFIG_METADATA_ITEM_ON_PARENT"
+                                 referencedColumnNames="ID"
+                                 referencedTableName="CONFIG_METADATA_ITEM"/>
+    </changeSet>
+
+    <changeSet id="7" author="commitet_jm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_CONFIG_METADATA_ITEM_ON_PROJECT"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="PROJECT_ID"
+                                 baseTableName="CONFIG_METADATA_ITEM"
+                                 constraintName="FK_CONFIG_METADATA_ITEM_ON_PROJECT"
+                                 referencedColumnNames="ID"
+                                 referencedTableName="PROJECT"/>
+    </changeSet>
+
+</databaseChangeLog>

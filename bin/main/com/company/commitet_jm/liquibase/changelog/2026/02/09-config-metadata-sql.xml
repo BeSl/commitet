@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="create-config-metadata-item-table" author="commitet_jm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="CONFIG_METADATA_ITEM"/>
+            </not>
+        </preConditions>
+        <sql>
+            CREATE TABLE CONFIG_METADATA_ITEM (
+                ID UUID NOT NULL PRIMARY KEY,
+                EXTERNAL_ID VARCHAR(255),
+                NAME VARCHAR(255) NOT NULL,
+                METADATA_TYPE VARCHAR(255),
+                IS_COLLECTION BOOLEAN DEFAULT FALSE,
+                SORT_ORDER INT DEFAULT 0,
+                FULL_PATH VARCHAR(1000),
+                PARENT_ID UUID,
+                PROJECT_ID UUID NOT NULL,
+                VERSION INT NOT NULL
+            );
+
+            CREATE INDEX IDX_CMI_PROJECT ON CONFIG_METADATA_ITEM(PROJECT_ID);
+            CREATE INDEX IDX_CMI_PARENT ON CONFIG_METADATA_ITEM(PARENT_ID);
+            CREATE INDEX IDX_CMI_EXTERNAL_ID ON CONFIG_METADATA_ITEM(EXTERNAL_ID);
+            CREATE INDEX IDX_CMI_FULL_PATH ON CONFIG_METADATA_ITEM(FULL_PATH);
+
+            ALTER TABLE CONFIG_METADATA_ITEM ADD CONSTRAINT FK_CONFIG_METADATA_ITEM_ON_PARENT
+                FOREIGN KEY (PARENT_ID) REFERENCES CONFIG_METADATA_ITEM(ID);
+
+            ALTER TABLE CONFIG_METADATA_ITEM ADD CONSTRAINT FK_CONFIG_METADATA_ITEM_ON_PROJECT
+                FOREIGN KEY (PROJECT_ID) REFERENCES PROJECT(ID);
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

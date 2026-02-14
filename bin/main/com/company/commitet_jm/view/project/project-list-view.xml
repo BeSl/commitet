@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:c="http://jmix.io/schema/flowui/jpql-condition"
+      title="msg://projectListView.title"
+      focusComponent="projectsDataGrid">
+
+    <data>
+        <collection id="projectsDc"
+                    class="com.company.commitet_jm.entity.Project">
+            <fetchPlan extends="_base">
+                <property name="platform" fetchPlan="_base"/>
+                <property name="storages" fetchPlan="_base"/>
+            </fetchPlan>
+            <loader id="projectsDl" readOnly="true">
+                <query><![CDATA[select e from Project e]]></query>
+            </loader>
+        </collection>
+        <instance id="projectDc"
+                  class="com.company.commitet_jm.entity.Project">
+            <fetchPlan extends="_base">
+                <property name="platform" fetchPlan="_base"/>
+                <property name="storages" fetchPlan="_base"/>
+                <property name="externalIds" fetchPlan="_base"/>
+            </fetchPlan>
+            <loader id="projectDl"/>
+            <collection id="storagesDc" property="storages"/>
+            <collection id="externalIdsDc" property="externalIds"/>
+        </instance>
+    </data>
+
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+        <urlQueryParameters>
+            <genericFilter component="genericFilter"/>
+            <pagination component="pagination"/>
+        </urlQueryParameters>
+    </facets>
+
+    <actions>
+        <action id="selectAction" type="lookup_select"/>
+        <action id="discardAction" type="lookup_discard"/>
+    </actions>
+
+    <layout spacing="false" padding="false" classNames="split-layout" height="100%">
+        <!-- Master List (Left Side) -->
+        <vbox id="listLayout" spacing="false" width="35%" height="100%" classNames="list-panel">
+            <genericFilter id="genericFilter"
+                           dataLoader="projectsDl">
+                <properties include=".*"/>
+            </genericFilter>
+
+            <hbox id="buttonsPanel" classNames="buttons-panel" spacing="true" padding="true">
+                <button id="createButton" action="projectsDataGrid.createAction"/>
+                <button id="editButton" action="projectsDataGrid.editAction"/>
+                <button id="removeButton" action="projectsDataGrid.removeAction"/>
+                <simplePagination id="pagination" dataLoader="projectsDl"/>
+            </hbox>
+
+            <dataGrid id="projectsDataGrid"
+                      height="100%"
+                      dataContainer="projectsDc"
+                      columnReorderingAllowed="true">
+                <actions>
+                    <action id="createAction" type="list_create"/>
+                    <action id="editAction" type="list_edit"/>
+                    <action id="removeAction" type="list_remove"/>
+                </actions>
+                <columns resizable="true">
+                    <column property="name" width="200px"/>
+                    <column property="urlRepo" flexGrow="1"/>
+                </columns>
+            </dataGrid>
+
+            <hbox id="lookupActions" visible="false" spacing="true" padding="true">
+                <button id="selectButton" action="selectAction"/>
+                <button id="discardButton" action="discardAction"/>
+            </hbox>
+        </vbox>
+
+        <!-- Detail Form (Right Side) -->
+        <vbox id="formLayout" spacing="false" width="65%" height="100%" >
+            <formLayout id="form" dataContainer="projectDc" width="100%" height="100%">
+                <vbox  height="100%">
+                    <textField id="nameField" property="name" label="Проект" width="100%"/>
+                    <tabSheet width="100%" height="100%" themeNames="equal-width-tabs">
+                    <!-- Git Основные -->
+                    <tab id="tab1" label="Основные">
+                        <formLayout width="100%" height="100%">
+                            <textField id="localPathField" property="localPath" label="Каталог репозитория" width="100%" readOnly="true" helperText="Заполняется автоматически при клонировании"/>
+                            <textField id="urlRepoField" property="urlRepo" label="Адрес репозитория" width="100%"/>
+                            <textField id="defaultBranchField" property="defaultBranch" label="Ветка по умолчанию" width="100%"/>
+                            <entityPicker id="platformField" width="100%" property="platform" label="Платформа" required="true">
+                                <actions>
+                                    <action id="entityLookupAction" type="entity_lookup">
+                                        <properties>
+                                            <property name="viewClass" value="com.company.commitet_jm.view.platform.PlatformListView"/>
+                                        </properties>
+                                    </action>
+                                    <action id="entityClearAction" type="entity_clear"/>
+                                </actions>
+                            </entityPicker>
+                            <textField id="tempBasePathField" property="tempBasePath" label="Временная база" width="100%"/>
+                            <hbox spacing="true">
+
+                            </hbox>
+                        </formLayout>
+                    </tab>
+
+
+                    <!-- Хранилища конфигураций -->
+                    <tab id="tabStorage" label="Хранилища конфигураций">
+                        <vbox  classNames="list-panel">
+                            <hbox spacing="true"  padding="true">
+                                <button id="addStorageButton" action="OneSStorageDataGrid.createAction"/>
+                                <button id="editStorageButton" action="OneSStorageDataGrid.editAction"/>
+                                <button id="removeStorageButton" action="OneSStorageDataGrid.removeAction"/>
+                            </hbox>
+                            <dataGrid id="OneSStorageDataGrid"
+
+                                      dataContainer="storagesDc" themeNames="column-borders">
+                                <actions>
+                                    <action id="createAction" type="list_create">
+                                        <properties>
+                                            <property name="viewId" value="OneCStorage.detail"/>
+                                        </properties>
+                                    </action>
+                                    <action id="editAction" type="list_edit"/>
+                                    <action id="removeAction" type="list_remove"/>
+                                </actions>
+                                <columns resizable="true">
+                                    <column property="name" key="name" header="Название" flexGrow="1" width="100%"/>
+                                </columns>
+                            </dataGrid>
+                        </vbox>
+                    </tab>
+
+                        <!-- Git Admin -->
+                        <tab id="tab2" label="Админ git">
+                            <formLayout width="100%">
+                                <textField id="adminGitNameField" property="adminGitName" label="Имя администратора" width="100%"/>
+                                <passwordField id="adminGitPasswordField" property="adminGitPassword" label="Пароль администратора" width="100%"/>
+                            </formLayout>
+                        </tab>
+
+                        <!-- External IDs -->
+                        <tab id="tabExternalIds" label="Внешние идентификаторы">
+                            <vbox id="externalIdsPanel" classNames="list-panel">
+                                <hbox spacing="true" padding="true">
+                                    <button action="externalIdsDataGrid.createAction" text="Добавить ID" icon="PLUS"/>
+                                    <button action="externalIdsDataGrid.removeAction" text="Удалить" icon="TRASH"/>
+                                </hbox>
+                                <dataGrid id="externalIdsDataGrid" dataContainer="externalIdsDc" themeNames="column-borders">
+                                    <actions>
+                                        <action id="createAction" type="list_create">
+                                            <properties>
+                                                <property name="viewId" value="ProjectExternalId.detail"/>
+                                            </properties>
+                                        </action>
+                                        <action id="removeAction" type="list_remove"/>
+                                    </actions>
+                                    <columns resizable="true">
+                                        <column property="externalId" header="ID" flexGrow="1"/>
+                                        <column property="source" header="Источник" width="150px"/>
+                                        <column property="description" header="Описание" flexGrow="1"/>
+                                    </columns>
+                                </dataGrid>
+                            </vbox>
+                        </tab>
+                    </tabSheet>
+                </vbox>
+            </formLayout>
+
+            <!-- Save / Cancel -->
+            <hbox id="detailActions" spacing="true" padding="true" justifyContent="END">
+                <button id="saveButton" text="Сохранить" icon="CHECK" themeNames="primary"/>
+                <button id="cancelButton" text="msg:///actions.Cancel" icon="BAN"/>
+                <button id="cloneGitButton" text="Git Clone" icon="DOWNLOAD" themeNames="primary"/>
+            </hbox>
+        </vbox>
+    </layout>
+</view>
