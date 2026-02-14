@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://availableNameDetailView.title"
+      focusComponent="form">
+    <data>
+        <instance id="availableNameDc"
+                  class="com.company.commitet_jm.entity.AvailableName">
+            <fetchPlan extends="_base">
+                <property name="project" fetchPlan="_base"/>
+            </fetchPlan>
+            <loader id="availableNameDl"/>
+        </instance>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+    <actions>
+        <action id="saveAction" type="detail_saveClose"/>
+        <action id="closeAction" type="detail_close"/>
+    </actions>
+    <layout>
+        <formLayout id="form" dataContainer="availableNameDc">
+            <responsiveSteps>
+                <responsiveStep minWidth="0" columns="1"/>
+                <responsiveStep minWidth="40em" columns="2"/>
+            </responsiveSteps>
+            <entityPicker id="projectField" property="project" colspan="2" required="true"/>
+            <select id="typeField" property="type" required="true"/>
+            <textField id="nameField" property="name" required="true"/>
+            <textArea id="descriptionField" property="description" colspan="2" height="100px"/>
+            <dateTimePicker id="lastUpdatedField" property="lastUpdated" readOnly="true"/>
+        </formLayout>
+        <hbox id="detailActions">
+            <button id="saveAndCloseButton" action="saveAction"/>
+            <button id="closeButton" action="closeAction"/>
+        </hbox>
+    </layout>
+</view>
