@@ -55,4 +55,8 @@ open class Project {
     @OneToMany(mappedBy = "project")
     var storages: MutableList<OneCStorage> = NotInstantiatedList()
 
+    @Composition
+    @OneToMany(mappedBy = "project")
+    var externalIds: MutableList<ProjectExternalId> = NotInstantiatedList()
+
 }

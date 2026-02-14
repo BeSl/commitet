@@ -4,9 +4,11 @@ import io.jmix.core.HasTimeZone
 import io.jmix.core.annotation.Secret
 import io.jmix.core.entity.annotation.JmixGeneratedValue
 import io.jmix.core.entity.annotation.SystemLevel
+import io.jmix.core.metamodel.annotation.Composition
 import io.jmix.core.metamodel.annotation.DependsOnProperties
 import io.jmix.core.metamodel.annotation.InstanceName
 import io.jmix.core.metamodel.annotation.JmixEntity
+import io.jmix.eclipselink.lazyloading.NotInstantiatedList
 import io.jmix.security.authentication.JmixUserDetails
 import jakarta.persistence.*
 import jakarta.validation.constraints.Email
@@ -64,6 +66,10 @@ open class User : JmixUserDetails, HasTimeZone {
 
     @Column(name = "LLM_AVAILABLE")
     var llmAvailable: Boolean? = null
+
+    @Composition
+    @OneToMany(mappedBy = "user")
+    var externalIds: MutableList<UserExternalId> = NotInstantiatedList()
 
     @Transient
     private var userAuthorities: Collection<GrantedAuthority?>? = null

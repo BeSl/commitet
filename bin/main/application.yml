@@ -1,0 +1,46 @@
+# application.yml
+app:
+  version: 1.0.7
+  onelogpath: ../test
+  v8unpack: v8unpack.exe
+  # Рабочий каталог для клонирования репозиториев проектов
+  workdir: ./repos
+  # Рабочий каталог для запуска внешних команд
+  shell-workdir: .
+
+server:
+  port: 8090
+  servlet:
+    session:
+      timeout: 43200s
+      cookie:
+        max-age: 43200
+
+logging:
+  level:
+    root: INFO
+    com.besl: INFO
+
+spring:
+  ai:
+    ollama:
+      chat:
+        model: qwen3:14b
+    ollama.base-url: http://localhost:11434
+
+jmix:
+  ui:
+    view-file-extensions:
+      - htm
+      - html
+      - jpg
+      - png
+      - jpeg
+      - pdf
+
+# Git configuration
+git:
+  timeout: 20
+  user: test
+  token: test
+

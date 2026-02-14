@@ -14,8 +14,10 @@
     <menu id="catalogSystem" title="Базовые справочники">
         <item view="Platform.list" title="msg://com.company.commitet_jm.view.platform/platformListView.title"
               icon="vaadin:coffee" description="Параметры установки платформ"/>
+        <item view="Project.cards" title="Проекты (карточки)"
+              icon="vaadin:grid" description="Проекты в виде карточек"/>
         <item view="Project.list" title="msg://com.company.commitet_jm.view.project/projectListView.title"
-              icon="vaadin:database" description="Проекты"/>
+              icon="vaadin:database" description="Проекты (таблица)"/>
         <item view="OneCStorage.list" title="msg://com.company.commitet_jm.view.onecstorage/oneCStorageListView.title"
               icon="vaadin:asterisk" description="Хранилища конфигураций"/>
         <item view="ConfigMetadataItem.tree" title="msg://com.company.commitet_jm.view.metadata/configMetadataTreeView.title"

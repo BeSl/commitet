@@ -6,6 +6,11 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
         objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
     <changeSet id="1" author="commitet_jm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="CHAT_SESSION" columnName="CHAT_TYPE"/>
+            </not>
+        </preConditions>
         <addColumn tableName="CHAT_SESSION">
             <column name="CHAT_TYPE" type="VARCHAR(255)"/>
             <column name="LAST_MESSAGE_TIME" type="DATETIME"/>
@@ -14,11 +19,21 @@
         </addColumn>
     </changeSet>
     <changeSet id="2" author="commitet_jm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="IDX_CHAT_SESSION_CHAT_TYPE"/>
+            </not>
+        </preConditions>
         <createIndex indexName="IDX_CHAT_SESSION_CHAT_TYPE" tableName="CHAT_SESSION">
             <column name="CHAT_TYPE"/>
         </createIndex>
     </changeSet>
     <changeSet id="3" author="commitet_jm">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="IDX_CHAT_SESSION_RECIPIENT"/>
+            </not>
+        </preConditions>
         <createIndex indexName="IDX_CHAT_SESSION_RECIPIENT" tableName="CHAT_SESSION">
             <column name="RECIPIENT_ID"/>
         </createIndex>

@@ -20,9 +20,11 @@
             <fetchPlan extends="_base">
                 <property name="platform" fetchPlan="_base"/>
                 <property name="storages" fetchPlan="_base"/>
+                <property name="externalIds" fetchPlan="_base"/>
             </fetchPlan>
             <loader id="projectDl"/>
             <collection id="storagesDc" property="storages"/>
+            <collection id="externalIdsDc" property="externalIds"/>
         </instance>
     </data>
 
@@ -138,6 +140,31 @@
                                 <textField id="adminGitNameField" property="adminGitName" label="Имя администратора" width="100%"/>
                                 <passwordField id="adminGitPasswordField" property="adminGitPassword" label="Пароль администратора" width="100%"/>
                             </formLayout>
+                        </tab>
+
+                        <!-- External IDs -->
+                        <tab id="tabExternalIds" label="Внешние идентификаторы">
+                            <vbox id="externalIdsPanel" classNames="list-panel">
+                                <hbox spacing="true" padding="true">
+                                    <button action="externalIdsDataGrid.createAction" text="Добавить ID" icon="PLUS"/>
+                                    <button action="externalIdsDataGrid.removeAction" text="Удалить" icon="TRASH"/>
+                                </hbox>
+                                <dataGrid id="externalIdsDataGrid" dataContainer="externalIdsDc" themeNames="column-borders">
+                                    <actions>
+                                        <action id="createAction" type="list_create">
+                                            <properties>
+                                                <property name="viewId" value="ProjectExternalId.detail"/>
+                                            </properties>
+                                        </action>
+                                        <action id="removeAction" type="list_remove"/>
+                                    </actions>
+                                    <columns resizable="true">
+                                        <column property="externalId" header="ID" flexGrow="1"/>
+                                        <column property="source" header="Источник" width="150px"/>
+                                        <column property="description" header="Описание" flexGrow="1"/>
+                                    </columns>
+                                </dataGrid>
+                            </vbox>
                         </tab>
                     </tabSheet>
                 </vbox>

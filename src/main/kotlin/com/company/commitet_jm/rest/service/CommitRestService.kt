@@ -40,27 +40,30 @@ class CommitRestService(
      * @return Ответ с результатом создания коммита.
      */
     fun createCommit(request: CommitCreateRequest): CommitCreateResponse {
-        log.info("Создание коммита: taskNum={}, projectId={}, userId={}",
-            request.taskNum, request.projectId, request.userId)
+        log.info("Создание коммита: taskNum={}, externalProjectId={}, externalUserId={}",
+            request.taskNum, request.externalProjectId, request.externalUserId)
 
-        // Поиск проекта
-        val project = findProjectById(request.projectId)
-            ?: return CommitCreateResponse(
-                success = false,
-                message = "Проект с ID ${request.projectId} не найден"
-            )
+        // Поиск проекта по внешнему ID или основному UUID
+        val project = if (!request.externalProjectId.isNullOrBlank()) {
+            findProjectByExternalId(request.externalProjectId)
+        } else {
+            request.projectId?.let { findProjectById(it) }
+        } ?: return CommitCreateResponse(
+            success = false,
+            message = "Проект не найден"
+        )
 
-        // Поиск пользователя или назначение пользователя по умолчанию
-        val author = findUserOrDefault(request.userId)
+        // Поиск пользователя по внешнему ID
+        val author = findUserByExternalId(request.externalUserId)
             ?: return CommitCreateResponse(
                 success = false,
                 message = "Пользователь не найден и пользователь по умолчанию ($defaultUsername) не настроен"
             )
 
-        val userWasDefault = request.userId != null && request.userId != author.id
+        val userWasDefault = !request.externalUserId.isNullOrBlank() && author.username == defaultUsername
         if (userWasDefault) {
-            log.warn("Пользователь с ID {} не найден, назначен пользователь по умолчанию: {}",
-                request.userId, author.username)
+            log.warn("Пользователь с внешним ID {} не найден, назначен пользователь по умолчанию: {}",
+                request.externalUserId, author.username)
         }
 
         // Создание коммита
@@ -102,28 +105,33 @@ class CommitRestService(
     }
 
     /**
-     * Ищет пользователя по UUID. Если пользователь не найден или userId равен null,
-     * возвращает пользователя по умолчанию.
+     * Ищет пользователя по внешнему ID.
+     * Если не найден, возвращает пользователя по умолчанию.
      *
-     * @param userId UUID пользователя для поиска (может быть null).
+     * @param externalUserId Внешний ID пользователя для поиска (может быть null).
      * @return Найденный пользователь или пользователь по умолчанию, либо null если ничего не найдено.
      */
-    private fun findUserOrDefault(userId: UUID?): User? {
-        // Если указан userId, пробуем найти пользователя
-        if (userId != null) {
-            val user = dataManager.load(User::class.java)
-                .id(userId)
-                .optional()
-                .orElse(null)
-
-            if (user != null) {
-                log.debug("Найден пользователь по ID {}: {}", userId, user.username)
-                return user
-            }
-            log.warn("Пользователь с ID {} не найден, ищем пользователя по умолчанию", userId)
+    private fun findUserByExternalId(externalUserId: String?): User? {
+        if (externalUserId.isNullOrBlank()) {
+            log.warn("External user ID пустой, ищем пользователя по умолчанию")
+            return findDefaultUser()
         }
 
-        // Поиск пользователя по умолчанию
+        // Поиск UserExternalId по externalId
+        val userExternalId = dataManager.load(UserExternalId::class.java)
+            .query("select e from UserExternalId e where e.externalId = :externalId")
+            .parameter("externalId", externalUserId)
+            .optional()
+            .orElse(null)
+
+        if (userExternalId != null) {
+            log.debug("Найден пользователь по внешнему ID {}: {}",
+                externalUserId, userExternalId.user?.username)
+            return userExternalId.user
+        }
+
+        log.warn("Пользователь с внешним ID {} не найден, используем пользователя по умолчанию",
+            externalUserId)
         return findDefaultUser()
     }
 
@@ -158,6 +166,32 @@ class CommitRestService(
             .id(projectId)
             .optional()
             .orElse(null)
+    }
+
+    /**
+     * Ищет проект по внешнему ID.
+     *
+     * @param externalProjectId Внешний ID проекта.
+     * @return Найденный проект или null.
+     */
+    private fun findProjectByExternalId(externalProjectId: String?): Project? {
+        if (externalProjectId.isNullOrBlank()) {
+            return null
+        }
+
+        val projectExternalId = dataManager.load(ProjectExternalId::class.java)
+            .query("select e from ProjectExternalId e where e.externalId = :externalId")
+            .parameter("externalId", externalProjectId)
+            .optional()
+            .orElse(null)
+
+        if (projectExternalId != null) {
+            log.debug("Найден проект по внешнему ID {}: {}",
+                externalProjectId, projectExternalId.project?.name)
+            return projectExternalId.project
+        }
+
+        return null
     }
 
     /**
