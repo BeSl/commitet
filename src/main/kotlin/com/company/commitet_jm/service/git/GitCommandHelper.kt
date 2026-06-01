@@ -38,10 +38,11 @@ class GitCommandHelper(
         timeout: Long,
         vararg command: String
     ): GitResult {
-        executor.timeout = timeout
-        executor.workingDir = workingDir
-
-        val result = executor.executeCommandWithResult(command.toList())
+        val result = executor.executeCommandWithResult(
+            command = command.toList(),
+            workingDir = workingDir,
+            timeoutMinutes = timeout
+        )
         return GitResult(
             success = result.exitCode == 0,
             output = result.output,

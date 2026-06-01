@@ -34,6 +34,24 @@ class CommitRestService(
     private lateinit var defaultUsername: String
 
     /**
+     * Проверяет обязательные поля запроса на создание коммита.
+     * Единая точка валидации для всех каналов (REST, очередь RabbitMQ).
+     *
+     * @param request Данные запроса.
+     * @return Список сообщений об ошибках; пустой список — если запрос корректен.
+     */
+    fun validate(request: CommitCreateRequest): List<String> {
+        val errors = mutableListOf<String>()
+        if (request.taskNum.isBlank()) {
+            errors.add("taskNum не может быть пустым")
+        }
+        if (request.description.isBlank()) {
+            errors.add("description не может быть пустым")
+        }
+        return errors
+    }
+
+    /**
      * Создает новый коммит на основе данных из REST запроса.
      *
      * @param request Данные запроса на создание коммита.
@@ -42,6 +60,16 @@ class CommitRestService(
     fun createCommit(request: CommitCreateRequest): CommitCreateResponse {
         log.info("Создание коммита: taskNum={}, externalProjectId={}, externalUserId={}",
             request.taskNum, request.externalProjectId, request.externalUserId)
+
+        // Валидация обязательных полей (единая для REST и очереди RabbitMQ)
+        val validationErrors = validate(request)
+        if (validationErrors.isNotEmpty()) {
+            log.warn("Валидация запроса не пройдена: {}", validationErrors)
+            return CommitCreateResponse(
+                success = false,
+                message = "Ошибка валидации: ${validationErrors.joinToString("; ")}"
+            )
+        }
 
         // Поиск проекта по внешнему ID или основному UUID
         val project = if (!request.externalProjectId.isNullOrBlank()) {

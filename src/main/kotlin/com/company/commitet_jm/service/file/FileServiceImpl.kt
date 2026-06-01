@@ -19,7 +19,8 @@ import java.nio.file.StandardCopyOption
 @Service
 class FileServiceImpl(
     private val fileStorageLocator: FileStorageLocator,
-    private val ones: OneRunner
+    private val ones: OneRunner,
+    private val executor: ShellExecutor
 ) : FileService {
     
     @Value("\${git.timeout:7}")
@@ -30,17 +31,21 @@ class FileServiceImpl(
     }
 
     override fun saveFileCommit(baseDir: String, files: MutableList<FileCommit>, platform: Platform) {
-        val executor = ShellExecutor(workingDir = File(baseDir), timeout = gitTimeout)
         val filesToUnpack = mutableListOf<Pair<String, String>>()
         for (file in files) {
             val content = file.data ?: continue
 
             // correctPath возвращает File, приводим к Path
-            val path = file.getType()?.let { correctPath(baseDir, it).toPath() } ?: continue
+            val baseTypeDir = file.getType()?.let { correctPath(baseDir, it).toPath().normalize() } ?: continue
 
             // Формируем имя файла с кодом (если применимо)
             val fileName = buildFileName(file)
-            val targetPath = path.resolve(fileName).normalize()
+            val targetPath = baseTypeDir.resolve(fileName).normalize()
+
+            // Защита от выхода за пределы каталога (path traversal) через имя/код файла
+            require(targetPath.startsWith(baseTypeDir)) {
+                "Недопустимое имя файла (выход за пределы каталога): $fileName"
+            }
 
             try {
                 // Создаем директории, если нужно
@@ -102,7 +107,10 @@ class FileServiceImpl(
 
     override fun findBinaryFilesFromGitStatus(repoDir: String, executor: ShellExecutor): List<File> {
         // Получаем список изменённых файлов
-        val gitOutput = executor.executeCommand(listOf("git", "-C", repoDir, "status", "--porcelain")).trim()
+        val gitOutput = executor.executeCommand(
+            command = listOf("git", "-C", repoDir, "status", "--porcelain"),
+            timeoutMinutes = gitTimeout
+        ).trim()
         if (gitOutput.isBlank()) return emptyList()
 
         // Выделяем директории из вывода git status

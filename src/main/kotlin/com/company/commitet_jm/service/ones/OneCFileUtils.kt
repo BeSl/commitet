@@ -74,13 +74,17 @@ class OneCFileUtils {
                     val newName = renameRule(file.name)
                     val newFile = File(directory, newName)
                     if (newName != file.name) {
-                        if (newFile.exists()) newFile.delete()
-                        file.renameTo(newFile)
+                        if (newFile.exists() && !newFile.delete()) {
+                            log.warn("Не удалось удалить существующий файл перед переименованием: $newFile")
+                        }
+                        if (!file.renameTo(newFile)) {
+                            log.warn("Не удалось переименовать ${file.name} -> $newName в каталоге $directory")
+                        }
                     }
                 }
                 else -> {
-                    if (!file.isDirectory) {
-                        file.delete()
+                    if (!file.isDirectory && !file.delete()) {
+                        log.warn("Не удалось удалить файл: $file")
                     }
                 }
             }

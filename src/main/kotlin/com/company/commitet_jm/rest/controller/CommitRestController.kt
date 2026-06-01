@@ -46,14 +46,7 @@ class CommitRestController(
     ): ResponseEntity<Any> {
         log.info("POST /api/commits - создание коммита для проекта {}", request.projectId)
 
-        val validationErrors = mutableListOf<String>()
-
-        if (request.taskNum.isBlank()) {
-            validationErrors.add("taskNum не может быть пустым")
-        }
-        if (request.description.isBlank()) {
-            validationErrors.add("description не может быть пустым")
-        }
+        val validationErrors = commitRestService.validate(request)
 
         if (validationErrors.isNotEmpty()) {
             return ResponseEntity
