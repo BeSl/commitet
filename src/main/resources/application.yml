@@ -27,6 +27,13 @@ spring:
       chat:
         model: qwen3:14b
     ollama.base-url: http://localhost:11434
+  # Параметры подключения к брокеру RabbitMQ (используются только при commit.rabbitmq.enabled=true)
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
 
 jmix:
   ui:
@@ -43,4 +50,13 @@ git:
   timeout: 20
   user: test
   token: test
+
+# Чтение коммитов внешних обработок из очереди RabbitMQ.
+# По умолчанию выключено: приложение стартует без брокера.
+commit:
+  rabbitmq:
+    enabled: false
+    queue: commitet.commits
+    concurrency: 1
+    max-concurrency: 1
 
