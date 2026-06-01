@@ -71,6 +71,16 @@ graph TD
 ### 5. Scheduled Jobs
 - `Committer` - задача для автоматического создания коммитов
 
+### 5.1 Messaging (RabbitMQ)
+- `CommitQueueListener` - потребитель очереди RabbitMQ, работает в отдельном пуле
+  потоков и создаёт коммиты внешних обработок, переиспользуя `CommitRestService`.
+- `RabbitMqConfig` / `RabbitMqProperties` - конфигурация очереди и пула потоков.
+  Включается свойством `commit.rabbitmq.enabled=true` (по умолчанию выключено).
+  Подробнее: [docs/RABBITMQ.md](docs/RABBITMQ.md).
+
+> Примечание: сбор diff по изменениям удалён. Информация о коммите хранится в
+> сущностях `Commit` / `FileCommit` без вычисления текстового diff.
+
 ### 6. Сущности (Entities)
 - `Project` - проект
 - `Commit` - коммит

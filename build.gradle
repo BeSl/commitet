@@ -65,6 +65,8 @@ dependencies {
 
     runtimeOnly 'org.hsqldb:hsqldb'
     implementation 'org.springframework.boot:spring-boot-starter-quartz'
+    // RabbitMQ для чтения очереди коммитов внешних обработок
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
