@@ -67,7 +67,7 @@ class UnpackService {
      */
     @Throws(IOException::class)
     private fun unpackElements(v8File: V8File) {
-        for (element in v8File.elements!!) {
+        for (element in v8File.elements.orEmpty()) {
             try {
                 // Проверяем, являются ли данные сжатыми
                 val data: ByteArray? = element.getData()
@@ -131,7 +131,7 @@ class UnpackService {
      */
     @Throws(IOException::class)
     private fun saveElementsToDirectory(v8File: V8File?, outputDirPath: String?) {
-        for (element in v8File!!.elements!!) {
+        for (element in v8File?.elements.orEmpty()) {
             var elementName: String? = element.elementName
             if (elementName == null || elementName.isEmpty()) {
                 elementName = "element_" + System.currentTimeMillis()

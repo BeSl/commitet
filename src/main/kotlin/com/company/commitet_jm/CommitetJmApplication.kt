@@ -1,6 +1,5 @@
 package com.company.commitet_jm
 
-import com.company.commitet_jm.component.ShellExecutor
 import com.company.commitet_jm.service.chat.ChatHistoryService
 import com.company.commitet_jm.service.ones.OneRunner
 import com.vaadin.flow.component.page.AppShellConfigurator
@@ -11,7 +10,6 @@ import io.jmix.core.DataManager
 import io.jmix.flowui.UiEventPublisher
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties
@@ -22,7 +20,6 @@ import org.springframework.context.annotation.Primary
 import org.springframework.context.event.EventListener
 import org.springframework.core.env.Environment
 import org.springframework.scheduling.annotation.EnableScheduling
-import java.io.File
 import javax.sql.DataSource
 
 
@@ -70,14 +67,6 @@ open class CommitetJmApplication() : AppShellConfigurator {
         uiEventPublisher: UiEventPublisher
     ): ChatHistoryService {
         return ChatHistoryService(dataManager, uiEventPublisher)
-    }
-
-    @Bean
-    open fun shellExecutor(
-        @Value("\${git.timeout:7}") timeout: Long,
-        @Value("\${app.shell-workdir:.}") workDir: String
-    ): ShellExecutor {
-        return ShellExecutor(workingDir = File(workDir), timeout = timeout)
     }
 
 }

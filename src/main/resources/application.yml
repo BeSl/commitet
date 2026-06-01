@@ -29,11 +29,11 @@ spring:
     ollama.base-url: http://localhost:11434
   # Параметры подключения к брокеру RabbitMQ (используются только при commit.rabbitmq.enabled=true)
   rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
-    virtual-host: /
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    virtual-host: ${RABBITMQ_VHOST:/}
 
 jmix:
   ui:
@@ -46,10 +46,11 @@ jmix:
       - pdf
 
 # Git configuration
+# Учётные данные берутся из переменных окружения; значения по умолчанию — для локальной разработки
 git:
   timeout: 20
-  user: test
-  token: test
+  user: ${GIT_USER:test}
+  token: ${GIT_TOKEN:test}
 
 # Чтение коммитов внешних обработок из очереди RabbitMQ.
 # По умолчанию выключено: приложение стартует без брокера.

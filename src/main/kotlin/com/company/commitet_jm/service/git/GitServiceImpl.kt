@@ -171,8 +171,10 @@ class GitServiceImpl(
         }
 
         val authUrlRepo = "${pref}$gitUserName:$gitUserToken@${urlRepo.removePrefix(pref)}"
-        executor.workingDir = File(repoPath)
-        executor.executeCommand(listOf("git", "remote", "set-url", "origin", authUrlRepo))
+        executor.executeCommand(
+            command = listOf("git", "remote", "set-url", "origin", authUrlRepo),
+            workingDir = File(repoPath)
+        )
     }
 
     private fun prepareRepository(repoDir: File, remoteBranch: String, taskNum: String) {

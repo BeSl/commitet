@@ -67,14 +67,13 @@ class OneRunner(
 
                throw RuntimeException("Path b8Unpack is Empty!!!")
             }
-            val se = ShellExecutor(File("."))
-            se.executeCommand(listOf(
+            shellExecutor.executeCommand(listOf(
                 v8unpackPath,
                 "-U",
                 inputFile.path,
                 outDir
             ))
-            
+
         }else{
             val unp = UnpackService()
             unp.unpackToDirectory(inputFile.path, outDir)
