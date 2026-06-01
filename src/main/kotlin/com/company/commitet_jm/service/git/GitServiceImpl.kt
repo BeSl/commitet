@@ -301,16 +301,14 @@ class GitServiceImpl(
     // ==================== COMMIT STATUS MANAGEMENT ====================
 
     private fun findNextCommitToProcess(): Commit? {
-        return try {
-            dataManager.load(Commit::class.java)
-                .query("select c from Commit_ c where c.status = :status order by c.id asc")
-                .parameter("status", StatusSheduler.NEW)
-                .optional()
-                .orElse(null)
-        } catch (e: Exception) {
-            log.error("[COMMIT] Ошибка при поиске задач для обработки: ${e.message}")
-            null
-        }
+        // Берём только одну задачу за итерацию; исключения НЕ глушим — сбой БД
+        // должен быть виден в логах/мониторинге, а не приводить к молчаливому простою.
+        return dataManager.load(Commit::class.java)
+            .query("select c from Commit_ c where c.status = :status order by c.id asc")
+            .parameter("status", StatusSheduler.NEW)
+            .maxResults(1)
+            .optional()
+            .orElse(null)
     }
 
     private fun updateCommitStatus(commitInfo: Commit, status: StatusSheduler) {

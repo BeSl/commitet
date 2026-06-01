@@ -92,9 +92,10 @@ open class ConfigMetadataService(
     open fun importConfig(project: Project, metadataDtoList: List<MetadataDTO>): ImportResult {
         log.info("Starting metadata import for project: ${project.name}, items count: ${metadataDtoList.size}")
 
-        // Загружаем все существующие элементы для этого проекта
-        val existingItems = loadExistingItems(project)
-        val existingByExternalId = existingItems.associateBy { it.externalId }
+        // Загружаем только существующие элементы, затронутые импортом (по externalId),
+        // чтобы не вытягивать в память всю таблицу метаданных проекта.
+        val externalIds = collectExternalIds(metadataDtoList)
+        val existingByExternalId = loadExistingItems(project, externalIds)
 
         val itemsToSave = mutableListOf<ConfigMetadataItem>()
         val createdByExternalId = mutableMapOf<String, ConfigMetadataItem>()
@@ -457,11 +458,37 @@ open class ConfigMetadataService(
             .list()
     }
 
-    private fun loadExistingItems(project: Project): List<ConfigMetadataItem> {
-        return dataManager.load(ConfigMetadataItem::class.java)
-            .query("select e from ConfigMetadataItem e where e.project = :project")
-            .parameter("project", project)
-            .list()
+    /**
+     * Собирает все externalId из дерева DTO (включая вложенные элементы).
+     */
+    private fun collectExternalIds(dtos: List<MetadataDTO>): Set<String> {
+        val ids = HashSet<String>()
+        val stack = ArrayDeque(dtos)
+        while (stack.isNotEmpty()) {
+            val dto = stack.removeFirst()
+            ids.add(dto.externalId)
+            stack.addAll(dto.children)
+        }
+        return ids
+    }
+
+    /**
+     * Загружает существующие элементы проекта только по переданным externalId,
+     * порциями (чтобы не превысить лимит параметров SQL и не вытягивать всю таблицу).
+     */
+    private fun loadExistingItems(project: Project, externalIds: Set<String>): Map<String, ConfigMetadataItem> {
+        if (externalIds.isEmpty()) return emptyMap()
+
+        val result = HashMap<String, ConfigMetadataItem>(externalIds.size)
+        externalIds.chunked(BATCH_SIZE).forEach { chunk ->
+            dataManager.load(ConfigMetadataItem::class.java)
+                .query("select e from ConfigMetadataItem e where e.project = :project and e.externalId in :ids")
+                .parameter("project", project)
+                .parameter("ids", chunk)
+                .list()
+                .forEach { item -> item.externalId?.let { result[it] = item } }
+        }
+        return result
     }
 
     private fun buildFullPath(parent: ConfigMetadataItem?, name: String?): String {
